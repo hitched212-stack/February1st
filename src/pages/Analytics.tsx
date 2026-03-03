@@ -876,14 +876,14 @@ export default function Analytics() {
                     variant="ghost" 
                     className={cn(
                       "h-9 text-sm gap-2 rounded-xl px-3 transition-all duration-200",
-                      "hover:bg-muted/50 text-white"
+                      "hover:bg-muted/50 text-foreground"
                     )}
                   >
-                    <CalendarIcon className="h-4 w-4 text-white" />
+                    <CalendarIcon className="h-4 w-4" />
                     <span className="font-display font-bold tabular-nums">
                       {`${format(startOfMonth(new Date()), 'MMM dd')} - ${format(endOfMonth(new Date()), 'MMM dd')}`}
                     </span>
-                    <ChevronDown className="h-3.5 w-3.5 text-white/70" />
+                    <ChevronDown className="h-3.5 w-3.5 opacity-70" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">

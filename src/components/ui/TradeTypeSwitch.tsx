@@ -37,7 +37,7 @@ export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeT
   const slidePercentage = (activeIndex * 100) / tradeTypes.length;
 
   return (
-    <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-card/85 dark:bg-card/70 backdrop-blur-xl p-1">
+    <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
       {/* Sliding background */}
       <div
         className="absolute top-1 bottom-1 transition-all duration-500 rounded-lg bg-pnl-positive/10 border border-pnl-positive/30 shadow-sm"
@@ -58,7 +58,7 @@ export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeT
               type="button"
               onClick={() => handleChange(tradeType.value)}
               className={cn(
-                "flex-1 flex items-center justify-center h-10 px-4 text-sm font-medium transition-colors duration-500 rounded-lg",
+                "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium transition-colors duration-500 rounded-lg",
                 isActive
                   ? "text-pnl-positive"
                   : "text-muted-foreground hover:text-foreground/80"

@@ -19,7 +19,7 @@ export function TradeStatusSwitch({ isOpen, onChange, className }: TradeStatusSw
 
   return (
     <div className={cn(
-      "relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-card/85 dark:bg-card/70 backdrop-blur-xl p-1",
+      "relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1",
       className
     )}>
       {/* Sliding background */}
@@ -41,28 +41,28 @@ export function TradeStatusSwitch({ isOpen, onChange, className }: TradeStatusSw
           type="button"
           onClick={() => onChange(true)}
           className={cn(
-            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium justify-center rounded-lg",
+            "flex-1 flex items-center gap-1.5 h-7 px-2 text-xs font-medium justify-center rounded-lg",
             hasMounted && "transition-colors duration-500",
             isOpen
               ? "text-pnl-positive"
               : "text-muted-foreground hover:text-foreground/80"
           )}
         >
-          <LockOpen className={cn("h-4 w-4", hasMounted && "transition-transform duration-500")} strokeWidth={1.5} />
+          <LockOpen className={cn("h-3.5 w-3.5", hasMounted && "transition-transform duration-500")} strokeWidth={1.5} />
           <span>Open</span>
         </button>
         <button
           type="button"
           onClick={() => onChange(false)}
           className={cn(
-            "flex-1 flex items-center gap-2 px-4 py-3 text-sm font-medium justify-center rounded-lg",
+            "flex-1 flex items-center gap-1.5 h-7 px-2 text-xs font-medium justify-center rounded-lg",
             hasMounted && "transition-colors duration-500",
             !isOpen
               ? "text-pnl-negative"
               : "text-muted-foreground hover:text-foreground/80"
           )}
         >
-          <Lock className={cn("h-4 w-4", hasMounted && "transition-transform duration-500")} strokeWidth={1.5} />
+          <Lock className={cn("h-3.5 w-3.5", hasMounted && "transition-transform duration-500")} strokeWidth={1.5} />
           <span>Closed</span>
         </button>
       </div>

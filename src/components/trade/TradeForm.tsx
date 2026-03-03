@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 import { ImageUpload } from './ImageUpload';
 import { NewsEventSelector } from './NewsEventSelector';
 import { cn } from '@/lib/utils';
-import { Calendar, Loader2, X, Plus, Meh, Frown, Smile, Check, XIcon, ClipboardList } from 'lucide-react';
+import { Calendar, Loader2, X, Plus, Meh, Frown, Smile, Check, XIcon, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { z } from 'zod';
@@ -691,6 +691,7 @@ export function TradeForm({
     return tabMap[urlTab || ''] || 'general';
   };
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
+  const [showAdvancedOverview, setShowAdvancedOverview] = useState(false);
   return <form onSubmit={handleSubmit} className="w-full h-full flex flex-col md:p-6 md:pt-8" onClick={(e) => e.stopPropagation()}>
       <div className={cn(
         "flex flex-col flex-1 min-h-0 relative overflow-hidden rounded-none md:rounded-3xl border-x-0 md:border-2 border-y-0 md:border-y-2 shadow-2xl",
@@ -740,24 +741,26 @@ export function TradeForm({
             </Button>
           </div>
           
-          {/* Tab Navigation - Modern Segmented Control - Centered on all viewports */}
+          {/* Tab Navigation */}
           <div className="flex justify-center">
-            <div className="flex items-center gap-0.5 p-1 rounded-full bg-muted overflow-x-auto scrollbar-hide w-fit border border-border">
-              <button type="button" onClick={() => setActiveTab('general')} className={cn("px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap flex-shrink-0", activeTab === 'general' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50")}>
-                Overview
-              </button>
-              <button type="button" onClick={() => setActiveTab('chart-analysis')} className={cn("px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap flex-shrink-0", activeTab === 'chart-analysis' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50")}>
-                Chart
-              </button>
-              <button type="button" onClick={() => setActiveTab('pre-market-forecast')} className={cn("px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap flex-shrink-0", activeTab === 'pre-market-forecast' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50")}>
-                Plan
-              </button>
-              <button type="button" onClick={() => setActiveTab('post-market-forecast')} className={cn("px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap flex-shrink-0", activeTab === 'post-market-forecast' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50")}>
-                Review
-              </button>
-              <button type="button" onClick={() => setActiveTab('emotions')} className={cn("px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap flex-shrink-0", activeTab === 'emotions' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50")}>
-                Mindset
-              </button>
+            <div className="w-full max-w-3xl rounded-2xl border border-border/50 bg-background/70 p-1.5 backdrop-blur-sm shadow-sm overflow-x-auto scrollbar-hide">
+              <div className="grid min-w-max grid-cols-5 gap-1">
+                <button type="button" onClick={() => setActiveTab('general')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'general' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                  Overview
+                </button>
+                <button type="button" onClick={() => setActiveTab('chart-analysis')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'chart-analysis' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                  Chart
+                </button>
+                <button type="button" onClick={() => setActiveTab('pre-market-forecast')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'pre-market-forecast' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                  Plan
+                </button>
+                <button type="button" onClick={() => setActiveTab('post-market-forecast')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'post-market-forecast' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                  Review
+                </button>
+                <button type="button" onClick={() => setActiveTab('emotions')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'emotions' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                  Mindset
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -767,220 +770,246 @@ export function TradeForm({
           className="flex-1 overflow-y-auto px-4 md:px-6 py-6 pb-24 md:py-8 md:pb-8 overscroll-y-contain touch-pan-y min-h-0 relative z-10"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
+          <div className="w-full max-w-7xl mx-auto">
+
+          <div className="hidden md:flex justify-end mb-3">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-10 px-6 rounded-xl font-semibold text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {isSubmitting ? <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  {editTrade ? 'Updating...' : 'Saving...'}
+                </> : editTrade ? 'Update Trade' : 'Add Trade'}
+            </Button>
+          </div>
           
           {/* GENERAL TAB */}
-          {activeTab === 'general' && <div className="space-y-5">
-              {/* Trade Type Selector - Smooth Switch */}
-              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
-                <span className="text-sm font-semibold text-foreground">Trade Type</span>
-                <TradeTypeSwitch
-                  isPaperTrade={formData.isPaperTrade}
-                  noTradeTaken={formData.noTradeTaken}
-                  onChange={(isPaperTrade, noTradeTaken) => 
-                    setFormData(p => ({ ...p, isPaperTrade, noTradeTaken }))
-                  }
-                />
-              </div>
-
-              {/* Trade Status Switch - Open/Closed */}
-              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
-                <Label className="text-sm font-semibold text-foreground">Status</Label>
-                <TradeStatusSwitch
-                  isOpen={formData.status === 'open'}
-                  onChange={(isOpen) => setFormData(p => ({ ...p, status: isOpen ? 'open' : 'closed' }))}
-                />
-              </div>
-
-              {/* Type (Buy/Sell Toggle) */}
-              <div className="space-y-3 p-4 rounded-xl border-2 border-border/50 bg-muted/30">
-                <Label className="text-sm font-semibold text-foreground">Type</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={() => setFormData(p => ({
-                ...p,
-                direction: 'long'
-              }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border shadow-sm hover:scale-[1.02]", formData.direction === 'long' ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/40 shadow-pnl-positive/20 font-semibold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/80 hover:text-foreground hover:border-border/80 font-normal")}>
-                    Buy (long)
-                  </button>
-                  <button type="button" onClick={() => setFormData(p => ({
-                ...p,
-                direction: 'short'
-              }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border shadow-sm hover:scale-[1.02]", formData.direction === 'short' ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/40 shadow-pnl-negative/20 font-semibold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/80 hover:text-foreground hover:border-border/80 font-normal")}>
-                    Sell (short)
-                  </button>
-                </div>
-              </div>
-
-              {/* Date & Time */}
-              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
-                <Label className="text-sm font-semibold text-foreground">Date & Time</Label>
-                <div className="flex rounded-xl border-2 border-border/60 bg-background/80 overflow-hidden shadow-sm">
-                  <input id="date" name="date" type="date" value={formData.date} onChange={e => setFormData(p => ({
-                ...p,
-                date: e.target.value
-              }))} className="flex-1 h-11 bg-transparent text-sm px-3 text-foreground focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-50 dark:[&::-webkit-calendar-picker-indicator]:invert" />
-                  <div className="w-px bg-border" />
-                  <input id="entryTime" name="entryTime" type="time" value={formData.entryTime} onChange={e => setFormData(p => ({
-                ...p,
-                entryTime: e.target.value
-              }))} className="flex-1 h-11 bg-transparent text-sm px-3 text-foreground focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-50 dark:[&::-webkit-calendar-picker-indicator]:invert" />
-                </div>
-              </div>
-
-              {/* Symbol & P&L */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="symbol" className="text-xs font-semibold text-foreground">Symbol *</Label>
-                  <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({
-                ...p,
-                symbol: e.target.value.toUpperCase()
-              }))} placeholder="e.g. AAPL, EUR/USD" className="h-9 bg-background/80 border-2 border-border/60 text-sm font-medium text-foreground placeholder:text-muted-foreground uppercase focus:border-ring shadow-sm rounded-xl" />
-                </div>
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="pnlAmount" className="text-xs font-semibold text-foreground">Gross P&L ({currencySymbol})</Label>
-                  <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500 or -250" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
-                </div>
-              </div>
-
-              {/* Hold Time & R:R */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="holdingTime" className="text-sm font-semibold text-foreground">Hold Time</Label>
-                  <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="e.g. 2h 30m" className="h-10 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground text-sm focus:border-ring shadow-sm rounded-xl" />
-                </div>
-                <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="riskRewardRatio" className="text-sm font-semibold text-foreground">Risk:Reward</Label>
-                  <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="e.g. 1:2" className="h-10 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground text-sm focus:border-ring shadow-sm rounded-xl" />
-                </div>
-              </div>
-
-              {/* Lot Size & SL Pips */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="lotSize" className="text-xs font-semibold text-foreground">Lot Size</Label>
-                  <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
-                </div>
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="stopLossPips" className="text-xs font-semibold text-foreground">SL (Pips/Points)</Label>
-                  <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="e.g. 15" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
-                </div>
-              </div>
-
-              {/* Entry Price, Stop Loss & Take Profit */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="entryPrice" className="text-xs font-semibold text-foreground">Entry</Label>
-                  <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
-                </div>
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="stopLoss" className="text-xs font-semibold text-foreground">SL</Label>
-                  <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
-                </div>
-                <div className="space-y-2 p-3 rounded-xl border border-border/50 bg-muted/30">
-                  <Label htmlFor="takeProfit" className="text-xs font-semibold text-foreground">TP</Label>
-                  <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/80 border-2 border-border/60 text-foreground placeholder:text-muted-foreground tabular-nums text-sm font-medium focus:border-ring shadow-sm rounded-xl" />
-                </div>
-              </div>
-
-              {/* Followed Rules */}
-              <div className="space-y-4 p-5 rounded-xl border-2 border-border/50 bg-gradient-to-b from-muted/40 to-muted/20 shadow-sm">
-                <div className="flex items-center gap-2.5">
-                  <ClipboardList className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
-                  <Label className="text-sm font-bold text-foreground">Followed Rules</Label>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={() => setFormData(p => ({
-                    ...p,
-                    followedRules: true
-                  }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border flex items-center justify-center gap-2 hover:scale-[1.02] shadow-sm", formData.followedRules ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/40 shadow-pnl-positive/20 font-bold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground hover:border-border/80 font-normal")}>
-                    <Check className="h-4 w-4" strokeWidth={2.5} />
-                    Yes
-                  </button>
-                  <button type="button" onClick={() => setFormData(p => ({
-                    ...p,
-                    followedRules: false
-                  }))} className={cn("h-11 rounded-xl text-sm transition-all duration-200 border flex items-center justify-center gap-2 hover:scale-[1.02] shadow-sm", !formData.followedRules ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/40 shadow-pnl-negative/20 font-bold" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground hover:border-border/80 font-normal")}>
-                    <XIcon className="h-4 w-4" strokeWidth={2.5} />
-                    No
-                  </button>
+          {activeTab === 'general' && <div className="space-y-3">
+            {/* Compact Header Section */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {/* Trade Type */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Trade Type</span>
+                  <TradeTypeSwitch
+                    isPaperTrade={formData.isPaperTrade}
+                    noTradeTaken={formData.noTradeTaken}
+                    onChange={(isPaperTrade, noTradeTaken) => 
+                      setFormData(p => ({ ...p, isPaperTrade, noTradeTaken }))
+                    }
+                  />
                 </div>
 
-                {/* Followed Rules Selection - Only show when followedRules is true */}
-                {formData.followedRules && (
-                  <div className="space-y-3 pt-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                    <Label className="text-sm text-muted-foreground">Which rules did you follow?</Label>
-                    {tradingRules.length > 0 ? (
-                      <div className="space-y-2">
-                        {tradingRules.map((rule, index) => {
-                          const isSelected = formData.followedRulesList.includes(rule);
-                          return (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => {
-                                setFormData(p => ({
-                                  ...p,
-                                  followedRulesList: isSelected 
-                                    ? p.followedRulesList.filter(r => r !== rule)
-                                    : [...p.followedRulesList, rule]
-                                }));
-                              }}
-                              className={cn(
-                                "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border flex items-center gap-2 hover:scale-[1.02]",
-                                isSelected 
-                                  ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40" 
-                                  : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
-                              )}
-                            >
-                              <div className={cn(
-                                "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
-                                isSelected 
-                                  ? "bg-pnl-positive border-pnl-positive" 
-                                  : "border-muted-foreground"
-                              )}>
-                                {isSelected && <Check className="h-3 w-3 text-white" />}
-                              </div>
-                              <span className="flex-1">{rule}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">
-                        No rules configured. Add rules in Settings → Trading Rules.
-                      </p>
-                    )}
+                {/* Status */}
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Status</Label>
+                  <TradeStatusSwitch
+                    isOpen={formData.status === 'open'}
+                    onChange={(isOpen) => setFormData(p => ({ ...p, status: isOpen ? 'open' : 'closed' }))}
+                  />
+                </div>
+
+                {/* Direction */}
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Direction</Label>
+                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
+                    {/* Sliding background */}
+                    <div
+                      className={cn(
+                        "absolute top-1 bottom-1 rounded-lg pointer-events-none shadow-sm transition-all duration-500",
+                        formData.direction === 'long' 
+                          ? "border border-pnl-positive/30 bg-pnl-positive/10" 
+                          : "border border-pnl-negative/30 bg-pnl-negative/10"
+                      )}
+                      style={{
+                        width: "calc(50% - 0.5rem)",
+                        left: formData.direction === 'long' ? "0.25rem" : "calc(50% + 0.25rem)",
+                      }}
+                    />
+                    
+                    {/* Buttons */}
+                    <div className="flex gap-0 w-full relative z-10">
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData(p => ({ ...p, direction: 'long' }))} 
+                        className={cn(
+                          "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium transition-colors duration-500 rounded-lg",
+                          formData.direction === 'long' 
+                            ? "text-pnl-positive" 
+                            : "text-muted-foreground hover:text-foreground/80"
+                        )}
+                      >
+                        Buy
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData(p => ({ ...p, direction: 'short' }))} 
+                        className={cn(
+                          "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium transition-colors duration-500 rounded-lg",
+                          formData.direction === 'short' 
+                            ? "text-pnl-negative" 
+                            : "text-muted-foreground hover:text-foreground/80"
+                        )}
+                      >
+                        Sell
+                      </button>
+                    </div>
                   </div>
-                )}
+                </div>
 
-                {/* Broken Rules Selection - Only show when followedRules is false */}
-                {!formData.followedRules && (
-                  <div className="space-y-3 pt-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                    <Label className="text-sm text-muted-foreground">Which rules did you break?</Label>
-                    {(() => {
-                      // Filter out rules that were already marked as followed
-                      const availableRules = tradingRules.filter(rule => !formData.followedRulesList.includes(rule));
-                      
-                      if (tradingRules.length === 0) {
-                        return (
-                          <p className="text-sm text-muted-foreground italic">
-                            No rules configured. Add rules in Settings → Trading Rules.
-                          </p>
-                        );
-                      }
-                      
-                      if (availableRules.length === 0) {
-                        return (
-                          <p className="text-sm text-muted-foreground italic">
-                            All rules were followed. Switch to "Yes" to modify followed rules.
-                          </p>
-                        );
-                      }
-                      
-                      return (
-                        <div className="space-y-2">
-                          {availableRules.map((rule, index) => {
-                            const isSelected = formData.brokenRules.includes(rule);
+                {/* Date & Time */}
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Date & Time</Label>
+                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
+                    <div className="flex gap-0 w-full relative z-10">
+                      <input 
+                        id="date" 
+                        name="date" 
+                        type="date" 
+                        value={formData.date} 
+                        onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} 
+                        className="flex-1 h-7 bg-transparent text-xs px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-50 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                      />
+                      <div className="w-px bg-border/40 my-1" />
+                      <input 
+                        id="entryTime" 
+                        name="entryTime" 
+                        type="time" 
+                        value={formData.entryTime} 
+                        onChange={e => setFormData(p => ({ ...p, entryTime: e.target.value }))} 
+                        className="flex-1 h-7 bg-transparent text-xs px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-50 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Trade Entry */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+              <div className="space-y-2">
+                {/* Row 1: Symbol, Entry, SL, TP, Lot Size */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide w-20 flex-shrink-0">Trade Entry</span>
+                  <div className="h-px flex-1 bg-border/40" />
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="symbol" className="text-[10px] font-semibold text-foreground/60">Symbol *</Label>
+                    <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({ ...p, symbol: e.target.value.toUpperCase() }))} placeholder="AAPL" className="h-7 bg-background/90 border border-border/60 rounded-xl text-xs font-medium text-foreground placeholder:text-muted-foreground/60 uppercase focus:border-ring transition-colors" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="entryPrice" className="text-[10px] font-semibold text-foreground/60">Entry</Label>
+                    <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="stopLoss" className="text-[10px] font-semibold text-foreground/60">SL</Label>
+                    <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="takeProfit" className="text-[10px] font-semibold text-foreground/60">TP</Label>
+                    <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="lotSize" className="text-[10px] font-semibold text-foreground/60">Lot Size</Label>
+                    <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Risk & Loss - Always Visible */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide w-20 flex-shrink-0">Risk & Loss</span>
+                  <div className="h-px flex-1 bg-border/40" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="pnlAmount" className="text-[10px] font-semibold text-foreground/60">Gross P&L ({currencySymbol})</Label>
+                    <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="stopLossPips" className="text-[10px] font-semibold text-foreground/60">SL Pips</Label>
+                    <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="15" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="holdingTime" className="text-[10px] font-semibold text-foreground/60">Hold Time</Label>
+                    <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="2h 30m" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs focus:border-ring transition-colors" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="riskRewardRatio" className="text-[10px] font-semibold text-foreground/60">R:R</Label>
+                    <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="1:2" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs focus:border-ring transition-colors" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {!showAdvancedOverview && (
+              <button
+                type="button"
+                onClick={() => setShowAdvancedOverview(true)}
+                className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background/80 text-sm font-medium text-foreground flex items-center justify-between hover:bg-muted/40 transition-colors"
+              >
+                <span>Show advanced details</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+
+            {showAdvancedOverview && (
+              <>
+            <button
+              type="button"
+              onClick={() => setShowAdvancedOverview(false)}
+              className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background/80 text-sm font-medium text-foreground flex items-center justify-between hover:bg-muted/40 transition-colors"
+            >
+              <span>Hide advanced details</span>
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            {/* Followed Rules & Performance Assessment Combined */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Followed Rules - Left Column */}
+                <div className="space-y-2 rounded-xl border border-border/50 bg-transparent p-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <ClipboardList className="h-3.5 w-3.5 text-foreground/60" strokeWidth={1.5} />
+                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Followed Rules</Label>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">
+                      {formData.followedRules ? `${formData.followedRulesList.length} selected` : `${formData.brokenRules.length} selected`}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1 rounded-lg border border-border/60 bg-transparent p-1">
+                    <button type="button" onClick={() => setFormData(p => ({
+                      ...p,
+                      followedRules: true
+                    }))} className={cn("h-7 rounded-md text-xs transition-all duration-200 border flex items-center justify-center gap-1 font-medium", formData.followedRules ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/40" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground")}>
+                      <Check className="h-3 w-3" strokeWidth={2.5} />
+                      Yes
+                    </button>
+                    <button type="button" onClick={() => setFormData(p => ({
+                      ...p,
+                      followedRules: false
+                    }))} className={cn("h-7 rounded-md text-xs transition-all duration-200 border flex items-center justify-center gap-1 font-medium", !formData.followedRules ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/40" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground")}>
+                      <XIcon className="h-3 w-3" strokeWidth={2.5} />
+                      No
+                    </button>
+                  </div>
+
+                  {formData.followedRules && (
+                    <div className="space-y-1.5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                      <Label className="text-[10px] text-muted-foreground">Which rules did you follow?</Label>
+                      {tradingRules.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {tradingRules.map((rule, index) => {
+                            const isSelected = formData.followedRulesList.includes(rule);
                             return (
                               <button
                                 key={index}
@@ -988,109 +1017,154 @@ export function TradeForm({
                                 onClick={() => {
                                   setFormData(p => ({
                                     ...p,
-                                    brokenRules: isSelected 
-                                      ? p.brokenRules.filter(r => r !== rule)
-                                      : [...p.brokenRules, rule]
+                                    followedRulesList: isSelected
+                                      ? p.followedRulesList.filter(r => r !== rule)
+                                      : [...p.followedRulesList, rule]
                                   }));
                                 }}
                                 className={cn(
-                                  "w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 border-2 flex items-center gap-2 hover:scale-[1.02]",
-                                  isSelected 
-                                    ? "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/40" 
+                                  "h-8 px-2 rounded-lg text-xs transition-all duration-200 border flex items-center gap-1.5 text-left",
+                                  isSelected
+                                    ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40"
                                     : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
                                 )}
                               >
                                 <div className={cn(
-                                  "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
-                                  isSelected 
-                                    ? "bg-pnl-negative border-pnl-negative" 
-                                    : "border-muted-foreground"
+                                  "h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0",
+                                  isSelected ? "bg-pnl-positive border-pnl-positive" : "border-muted-foreground"
                                 )}>
-                                  {isSelected && <Check className="h-3 w-3 text-white" />}
+                                  {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
                                 </div>
-                                <span className="flex-1">{rule}</span>
+                                <span className="truncate">{rule}</span>
                               </button>
                             );
                           })}
                         </div>
-                      );
-                    })()}
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">
+                          No rules configured. Add rules in Settings → Trading Rules.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {!formData.followedRules && (
+                    <div className="space-y-1.5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                      <Label className="text-[10px] text-muted-foreground">Which rules did you break?</Label>
+                      {(() => {
+                        const availableRules = tradingRules.filter(rule => !formData.followedRulesList.includes(rule));
+
+                        if (tradingRules.length === 0) {
+                          return (
+                            <p className="text-xs text-muted-foreground italic">
+                              No rules configured. Add rules in Settings → Trading Rules.
+                            </p>
+                          );
+                        }
+
+                        if (availableRules.length === 0) {
+                          return (
+                            <p className="text-xs text-muted-foreground italic">
+                              All rules were followed. Switch to "Yes" to modify followed rules.
+                            </p>
+                          );
+                        }
+
+                        return (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {availableRules.map((rule, index) => {
+                              const isSelected = formData.brokenRules.includes(rule);
+                              return (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(p => ({
+                                      ...p,
+                                      brokenRules: isSelected
+                                        ? p.brokenRules.filter(r => r !== rule)
+                                        : [...p.brokenRules, rule]
+                                    }));
+                                  }}
+                                  className={cn(
+                                    "h-8 px-2 rounded-lg text-xs transition-all duration-200 border flex items-center gap-1.5 text-left",
+                                    isSelected
+                                      ? "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/40"
+                                      : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
+                                  )}
+                                >
+                                  <div className={cn(
+                                    "h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0",
+                                    isSelected ? "bg-pnl-negative border-pnl-negative" : "border-muted-foreground"
+                                  )}>
+                                    {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                                  </div>
+                                  <span className="truncate">{rule}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Performance Grade, Category & Strategy - Right Column */}
+                <div className="space-y-2">
+                  {/* Performance Grade */}
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Performance Grade</Label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {[1, 2, 3].map(grade => {
+                        const isSelected = parseInt(formData.performanceGrade) === grade;
+                        const gradeColors: Record<number, { selected: string; text: string; }> = {
+                          1: { selected: 'bg-red-500/15 border-red-500/30', text: 'text-red-500' },
+                          2: { selected: 'bg-amber-500/15 border-amber-500/30', text: 'text-amber-500' },
+                          3: { selected: 'bg-pnl-positive/15 border-pnl-positive/30', text: 'text-pnl-positive' }
+                        };
+                        const colors = gradeColors[grade];
+                        return (
+                          <button 
+                            key={grade} 
+                            type="button" 
+                            onClick={() => setFormData(p => ({ ...p, performanceGrade: grade.toString() }))} 
+                            className={cn(
+                              "h-7 rounded text-xs font-semibold transition-all duration-200 border", 
+                              isSelected ? `${colors.selected} ${colors.text}` : "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                            )}
+                          >
+                            {grade}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
 
-              {/* Performance Grade */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-foreground">Performance Grade</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[1, 2, 3].map(grade => {
-                    const isSelected = parseInt(formData.performanceGrade) === grade;
-                    const gradeColors: Record<number, {
-                      selected: string;
-                      text: string;
-                      label: string;
-                    }> = {
-                      1: {
-                        selected: 'bg-red-500/15 border-red-500/30',
-                        text: 'text-red-500',
-                        label: 'Poor'
-                      },
-                      2: {
-                        selected: 'bg-amber-500/15 border-amber-500/30',
-                        text: 'text-amber-500',
-                        label: 'Average'
-                      },
-                      3: {
-                        selected: 'bg-pnl-positive/15 border-pnl-positive/30',
-                        text: 'text-pnl-positive',
-                        label: 'Excellent'
-                      }
-                    };
-                    const colors = gradeColors[grade];
-                    return (
-                      <button 
-                        key={grade} 
-                        type="button" 
-                        onClick={() => setFormData(p => ({
-                          ...p,
-                          performanceGrade: grade.toString()
-                        }))} 
-                        className={cn(
-                          "h-10 rounded-lg text-sm font-medium transition-all duration-200 border hover:scale-[1.02]", 
-                          isSelected ? `${colors.selected} ${colors.text}` : "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-                        )}
-                      >
-                        {grade}
-                      </button>
-                    );
-                  })}
+                  {/* Category */}
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-foreground/60">Category</Label>
+                    <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
+                      <SelectTrigger className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground text-xs font-medium transition-colors [&>svg]:hidden">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Strategy */}
+                  <div className="space-y-1">
+                    <Label htmlFor="strategy" className="text-[10px] text-foreground/60">Strategy</Label>
+                    <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors" />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Category & Strategy */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-sm text-foreground">Category</Label>
-                  <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({
-                ...p,
-                category: value
-              }))}>
-                    <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground text-sm">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="strategy" className="text-sm text-foreground">Strategy</Label>
-                  <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout, Scalping" className="h-9 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-ring" />
-                </div>
-              </div>
-
-              {/* News Section */}
+            {/* News Section */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
               <NewsEventSelector
                 date={formData.date || null}
                 hasNews={formData.hasNews}
@@ -1106,7 +1180,6 @@ export function TradeForm({
                   newsEvents: hasNews ? p.newsEvents : [{ id: crypto.randomUUID(), type: '', impact: '' as NewsImpact | '', time: '', currency: '' }]
                 }))}
                 onNewsSelect={(title, impact) => {
-                  // Legacy single select - only used as fallback
                   if (!title && !impact) {
                     setFormData(p => ({ ...p, newsEvents: [] }));
                   }
@@ -1122,26 +1195,27 @@ export function TradeForm({
                   }))
                 }))}
               />
+            </div>
 
-              {/* Notes */}
+            {/* Notes */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
               <div className="space-y-1.5">
-                <Label className="text-sm text-foreground">Notes</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Notes</Label>
                 <RichTextEditor value={formData.notes} onChange={(text) => handleChange({ target: { name: 'notes', value: text } } as any)} placeholder="Add any additional notes about this trade..." />
               </div>
+            </div>
+              </>
+            )}
             </div>}
 
           {/* CHART ANALYSIS TAB */}
           {activeTab === 'chart-analysis' && <div className="space-y-6">
               {/* Chart Before Section */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-sm font-semibold text-foreground px-2">Chart Before</span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addBeforeChart} className="h-7 text-xs ml-3 transition-all duration-200 hover:scale-[1.02]">
-                    <Plus className="mr-1 h-3 w-3" />
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
+                  <span className="text-sm font-semibold text-foreground">Chart Before</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={addBeforeChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
+                    <Plus className="h-3.5 w-3.5" />
                     Add Chart
                   </Button>
                 </div>
@@ -1182,14 +1256,10 @@ export function TradeForm({
 
               {/* Chart After Section */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-sm font-semibold text-foreground px-2">Chart After</span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addAfterChart} className="h-7 text-xs ml-3 transition-all duration-200 hover:scale-[1.02]">
-                    <Plus className="mr-1 h-3 w-3" />
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
+                  <span className="text-sm font-semibold text-foreground">Chart After</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={addAfterChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
+                    <Plus className="h-3.5 w-3.5" />
                     Add Chart
                   </Button>
                 </div>
@@ -1224,10 +1294,10 @@ export function TradeForm({
 
           {/* PRE MARKET FORECAST TAB */}
           {activeTab === 'pre-market-forecast' && <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-foreground">Pre Market Forecast</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addPreMarketChart} className="h-7 text-xs transition-all duration-200 hover:scale-[1.02]">
-                  <Plus className="mr-1 h-3 w-3" />
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
+                <span className="text-sm font-semibold text-foreground">Pre Market Forecast</span>
+                <Button type="button" variant="ghost" size="sm" onClick={addPreMarketChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
+                  <Plus className="h-3.5 w-3.5" />
                   Add Chart
                 </Button>
               </div>
@@ -1264,10 +1334,10 @@ export function TradeForm({
 
           {/* POST MARKET FORECAST TAB */}
           {activeTab === 'post-market-forecast' && <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-foreground">Post Market Review</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addPostMarketChart} className="h-7 text-xs transition-all duration-200 hover:scale-[1.02]">
-                  <Plus className="mr-1 h-3 w-3" />
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
+                <span className="text-sm font-semibold text-foreground">Post Market Review</span>
+                <Button type="button" variant="ghost" size="sm" onClick={addPostMarketChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
+                  <Plus className="h-3.5 w-3.5" />
                   Add Chart
                 </Button>
               </div>
@@ -1352,14 +1422,12 @@ export function TradeForm({
                 <RichTextEditor value={formData.overallEmotions} onChange={(text) => handleChange({ target: { name: 'overallEmotions', value: text } } as any)} placeholder="Describe your emotions and thoughts about this trade..." />
               </div>
             </div>}
-
-          {/* Hidden fields for advanced data */}
-          <input type="hidden" name="pnlPercentage" value={formData.pnlPercentage} />
+          </div>
         </div>
 
         {/* Footer - sticky on mobile with safe area padding */}
         <div 
-          className="sticky md:relative bottom-0 border-t border-border/50 bg-card/70 flex-shrink-0 z-40"
+          className="sticky md:hidden bottom-0 border-t border-border/50 bg-card/70 flex-shrink-0 z-40"
           style={{
             paddingLeft: 'max(1rem, env(safe-area-inset-left))',
             paddingRight: 'max(1rem, env(safe-area-inset-right))',
@@ -1367,7 +1435,7 @@ export function TradeForm({
             paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))'
           }}
         >
-          <Button type="submit" className="w-full h-11 md:h-10 text-sm rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]" disabled={isSubmitting}>
+          <Button type="submit" className="w-full h-11 md:h-10 text-sm rounded-xl font-semibold text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100" disabled={isSubmitting}>
             {isSubmitting ? <>
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 {editTrade ? 'Updating...' : 'Saving...'}
