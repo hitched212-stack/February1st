@@ -212,6 +212,14 @@ export function TradeForm({
     images: [],
     notes: ''
   }]);
+  const [enteringBeforeChartIds, setEnteringBeforeChartIds] = useState<string[]>([]);
+  const [enteringAfterChartIds, setEnteringAfterChartIds] = useState<string[]>([]);
+  const [enteringPreMarketChartIds, setEnteringPreMarketChartIds] = useState<string[]>([]);
+  const [enteringPostMarketChartIds, setEnteringPostMarketChartIds] = useState<string[]>([]);
+  const [removingBeforeChartIds, setRemovingBeforeChartIds] = useState<string[]>([]);
+  const [removingAfterChartIds, setRemovingAfterChartIds] = useState<string[]>([]);
+  const [removingPreMarketChartIds, setRemovingPreMarketChartIds] = useState<string[]>([]);
+  const [removingPostMarketChartIds, setRemovingPostMarketChartIds] = useState<string[]>([]);
   const createEmptyChart = (): ChartAnalysis => ({
     id: crypto.randomUUID(),
     timeframe: '4h',
@@ -220,7 +228,12 @@ export function TradeForm({
   });
   // Before charts management
   const addBeforeChart = () => {
-    setBeforeCharts([...beforeCharts, createEmptyChart()]);
+    const newChart = createEmptyChart();
+    setBeforeCharts(prev => [...prev, newChart]);
+    setEnteringBeforeChartIds(prev => [...prev, newChart.id]);
+    window.setTimeout(() => {
+      setEnteringBeforeChartIds(prev => prev.filter(chartId => chartId !== newChart.id));
+    }, 520);
   };
   const updateBeforeChart = (id: string, field: keyof ChartAnalysis, value: any) => {
     setBeforeCharts(beforeCharts.map(chart => chart.id === id ? {
@@ -230,13 +243,22 @@ export function TradeForm({
   };
   const removeBeforeChart = (id: string) => {
     if (beforeCharts.length > 1) {
-      setBeforeCharts(beforeCharts.filter(chart => chart.id !== id));
+      setRemovingBeforeChartIds(prev => prev.includes(id) ? prev : [...prev, id]);
+      window.setTimeout(() => {
+        setBeforeCharts(prev => prev.filter(chart => chart.id !== id));
+        setRemovingBeforeChartIds(prev => prev.filter(chartId => chartId !== id));
+      }, 320);
     }
   };
 
   // After charts management
   const addAfterChart = () => {
-    setAfterCharts([...afterCharts, createEmptyChart()]);
+    const newChart = createEmptyChart();
+    setAfterCharts(prev => [...prev, newChart]);
+    setEnteringAfterChartIds(prev => [...prev, newChart.id]);
+    window.setTimeout(() => {
+      setEnteringAfterChartIds(prev => prev.filter(chartId => chartId !== newChart.id));
+    }, 520);
   };
   const updateAfterChart = (id: string, field: keyof ChartAnalysis, value: any) => {
     setAfterCharts(afterCharts.map(chart => chart.id === id ? {
@@ -246,13 +268,22 @@ export function TradeForm({
   };
   const removeAfterChart = (id: string) => {
     if (afterCharts.length > 1) {
-      setAfterCharts(afterCharts.filter(chart => chart.id !== id));
+      setRemovingAfterChartIds(prev => prev.includes(id) ? prev : [...prev, id]);
+      window.setTimeout(() => {
+        setAfterCharts(prev => prev.filter(chart => chart.id !== id));
+        setRemovingAfterChartIds(prev => prev.filter(chartId => chartId !== id));
+      }, 320);
     }
   };
 
   // Pre-market forecast chart management
   const addPreMarketChart = () => {
-    setPreMarketCharts([...preMarketCharts, createEmptyChart()]);
+    const newChart = createEmptyChart();
+    setPreMarketCharts(prev => [...prev, newChart]);
+    setEnteringPreMarketChartIds(prev => [...prev, newChart.id]);
+    window.setTimeout(() => {
+      setEnteringPreMarketChartIds(prev => prev.filter(chartId => chartId !== newChart.id));
+    }, 520);
   };
   const updatePreMarketChart = (id: string, field: keyof ChartAnalysis, value: any) => {
     setPreMarketCharts(preMarketCharts.map(chart => chart.id === id ? {
@@ -262,13 +293,22 @@ export function TradeForm({
   };
   const removePreMarketChart = (id: string) => {
     if (preMarketCharts.length > 1) {
-      setPreMarketCharts(preMarketCharts.filter(chart => chart.id !== id));
+      setRemovingPreMarketChartIds(prev => prev.includes(id) ? prev : [...prev, id]);
+      window.setTimeout(() => {
+        setPreMarketCharts(prev => prev.filter(chart => chart.id !== id));
+        setRemovingPreMarketChartIds(prev => prev.filter(chartId => chartId !== id));
+      }, 320);
     }
   };
 
   // Post-market forecast chart management
   const addPostMarketChart = () => {
-    setPostMarketCharts([...postMarketCharts, createEmptyChart()]);
+    const newChart = createEmptyChart();
+    setPostMarketCharts(prev => [...prev, newChart]);
+    setEnteringPostMarketChartIds(prev => [...prev, newChart.id]);
+    window.setTimeout(() => {
+      setEnteringPostMarketChartIds(prev => prev.filter(chartId => chartId !== newChart.id));
+    }, 520);
   };
   const updatePostMarketChart = (id: string, field: keyof ChartAnalysis, value: any) => {
     setPostMarketCharts(postMarketCharts.map(chart => chart.id === id ? {
@@ -278,7 +318,11 @@ export function TradeForm({
   };
   const removePostMarketChart = (id: string) => {
     if (postMarketCharts.length > 1) {
-      setPostMarketCharts(postMarketCharts.filter(chart => chart.id !== id));
+      setRemovingPostMarketChartIds(prev => prev.includes(id) ? prev : [...prev, id]);
+      window.setTimeout(() => {
+        setPostMarketCharts(prev => prev.filter(chart => chart.id !== id));
+        setRemovingPostMarketChartIds(prev => prev.filter(chartId => chartId !== id));
+      }, 320);
     }
   };
 
@@ -949,27 +993,43 @@ export function TradeForm({
               </div>
             </div>
 
-            {!showAdvancedOverview && (
-              <button
-                type="button"
-                onClick={() => setShowAdvancedOverview(true)}
-                className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background/80 text-sm font-medium text-foreground flex items-center justify-between hover:bg-muted/40 transition-colors"
-              >
-                <span>Show advanced details</span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-            )}
-
-            {showAdvancedOverview && (
-              <>
             <button
               type="button"
-              onClick={() => setShowAdvancedOverview(false)}
-              className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background/80 text-sm font-medium text-foreground flex items-center justify-between hover:bg-muted/40 transition-colors"
+              onClick={() => setShowAdvancedOverview(prev => !prev)}
+              className="group w-full min-h-12 px-3 py-2 rounded-xl border border-border/50 bg-background/40 dark:bg-black/10 text-foreground flex items-center justify-between gap-3 transition-all duration-300 hover:bg-muted/30 hover:border-border"
             >
-              <span>Hide advanced details</span>
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              <div className="text-left">
+                <p className="text-sm font-medium leading-tight">Advanced details</p>
+                <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                  {showAdvancedOverview
+                    ? 'Showing: Rules, grade, category, strategy, news, notes'
+                    : 'Hidden: Rules, grade, category, strategy, news, notes'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="text-xs font-medium">{showAdvancedOverview ? 'Hide' : 'Show'}</span>
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 transition-transform duration-300 ease-out',
+                    showAdvancedOverview ? 'rotate-180' : 'rotate-0'
+                  )}
+                />
+              </div>
             </button>
+
+            <div
+              className={cn(
+                'grid transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                showAdvancedOverview ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'
+              )}
+              aria-hidden={!showAdvancedOverview}
+            >
+              <div
+                className={cn(
+                  'overflow-hidden space-y-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                  showAdvancedOverview ? 'translate-y-0' : '-translate-y-2 pointer-events-none'
+                )}
+              >
 
             {/* Followed Rules & Performance Assessment Combined */}
             <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
@@ -1204,8 +1264,8 @@ export function TradeForm({
                 <RichTextEditor value={formData.notes} onChange={(text) => handleChange({ target: { name: 'notes', value: text } } as any)} placeholder="Add any additional notes about this trade..." />
               </div>
             </div>
-              </>
-            )}
+              </div>
+            </div>
             </div>}
 
           {/* CHART ANALYSIS TAB */}
@@ -1213,7 +1273,7 @@ export function TradeForm({
               {/* Chart Before Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                  <span className="text-sm font-semibold text-foreground">Chart Before</span>
+                  <span className="text-sm font-semibold text-foreground">Chart Before ({beforeCharts.length})</span>
                   <Button type="button" variant="ghost" size="sm" onClick={addBeforeChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                     <Plus className="h-3.5 w-3.5" />
                     Add Chart
@@ -1221,7 +1281,17 @@ export function TradeForm({
                 </div>
                 
                 {beforeCharts.map((chart, index) => (
-                  <div key={chart.id} className="space-y-3 p-4 rounded-lg border border-border bg-secondary/50">
+                  <div
+                    key={chart.id}
+                    className={cn(
+                      "space-y-3 p-4 rounded-lg border border-border bg-secondary/50",
+                      removingBeforeChartIds.includes(chart.id)
+                        ? "animate-out fade-out-0 slide-out-to-top-2 duration-300"
+                        : enteringBeforeChartIds.includes(chart.id)
+                          ? "animate-in fade-in-0 slide-in-from-top-2 duration-500 ease-out"
+                          : ""
+                    )}
+                  >
                     <div className="flex items-center gap-2">
                       <Select value={chart.timeframe} onValueChange={v => updateBeforeChart(chart.id, 'timeframe', v)}>
                         <SelectTrigger className="w-28 h-7 bg-background border-border text-xs">
@@ -1232,7 +1302,7 @@ export function TradeForm({
                         </SelectContent>
                       </Select>
                       {beforeCharts.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeBeforeChart(chart.id)}>
+                        <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive disabled:opacity-40" onClick={() => removeBeforeChart(chart.id)} disabled={removingBeforeChartIds.includes(chart.id)}>
                           <X className="h-3 w-3" />
                         </Button>
                       )}
@@ -1257,7 +1327,7 @@ export function TradeForm({
               {/* Chart After Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                  <span className="text-sm font-semibold text-foreground">Chart After</span>
+                  <span className="text-sm font-semibold text-foreground">Chart After ({afterCharts.length})</span>
                   <Button type="button" variant="ghost" size="sm" onClick={addAfterChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                     <Plus className="h-3.5 w-3.5" />
                     Add Chart
@@ -1265,7 +1335,17 @@ export function TradeForm({
                 </div>
                 
                 {afterCharts.map((chart, index) => (
-                  <div key={chart.id} className="space-y-3 p-4 rounded-lg border border-border bg-secondary/50">
+                  <div
+                    key={chart.id}
+                    className={cn(
+                      "space-y-3 p-4 rounded-lg border border-border bg-secondary/50",
+                      removingAfterChartIds.includes(chart.id)
+                        ? "animate-out fade-out-0 slide-out-to-top-2 duration-300"
+                        : enteringAfterChartIds.includes(chart.id)
+                          ? "animate-in fade-in-0 slide-in-from-top-2 duration-500 ease-out"
+                          : ""
+                    )}
+                  >
                     <div className="flex items-center gap-2">
                       <Select value={chart.timeframe} onValueChange={v => updateAfterChart(chart.id, 'timeframe', v)}>
                         <SelectTrigger className="w-28 h-7 bg-background border-border text-xs">
@@ -1276,7 +1356,7 @@ export function TradeForm({
                         </SelectContent>
                       </Select>
                       {afterCharts.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeAfterChart(chart.id)}>
+                          <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive disabled:opacity-40" onClick={() => removeAfterChart(chart.id)} disabled={removingAfterChartIds.includes(chart.id)}>
                           <X className="h-3 w-3" />
                         </Button>
                       )}
@@ -1295,7 +1375,7 @@ export function TradeForm({
           {/* PRE MARKET FORECAST TAB */}
           {activeTab === 'pre-market-forecast' && <div className="space-y-6">
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                <span className="text-sm font-semibold text-foreground">Pre Market Forecast</span>
+                <span className="text-sm font-semibold text-foreground">Pre Market Forecast ({preMarketCharts.length})</span>
                 <Button type="button" variant="ghost" size="sm" onClick={addPreMarketChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                   <Plus className="h-3.5 w-3.5" />
                   Add Chart
@@ -1303,7 +1383,17 @@ export function TradeForm({
               </div>
 
               {preMarketCharts.map(chart => (
-                <div key={chart.id} className="space-y-3 p-4 rounded-lg border border-border bg-secondary/50">
+                <div
+                  key={chart.id}
+                  className={cn(
+                    "space-y-3 p-4 rounded-lg border border-border bg-secondary/50",
+                    removingPreMarketChartIds.includes(chart.id)
+                      ? "animate-out fade-out-0 slide-out-to-top-2 duration-300"
+                      : enteringPreMarketChartIds.includes(chart.id)
+                        ? "animate-in fade-in-0 slide-in-from-top-2 duration-500 ease-out"
+                        : ""
+                  )}
+                >
                   <div className="flex items-center gap-2">
                     <Select value={chart.timeframe} onValueChange={v => updatePreMarketChart(chart.id, 'timeframe', v)}>
                       <SelectTrigger className="w-28 h-7 bg-background border-border text-xs">
@@ -1314,7 +1404,7 @@ export function TradeForm({
                       </SelectContent>
                     </Select>
                     {preMarketCharts.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removePreMarketChart(chart.id)}>
+                      <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive disabled:opacity-40" onClick={() => removePreMarketChart(chart.id)} disabled={removingPreMarketChartIds.includes(chart.id)}>
                         <X className="h-3 w-3" />
                       </Button>
                     )}
@@ -1335,7 +1425,7 @@ export function TradeForm({
           {/* POST MARKET FORECAST TAB */}
           {activeTab === 'post-market-forecast' && <div className="space-y-6">
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                <span className="text-sm font-semibold text-foreground">Post Market Review</span>
+                <span className="text-sm font-semibold text-foreground">Post Market Review ({postMarketCharts.length})</span>
                 <Button type="button" variant="ghost" size="sm" onClick={addPostMarketChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                   <Plus className="h-3.5 w-3.5" />
                   Add Chart
@@ -1343,7 +1433,17 @@ export function TradeForm({
               </div>
 
               {postMarketCharts.map(chart => (
-                <div key={chart.id} className="space-y-3 p-4 rounded-lg border border-border bg-secondary/50">
+                <div
+                  key={chart.id}
+                  className={cn(
+                    "space-y-3 p-4 rounded-lg border border-border bg-secondary/50",
+                    removingPostMarketChartIds.includes(chart.id)
+                      ? "animate-out fade-out-0 slide-out-to-top-2 duration-300"
+                      : enteringPostMarketChartIds.includes(chart.id)
+                        ? "animate-in fade-in-0 slide-in-from-top-2 duration-500 ease-out"
+                        : ""
+                  )}
+                >
                   <div className="flex items-center gap-2">
                     <Select value={chart.timeframe} onValueChange={v => updatePostMarketChart(chart.id, 'timeframe', v)}>
                       <SelectTrigger className="w-28 h-7 bg-background border-border text-xs">
@@ -1354,7 +1454,7 @@ export function TradeForm({
                       </SelectContent>
                     </Select>
                     {postMarketCharts.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removePostMarketChart(chart.id)}>
+                      <Button type="button" variant="ghost" size="icon" className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive disabled:opacity-40" onClick={() => removePostMarketChart(chart.id)} disabled={removingPostMarketChartIds.includes(chart.id)}>
                         <X className="h-3 w-3" />
                       </Button>
                     )}

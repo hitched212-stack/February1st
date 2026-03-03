@@ -446,9 +446,9 @@ export function RichTextEditor({
   };
 
   return (
-    <div className="space-y-2 relative">
+    <div className="relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-t-lg border border-border border-b-0 flex-wrap z-10">
+      <div className="flex items-center gap-1.5 p-3 bg-muted/35 border-b border-border/60 flex-wrap z-10">
         <button
           type="button"
           onMouseDown={(e) => {
@@ -456,10 +456,10 @@ export function RichTextEditor({
             applyFormat('bold');
           }}
           className={cn(
-            "p-1.5 rounded transition-colors",
+            "h-9 min-w-9 px-2 rounded-lg transition-all duration-150",
             isBold
-              ? "bg-foreground/20 text-foreground"
-              : "text-foreground/70 hover:text-foreground hover:bg-background"
+              ? "bg-foreground/15 text-foreground border border-border/70"
+              : "text-foreground/70 hover:text-foreground hover:bg-background/70 border border-transparent"
           )}
           title="Bold (Ctrl+B)"
         >
@@ -473,10 +473,10 @@ export function RichTextEditor({
             applyFormat('italic');
           }}
           className={cn(
-            "p-1.5 rounded transition-colors",
+            "h-9 min-w-9 px-2 rounded-lg transition-all duration-150",
             isItalic
-              ? "bg-foreground/20 text-foreground"
-              : "text-foreground/70 hover:text-foreground hover:bg-background"
+              ? "bg-foreground/15 text-foreground border border-border/70"
+              : "text-foreground/70 hover:text-foreground hover:bg-background/70 border border-transparent"
           )}
           title="Italic (Ctrl+I)"
         >
@@ -490,17 +490,17 @@ export function RichTextEditor({
             applyFormat('underline');
           }}
           className={cn(
-            "p-1.5 rounded transition-colors",
+            "h-9 min-w-9 px-2 rounded-lg transition-all duration-150",
             isUnderline
-              ? "bg-foreground/20 text-foreground"
-              : "text-foreground/70 hover:text-foreground hover:bg-background"
+              ? "bg-foreground/15 text-foreground border border-border/70"
+              : "text-foreground/70 hover:text-foreground hover:bg-background/70 border border-transparent"
           )}
           title="Underline (Ctrl+U)"
         >
           <Underline className="h-4 w-4" strokeWidth={2} />
         </button>
 
-        <div className="w-px h-6 bg-border/50 mx-1" />
+        <div className="w-px h-6 bg-border/60 mx-1" />
 
         {/* List Dropdown */}
         <div className="relative z-40" ref={listDropdownRef}>
@@ -515,7 +515,7 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="p-1.5 rounded hover:bg-background transition-colors text-foreground/70 hover:text-foreground flex items-center gap-1"
+            className="h-9 px-2.5 rounded-lg hover:bg-background/70 transition-all duration-150 text-foreground/70 hover:text-foreground flex items-center gap-1.5 border border-transparent hover:border-border/70"
             title="List Options"
           >
             {isBulletList ? (
@@ -573,7 +573,7 @@ export function RichTextEditor({
           )}
         </div>
 
-        <div className="w-px h-6 bg-border/50 mx-1" />
+        <div className="w-px h-6 bg-border/60 mx-1" />
 
         {/* Highlight Color Picker */}
         <div className="relative z-45" ref={highlightPickerRef}>
@@ -587,7 +587,7 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="p-1.5 rounded hover:bg-background transition-colors text-foreground/70 hover:text-foreground"
+            className="h-9 min-w-9 px-2 rounded-lg hover:bg-background/70 transition-all duration-150 text-foreground/70 hover:text-foreground border border-transparent hover:border-border/70"
             title="Highlight Color"
           >
             <Highlighter className="h-4 w-4" strokeWidth={2} />
@@ -682,7 +682,7 @@ export function RichTextEditor({
           )}
         </div>
 
-        <div className="w-px h-6 bg-border/50 mx-1" />
+        <div className="w-px h-6 bg-border/60 mx-1" />
 
         {/* Text Color Picker */}
         <div className="relative z-50" ref={colorPickerRef}>
@@ -696,7 +696,7 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="p-1.5 rounded hover:bg-background transition-colors flex items-center gap-1"
+            className="h-9 min-w-9 px-2 rounded-lg hover:bg-background/70 transition-all duration-150 flex items-center gap-1 border border-transparent hover:border-border/70"
             title="Text Color"
           >
             <span className="text-sm font-bold" style={{ color: selectedColor }}>A</span>
@@ -802,7 +802,7 @@ export function RichTextEditor({
                 setShowHighlightPicker(false);
               }
             }}
-            className="p-1.5 px-2.5 rounded text-xs bg-background border border-border transition-colors text-foreground/70 hover:text-foreground cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+            className="h-9 px-2.5 rounded-lg text-xs bg-background/70 border border-border/70 transition-all duration-150 text-foreground/80 hover:text-foreground hover:bg-background cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
             title="Font Style"
           >
             <span style={{ fontFamily: currentFontFamily }}>Aa</span>
@@ -844,6 +844,13 @@ export function RichTextEditor({
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
+        spellCheck={true}
+        autoCorrect="off"
+        autoCapitalize="sentences"
+        lang="en-US"
+        data-gramm="false"
+        data-gramm_editor="false"
+        data-enable-grammarly="false"
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
@@ -852,12 +859,12 @@ export function RichTextEditor({
         onBlur={handleBlur}
         className={cn(
           "rich-text-content",
-          "w-full p-3 bg-muted/30 border border-border rounded-b-lg",
-          "text-foreground text-sm outline-none",
-          "focus:border-ring",
+          "w-full p-4 bg-transparent border-0 rounded-none",
+          "text-foreground dark:text-zinc-100 text-sm outline-none",
+          "focus:bg-transparent",
           "overflow-auto whitespace-pre-wrap break-words",
           className,
-          rows === 4 ? "min-h-24" : "",
+          rows === 4 ? "min-h-44" : "",
           "empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground"
         )}
         data-placeholder={placeholder}

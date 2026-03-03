@@ -1,10 +1,10 @@
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-type TradeType = 'real' | 'paper' | 'no_trade';
+type TradeType = 'trade' | 'no_trade';
 
 const tradeTypes: { value: TradeType; label: string }[] = [
-  { value: 'real', label: 'Real' },
-  { value: 'paper', label: 'Paper' },
+  { value: 'trade', label: 'Trade' },
   { value: 'no_trade', label: 'No Trade' },
 ];
 
@@ -15,16 +15,21 @@ interface TradeTypeSwitchProps {
 }
 
 export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeTypeSwitchProps) {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    // Set hasMounted after a brief delay to prevent initial animation
+    const timer = setTimeout(() => setHasMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Determine current value from props
-  const value: TradeType = noTradeTaken ? 'no_trade' : isPaperTrade ? 'paper' : 'real';
+  const value: TradeType = noTradeTaken ? 'no_trade' : 'trade';
 
   const handleChange = (newValue: TradeType) => {
     switch (newValue) {
-      case 'real':
+      case 'trade':
         onChange(false, false);
-        break;
-      case 'paper':
-        onChange(true, false);
         break;
       case 'no_trade':
         onChange(false, true);
@@ -32,18 +37,20 @@ export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeT
     }
   };
 
-  // Calculate the position of the sliding background
-  const activeIndex = tradeTypes.findIndex(t => t.value === value);
-  const slidePercentage = (activeIndex * 100) / tradeTypes.length;
+  const isTradeActive = value === 'trade';
 
   return (
     <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
       {/* Sliding background */}
       <div
-        className="absolute top-1 bottom-1 transition-all duration-500 rounded-lg bg-pnl-positive/10 border border-pnl-positive/30 shadow-sm"
+        className={cn(
+          "absolute top-1 bottom-1 rounded-lg pointer-events-none shadow-sm",
+          hasMounted && "transition-all duration-500",
+          isTradeActive ? "border border-pnl-positive/30 bg-pnl-positive/10" : "border border-pnl-negative/30 bg-pnl-negative/10"
+        )}
         style={{
-          width: `calc(${100 / tradeTypes.length}% - 0.5rem)`,
-          left: `calc(${slidePercentage}% + 0.25rem)`,
+          width: "calc(50% - 0.5rem)",
+          left: isTradeActive ? "0.25rem" : "calc(50% + 0.25rem)",
         }}
       />
       
@@ -51,6 +58,7 @@ export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeT
       <div className="flex gap-0 w-full relative z-10">
         {tradeTypes.map((tradeType) => {
           const isActive = value === tradeType.value;
+          const isPositive = tradeType.value === 'trade';
           
           return (
             <button
@@ -58,9 +66,10 @@ export function TradeTypeSwitch({ isPaperTrade, noTradeTaken, onChange }: TradeT
               type="button"
               onClick={() => handleChange(tradeType.value)}
               className={cn(
-                "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium transition-colors duration-500 rounded-lg",
+                "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium rounded-lg",
+                hasMounted && "transition-colors duration-500",
                 isActive
-                  ? "text-pnl-positive"
+                  ? isPositive ? "text-pnl-positive" : "text-pnl-negative"
                   : "text-muted-foreground hover:text-foreground/80"
               )}
             >

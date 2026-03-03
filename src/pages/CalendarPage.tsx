@@ -752,12 +752,12 @@ export default function CalendarPage() {
         <div className="flex flex-col gap-6">
           {/* Greeting + Balance */}
           <section className="w-full">
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold text-foreground">
+            <div className="mb-4 flex items-start justify-between gap-2 sm:gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
                   Hey{settings.username ? `, ${settings.username}` : ''}
                 </h1>
-                <p className="text-muted-foreground text-sm mt-1 font-display font-bold tabular-nums">
+                <p className="text-muted-foreground text-xs sm:text-sm mt-1 font-display font-bold tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
                   <TypewriterDate date={currentTime} />
                 </p>
               </div>
@@ -1072,7 +1072,7 @@ export default function CalendarPage() {
                           <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2}>
                             <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700 }} dy={5} />
                             <YAxis hide />
-                            <Tooltip cursor={false} contentStyle={{
+                            <Tooltip cursor={{ fill: 'hsl(var(--muted) / 0.2)' }} contentStyle={{
                               backgroundColor: 'hsl(var(--card))',
                               border: '1px solid hsl(var(--border))',
                               borderRadius: '8px',
@@ -1158,7 +1158,7 @@ export default function CalendarPage() {
                                 width={72}
                               />
                               <Tooltip
-                                cursor={false}
+                                cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
                                 contentStyle={{
                                   backgroundColor: 'hsl(var(--card))',
                                   border: '1px solid hsl(var(--border))',

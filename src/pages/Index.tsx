@@ -253,13 +253,13 @@ export default function Index() {
       {/* Header - Static (doesn't change with account) */}
       <header className="px-4 pt-6 pb-4 md:px-6 lg:px-8">
         <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
               {settings.hasLoggedInBefore ? 'Welcome back' : 'Welcome'}{settings.username ? `, ${settings.username}` : ''}
             </h1>
-            <p className="text-muted-foreground mt-1">Here's your trading overview</p>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">Here's your trading overview</p>
           </div>
-          <div className="text-right text-sm text-muted-foreground">
+          <div className="text-right text-xs sm:text-sm text-muted-foreground ml-2 flex-shrink-0">
             <span className="text-pnl-positive mr-1">●</span>
             {format(new Date(), 'dd MMM yyyy')} | {format(new Date(), 'HH:mm')}
           </div>

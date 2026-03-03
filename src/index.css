@@ -671,3 +671,33 @@ a,
   margin-bottom: 0.25rem;
   display: list-item !important;
 }
+
+.rich-text-content::selection,
+.rich-text-content *::selection {
+  background-color: hsl(var(--primary) / 0.28);
+  color: inherit;
+}
+
+/* Keep spellcheck underlines but prevent dark-mode row tint in contenteditable */
+.rich-text-content::-webkit-grammar-error,
+.rich-text-content ::-webkit-grammar-error,
+.rich-text-content::-webkit-spelling-error,
+.rich-text-content ::-webkit-spelling-error {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+.rich-text-content::-webkit-spelling-error,
+.rich-text-content ::-webkit-spelling-error,
+.rich-text-content::spelling-error,
+.rich-text-content ::spelling-error {
+  text-decoration: underline wavy #ef4444;
+}
+
+.rich-text-content::-webkit-grammar-error,
+.rich-text-content ::-webkit-grammar-error,
+.rich-text-content::grammar-error,
+.rich-text-content ::grammar-error {
+  text-decoration: underline wavy #22c55e;
+}

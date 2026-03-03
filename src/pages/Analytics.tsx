@@ -1759,7 +1759,7 @@ export default function Analytics() {
                     fontSize: 11
                   }} dy={5} />
                       <YAxis hide />
-                      <Tooltip cursor={false} contentStyle={{
+                      <Tooltip contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
@@ -1837,7 +1837,7 @@ export default function Analytics() {
                     whiteSpace: 'nowrap'
                   }
                 }} width={90} />
-                    <Tooltip cursor={false} contentStyle={{
+                    <Tooltip contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',

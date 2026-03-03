@@ -464,228 +464,238 @@ export default function SettingsPage() {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4">Profile Details</h3>
               <SettingsSection title="Profile" isGlassEnabled={isGlassEnabled} patternId="settings-org-profile">
-                <div className="p-4">
-                  <div className="grid gap-6 md:grid-cols-1">
-                    {/* Profile Info - Editable */}
-                    <Collapsible open={showUsernameChange} onOpenChange={setShowUsernameChange}>
-                      <div className="rounded-2xl border border-border/60 bg-card/60 overflow-hidden">
-                        <CollapsibleTrigger className="w-full flex items-center gap-4 p-4 hover:bg-muted/40 transition-colors text-left">
-                          <div className="flex-1 grid md:grid-cols-3 gap-4">
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">User Name</Label>
-                              <p className="text-sm font-medium text-foreground">{settings.username || 'Your Name'}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Email</Label>
-                              <p className="text-sm font-medium text-foreground">{user?.email}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Member Since</Label>
-                              <p className="text-sm font-medium text-foreground">
-                                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                          <MoreVertical className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="border-t border-border/60">
-                          <div className="p-4 space-y-4 bg-muted/20">
-                            <div>
-                              <Label htmlFor="newUsername" className="text-sm text-muted-foreground">New Username</Label>
-                              <Input
-                                id="newUsername"
-                                type="text"
-                                value={newUsername}
-                                onChange={(e) => setNewUsername(e.target.value)}
-                                placeholder={settings.username || 'Enter new username'}
-                                className="mt-1.5 bg-muted/50 border-border"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="newEmail" className="text-sm text-muted-foreground">New Email</Label>
-                              <Input
-                                id="newEmail"
-                                type="email"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
-                                placeholder={user?.email || 'Enter new email'}
-                                className="mt-1.5 bg-muted/50 border-border"
-                              />
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                A confirmation email will be sent to verify your new email address.
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={async () => {
-                                  const promises = [];
-                                  if (newUsername.trim() && newUsername.trim() !== settings.username) {
-                                    promises.push(handleChangeUsername());
-                                  }
-                                  if (newEmail.trim() && newEmail.trim() !== user?.email) {
-                                    promises.push(handleChangeEmail());
-                                  }
-                                  if (promises.length > 0) {
-                                    await Promise.all(promises);
-                                  } else {
-                                    toast.error('No changes to save');
-                                  }
-                                }}
-                                disabled={isChangingUsername || isChangingEmail || (!newUsername.trim() && !newEmail.trim())}
-                                className="flex-1 bg-foreground text-background hover:bg-foreground/90"
-                              >
-                                {(isChangingUsername || isChangingEmail) ? 'Updating...' : 'Save Changes'}
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  setShowUsernameChange(false);
-                                  setNewUsername('');
-                                  setNewEmail('');
-                                }}
-                                variant="outline"
-                                className="flex-1"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        </CollapsibleContent>
+                <Collapsible open={showUsernameChange} onOpenChange={setShowUsernameChange}>
+                  <CollapsibleTrigger className="w-full flex items-center justify-between gap-4 p-6 hover:bg-muted/30 transition-colors text-left group">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">User Name</Label>
+                        <p className="text-base font-semibold text-foreground">{settings.username || 'H1tched'}</p>
                       </div>
-                    </Collapsible>
-                  </div>
-                </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</Label>
+                        <p className="text-base font-medium text-foreground">{user?.email}</p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Member Since</Label>
+                        <p className="text-base font-medium text-foreground">
+                          {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '02/02/2026'}
+                        </p>
+                      </div>
+                    </div>
+                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={1.5} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="border-t border-border/60">
+                    <div className="p-6 space-y-5 bg-muted/20">
+                      <div className="space-y-2">
+                        <Label htmlFor="newUsername" className="text-sm font-medium text-foreground">New Username</Label>
+                        <Input
+                          id="newUsername"
+                          type="text"
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          placeholder={settings.username || 'Enter new username'}
+                          className="h-11 bg-background/50 border-border/60"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newEmail" className="text-sm font-medium text-foreground">New Email</Label>
+                        <Input
+                          id="newEmail"
+                          type="email"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          placeholder={user?.email || 'Enter new email'}
+                          className="h-11 bg-background/50 border-border/60"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          A confirmation email will be sent to verify your new email address.
+                        </p>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          onClick={async () => {
+                            const promises = [];
+                            if (newUsername.trim() && newUsername.trim() !== settings.username) {
+                              promises.push(handleChangeUsername());
+                            }
+                            if (newEmail.trim() && newEmail.trim() !== user?.email) {
+                              promises.push(handleChangeEmail());
+                            }
+                            if (promises.length > 0) {
+                              await Promise.all(promises);
+                            } else {
+                              toast.error('No changes to save');
+                            }
+                          }}
+                          disabled={isChangingUsername || isChangingEmail || (!newUsername.trim() && !newEmail.trim())}
+                          className="flex-1 h-11 bg-foreground text-background hover:bg-foreground/90"
+                        >
+                          {(isChangingUsername || isChangingEmail) ? 'Updating...' : 'Save Changes'}
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setShowUsernameChange(false);
+                            setNewUsername('');
+                            setNewEmail('');
+                          }}
+                          variant="outline"
+                          className="flex-1 h-11"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </SettingsSection>
             </div>
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4">Account Settings</h3>
-              <div>
-                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                  Account
-                </h2>
+              <SettingsSection title="Account" isGlassEnabled={isGlassEnabled} patternId="settings-account-dots">
                 <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
-                  <div className="rounded-xl border border-border/60 bg-card/60 overflow-hidden max-w-md">
-                      <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors text-left">
-                        <div className="h-9 w-9 rounded-lg bg-muted/60 flex items-center justify-center border border-border/60">
-                          <KeyRoundIcon className="h-4 w-4 text-foreground/70" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-foreground">Change Password</p>
-                          <p className="text-xs text-muted-foreground">Update your account password</p>
-                        </div>
-                        <MoreVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="border-t border-border/60">
-                        <div className="p-4 space-y-4 bg-muted/20">
-                          <div>
-                            <Label htmlFor="newPassword" className="text-sm text-muted-foreground">New Password</Label>
-                            <div className="relative mt-1.5">
-                              <Input
-                                id="newPassword"
-                                type={showNewPassword ? "text" : "password"}
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Enter new password"
-                                className="bg-muted/50 border-border pr-10"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowNewPassword(!showNewPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                {showNewPassword ? (
-                                  <EyeOff className="h-4 w-4" strokeWidth={1.5} />
-                                ) : (
-                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="confirmPassword" className="text-sm text-muted-foreground">Confirm Password</Label>
-                            <div className="relative mt-1.5">
-                              <Input
-                                id="confirmPassword"
-                                type={showConfirmPassword ? "text" : "password"}
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm new password"
-                                className="bg-muted/50 border-border pr-10"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                {showConfirmPassword ? (
-                                  <EyeOff className="h-4 w-4" strokeWidth={1.5} />
-                                ) : (
-                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={handleResetPassword}
-                            disabled={isResettingPassword || !newPassword || !confirmPassword}
-                            className="w-full"
-                          >
-                            {isResettingPassword ? 'Updating...' : 'Update Password'}
-                          </Button>
-                        </div>
-                      </CollapsibleContent>
+                  <CollapsibleTrigger className="w-full flex items-center gap-4 p-6 hover:bg-muted/30 transition-colors text-left group">
+                    <div className="h-11 w-11 rounded-xl bg-muted/70 flex items-center justify-center border border-border/60 group-hover:border-border transition-colors flex-shrink-0">
+                      <Lock className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
                     </div>
-                  </Collapsible>
-              </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-foreground">Change Password</p>
+                      <p className="text-sm text-muted-foreground">Update your account password</p>
+                    </div>
+                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={1.5} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="border-t border-border/60">
+                    <div className="p-6 space-y-5 bg-muted/20">
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword" className="text-sm font-medium text-foreground">New Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            className="h-11 bg-background/50 border-border/60 pr-11"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showNewPassword ? (
+                              <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                            ) : (
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirm Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm new password"
+                            className="h-11 bg-background/50 border-border/60 pr-11"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                            ) : (
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleResetPassword}
+                        disabled={isResettingPassword || !newPassword || !confirmPassword}
+                        className="w-full h-11 mt-2"
+                      >
+                        {isResettingPassword ? 'Updating...' : 'Update Password'}
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </SettingsSection>
             </div>
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-4">Time Zone & Localization</h3>
-              <SettingsSection title="Settings" isGlassEnabled={isGlassEnabled} patternId="settings-timezone-dots">
-                <div className="p-4 flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <GlobeIcon className="w-4 h-4 text-primary" />
-                      <Label className="text-sm font-semibold text-foreground">Time Zone</Label>
+              <div className={cn(
+                "rounded-[1.75rem] border overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] relative",
+                isGlassEnabled
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/60 bg-card"
+              )}>
+                {isGlassEnabled && (
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="settings-timezone-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.04] dark:fill-foreground/[0.03]" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#settings-timezone-dots)" />
+                  </svg>
+                )}
+                <div className="relative p-5">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                        <GlobeIcon className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-semibold text-foreground">Time Zone</h4>
+                        <p className="text-xs text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground">Current time</div>
-                      <div className="text-lg font-bold text-foreground">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
+                      <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Current Time</div>
+                      <div className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
                     </div>
                   </div>
 
-                  <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
-                    <SelectTrigger className="w-full rounded-lg bg-muted/40 border-border/60">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {TIMEZONE_GROUPS.map((group) => (
-                        <div key={group.region}>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            {group.region}
+                  {/* Timezone Select */}
+                  <div className="space-y-3">
+                    <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
+                      <SelectTrigger className="w-full h-11 rounded-xl bg-muted/30 border-border/60 text-sm font-medium hover:bg-muted/40 transition-colors">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {TIMEZONE_GROUPS.map((group) => (
+                          <div key={group.region}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              {group.region}
+                            </div>
+                            {group.timezones.map((tz) => (
+                              <SelectItem key={tz.value} value={tz.value}>
+                                <span className="font-medium">{tz.label}</span>
+                                <span className="text-muted-foreground"> • {tz.name}</span>
+                              </SelectItem>
+                            ))}
                           </div>
-                          {group.timezones.map((tz) => (
-                            <SelectItem key={tz.value} value={tz.value}>
-                              <span className="font-medium">{tz.label}</span>
-                              <span className="text-muted-foreground"> • {tz.name}</span>
-                            </SelectItem>
-                          ))}
-                        </div>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                  <p className="text-xs text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
-
-                  <Button
-                    onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
-                    className="w-full mt-1 text-sm h-10 rounded-lg"
-                    disabled={preferences.timeZone === timeZoneInput}
-                  >
-                    Save
-                  </Button>
+                    <Button
+                      onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
+                      className="w-full h-10 rounded-xl text-sm font-semibold bg-foreground text-background hover:bg-foreground/90"
+                      disabled={preferences.timeZone === timeZoneInput}
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
-              </SettingsSection>
+              </div>
             </div>
           </div>
         )}
