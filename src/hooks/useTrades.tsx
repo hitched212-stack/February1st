@@ -44,6 +44,8 @@ interface DbTrade {
   followed_rules_list: string[] | null;
   broken_rules: string[] | null;
   notes: string | null;
+  mistake_tagging: string | null;
+  mistake_tags: string[] | null;
   has_news: boolean | null;
   news_events: unknown;
   is_paper_trade: boolean | null;
@@ -93,6 +95,8 @@ const mapDbTradeToTrade = (dbTrade: DbTrade): Trade => ({
   followedRulesList: dbTrade.followed_rules_list || [],
   brokenRules: dbTrade.broken_rules || [],
   notes: dbTrade.notes || '',
+  mistakeTagging: dbTrade.mistake_tagging || '',
+  mistakeTags: Array.isArray(dbTrade.mistake_tags) ? (dbTrade.mistake_tags as string[]) : [],
   hasNews: dbTrade.has_news ?? false,
   newsEvents: Array.isArray(dbTrade.news_events) ? (dbTrade.news_events as NewsEvent[]) : [],
   isPaperTrade: dbTrade.is_paper_trade ?? false,
@@ -125,7 +129,7 @@ export function useTrades() {
       // Optimized query - only select needed fields and use index hints via ordering
       let query = supabase
         .from('trades')
-        .select('id,user_id,account_id,symbol,direction,date,entry_time,holding_time,lot_size,performance_grade,entry_price,stop_loss,stop_loss_pips,take_profit,risk_reward_ratio,pnl_amount,pnl_percentage,pre_market_plan,post_market_review,emotional_journal_before,emotional_journal_during,emotional_journal_after,overall_emotions,emotional_state,images,pre_market_images,post_market_images,chart_analysis_notes,pre_market_notes,post_market_notes,strategy,category,forecast_id,followed_rules,followed_rules_list,broken_rules,notes,has_news,news_events,is_paper_trade,no_trade_taken,status,news_type,news_impact,news_time,created_at,updated_at')
+        .select('id,user_id,account_id,symbol,direction,date,entry_time,holding_time,lot_size,performance_grade,entry_price,stop_loss,stop_loss_pips,take_profit,risk_reward_ratio,pnl_amount,pnl_percentage,pre_market_plan,post_market_review,emotional_journal_before,emotional_journal_during,emotional_journal_after,overall_emotions,emotional_state,images,pre_market_images,post_market_images,chart_analysis_notes,pre_market_notes,post_market_notes,strategy,category,forecast_id,followed_rules,followed_rules_list,broken_rules,notes,mistake_tagging,mistake_tags,has_news,news_events,is_paper_trade,no_trade_taken,status,news_type,news_impact,news_time,created_at,updated_at')
         .eq('user_id', user.id);
 
       if (accountId) {
@@ -186,8 +190,8 @@ export function useTrades() {
           // Skip refetch if this trade was just updated optimistically
           const tradeId = payload.new?.id || payload.old?.id;
           if (tradeId && recentlyUpdatedRef.current.has(tradeId)) {
-            // Remove from recently updated set after a delay
-            setTimeout(() => recentlyUpdatedRef.current.delete(tradeId), 2000);
+            // Remove from recently updated set after a longer delay to ensure data is fully synced
+            setTimeout(() => recentlyUpdatedRef.current.delete(tradeId), 5000);
             return;
           }
 
@@ -196,9 +200,10 @@ export function useTrades() {
           refetchTimeout = setTimeout(() => {
             // Only refetch if we have an active account and not switching
             if (activeAccount && !isSwitching) {
-              fetchTrades();
+              // Fetch with silent mode to not interrupt user
+              fetchTrades(0, true);
             }
-          }, 2000); // 2s debounce to reduce DB load and allow proper processing
+          }, 3000); // 3s debounce to reduce DB load and allow proper processing
         }
       )
       .subscribe();
@@ -276,6 +281,8 @@ export function useTrades() {
           followed_rules_list: tradeData.followedRulesList || [],
           broken_rules: tradeData.brokenRules || [],
           notes: tradeData.notes || '',
+          mistake_tagging: tradeData.mistakeTagging || '',
+          mistake_tags: tradeData.mistakeTags || [],
           has_news: tradeData.hasNews ?? false,
           news_events: tradeData.newsEvents || [],
           is_paper_trade: tradeData.isPaperTrade ?? false,
@@ -293,6 +300,10 @@ export function useTrades() {
       // Immediately update local state for instant UI update
       const newTrade = mapDbTradeToTrade(data as unknown as DbTrade);
       setTrades([newTrade, ...trades]);
+      
+      // Mark as recently updated to prevent real-time listener from overwriting it
+      recentlyUpdatedRef.current.add(newTrade.id);
+      setTimeout(() => recentlyUpdatedRef.current.delete(newTrade.id), 7000);
 
       return newTrade;
     } catch (error) {
@@ -318,9 +329,10 @@ export function useTrades() {
     setTrades(optimisticTrades);
     
     // Mark this trade as recently updated to skip premature real-time refetch
+    // Use a longer timeout to ensure the data is fully persisted
     recentlyUpdatedRef.current.add(id);
-    // Clear the flag after a delay
-    setTimeout(() => recentlyUpdatedRef.current.delete(id), 2000);
+    // Clear the flag after a longer delay - 7 seconds to ensure data persistence
+    setTimeout(() => recentlyUpdatedRef.current.delete(id), 7000);
 
     try {
       const updateData: Record<string, unknown> = {};
@@ -359,6 +371,8 @@ export function useTrades() {
       if (updates.followedRulesList !== undefined) updateData.followed_rules_list = updates.followedRulesList;
       if (updates.brokenRules !== undefined) updateData.broken_rules = updates.brokenRules;
       if (updates.notes !== undefined) updateData.notes = updates.notes;
+      if (updates.mistakeTagging !== undefined) updateData.mistake_tagging = updates.mistakeTagging;
+      if (updates.mistakeTags !== undefined) updateData.mistake_tags = updates.mistakeTags;
       if (updates.hasNews !== undefined) updateData.has_news = updates.hasNews;
       if (updates.newsEvents !== undefined) updateData.news_events = updates.newsEvents;
       if (updates.isPaperTrade !== undefined) updateData.is_paper_trade = updates.isPaperTrade;

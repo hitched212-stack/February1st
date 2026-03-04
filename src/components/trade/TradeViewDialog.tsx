@@ -5,7 +5,7 @@ import { useAccount } from '@/hooks/useAccount';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Calendar, Link2, Pencil, X, Meh, Frown, Smile } from 'lucide-react';
+import { Calendar, Link2, Pencil, X, Meh, Frown, Smile, XIcon } from 'lucide-react';
 import { getTimeframeLabel } from '@/lib/timeframes';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
 
@@ -387,6 +387,26 @@ export function TradeViewDialogContent({
                     <span className="text-sm text-muted-foreground">No rules recorded</span>
                   </div>
                 )}
+
+                {/* Mistake Tags Section */}
+                {trade.mistakeTags && trade.mistakeTags.length > 0 ? (
+                  <div className="space-y-3 p-4 rounded-xl border border-red-500/30 bg-red-500/5">
+                    <div className="flex items-center gap-2">
+                      <XIcon className="h-4 w-4 text-red-500/70" />
+                      <span className="text-sm font-medium text-foreground">Identified Mistakes</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {trade.mistakeTags.map((mistake, index) => (
+                        <span 
+                          key={index}
+                          className="px-2.5 py-1.5 text-xs rounded-md bg-red-500/15 text-red-500 border border-red-500/40 font-medium"
+                        >
+                          {mistake}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {/* Strategy */}

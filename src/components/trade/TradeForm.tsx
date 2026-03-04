@@ -58,7 +58,9 @@ const tradeFormSchema = z.object({
   postMarketNotes: z.string().max(10000, 'Notes too long').optional(),
   forecastId: z.string().uuid().nullable().optional(),
   followedRules: z.boolean().optional(),
-  notes: z.string().max(5000, 'Notes too long').optional().or(z.literal(''))
+  notes: z.string().max(5000, 'Notes too long').optional().or(z.literal('')),
+  mistakeTagging: z.string().max(500, 'Mistake tagging too long').optional().or(z.literal('')),
+  mistakeTags: z.array(z.string()).optional()
 });
 interface ChartAnalysis {
   id: string;
@@ -142,6 +144,9 @@ export function TradeForm({
     followedRulesList: [] as string[],
     brokenRules: [] as string[],
     notes: '',
+    mistakeTagging: '',
+    mistakeTags: [] as string[],
+    mistakeTagInput: '',
     hasNews: false,
     newsEvents: [{ id: crypto.randomUUID(), type: '', impact: '' as NewsImpact | '', time: '', currency: '' }] as NewsEvent[],
     isPaperTrade: false,
@@ -512,6 +517,9 @@ export function TradeForm({
         followedRulesList: editTrade.followedRulesList || [],
         brokenRules: editTrade.brokenRules || [],
         notes: editTrade.notes || '',
+        mistakeTagging: editTrade.mistakeTagging || '',
+        mistakeTags: editTrade.mistakeTags || [],
+        mistakeTagInput: '',
         hasNews: editTrade.hasNews ?? false,
         newsEvents: editTrade.newsEvents && editTrade.newsEvents.length > 0 
           ? editTrade.newsEvents 
@@ -640,6 +648,8 @@ export function TradeForm({
       forecastId: formData.forecastId,
       followedRules: formData.followedRules,
       notes: formData.notes,
+      mistakeTagging: formData.mistakeTagging,
+      mistakeTags: formData.mistakeTags,
       hasNews: formData.hasNews,
       newsEvents: formData.newsEvents.filter(e => e.type || e.impact || e.time),
       isPaperTrade: formData.isPaperTrade,
@@ -692,6 +702,8 @@ export function TradeForm({
       followedRulesList: formData.followedRulesList,
       brokenRules: formData.brokenRules,
       notes: validationResult.data.notes || '',
+      mistakeTagging: validationResult.data.mistakeTagging || '',
+      mistakeTags: formData.mistakeTags,
       hasNews: formData.hasNews,
       newsEvents: formData.newsEvents.filter(e => e.type || e.impact || e.time),
       isPaperTrade: formData.isPaperTrade,
@@ -1015,8 +1027,8 @@ export function TradeForm({
                 <p className="text-sm font-medium leading-tight">Advanced details</p>
                 <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
                   {showAdvancedOverview
-                    ? 'Showing: Rules, grade, category, strategy, news, notes'
-                    : 'Hidden: Rules, grade, category, strategy, news, notes'}
+                    ? 'Showing: Rules, grade, category, strategy, mistakes, news, notes'
+                    : 'Hidden: Rules, grade, category, strategy, mistakes, news, notes'}
                 </p>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -1184,55 +1196,168 @@ export function TradeForm({
                 </div>
 
                 {/* Performance Grade, Category & Strategy - Right Column */}
-                <div className="space-y-2">
-                  {/* Performance Grade */}
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Performance Grade</Label>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[1, 2, 3].map(grade => {
-                        const isSelected = parseInt(formData.performanceGrade) === grade;
-                        const gradeColors: Record<number, { selected: string; text: string; }> = {
-                          1: { selected: 'bg-red-500/15 border-red-500/30', text: 'text-red-500' },
-                          2: { selected: 'bg-amber-500/15 border-amber-500/30', text: 'text-amber-500' },
-                          3: { selected: 'bg-pnl-positive/15 border-pnl-positive/30', text: 'text-pnl-positive' }
-                        };
-                        const colors = gradeColors[grade];
-                        return (
-                          <button 
-                            key={grade} 
-                            type="button" 
-                            onClick={() => setFormData(p => ({ ...p, performanceGrade: grade.toString() }))} 
-                            className={cn(
-                              "h-7 rounded text-xs font-semibold transition-all duration-200 border", 
-                              isSelected ? `${colors.selected} ${colors.text}` : "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-                            )}
-                          >
-                            {grade}
-                          </button>
-                        );
-                      })}
+                <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+                  <div className="space-y-2">
+                    {/* Performance Grade */}
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Performance Grade</Label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {[1, 2, 3].map(grade => {
+                          const isSelected = parseInt(formData.performanceGrade) === grade;
+                          const gradeColors: Record<number, { selected: string; text: string; }> = {
+                            1: { selected: 'bg-red-500/15 border-red-500/30', text: 'text-red-500' },
+                            2: { selected: 'bg-amber-500/15 border-amber-500/30', text: 'text-amber-500' },
+                            3: { selected: 'bg-pnl-positive/15 border-pnl-positive/30', text: 'text-pnl-positive' }
+                          };
+                          const colors = gradeColors[grade];
+                          return (
+                            <button 
+                              key={grade} 
+                              type="button" 
+                              onClick={() => setFormData(p => ({ ...p, performanceGrade: grade.toString() }))} 
+                              className={cn(
+                                "h-7 rounded text-xs font-semibold transition-all duration-200 border", 
+                                isSelected ? `${colors.selected} ${colors.text}` : "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                              )}
+                            >
+                              {grade}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Category */}
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-foreground/60">Category</Label>
+                      <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
+                        <SelectTrigger className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground text-xs font-medium transition-colors [&>svg]:hidden">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Strategy */}
+                    <div className="space-y-1">
+                      <Label htmlFor="strategy" className="text-[10px] text-foreground/60">Strategy</Label>
+                      <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors" />
                     </div>
                   </div>
-
-                  {/* Category */}
-                  <div className="space-y-1">
-                    <Label className="text-[10px] text-foreground/60">Category</Label>
-                    <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
-                      <SelectTrigger className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground text-xs font-medium transition-colors [&>svg]:hidden">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Strategy */}
-                  <div className="space-y-1">
-                    <Label htmlFor="strategy" className="text-[10px] text-foreground/60">Strategy</Label>
-                    <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors" />
-                  </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Mistake Tagging */}
+            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <XIcon className="h-3.5 w-3.5 text-red-500/70" strokeWidth={2} />
+                    <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Identify Mistakes</Label>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    {formData.mistakeTags?.length || 0} tagged
+                  </span>
+                </div>
+                
+                {/* Common Mistake Tags */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {[
+                    'Poor Entry',
+                    'Ignored Setup',
+                    'Over-traded',
+                    'Wrong Position Size',
+                    'No Stop Loss',
+                    'Revenge Trading',
+                    'FOMO Entry',
+                    'Early Exit',
+                    'Late Exit',
+                    'Wrong Direction'
+                  ].map((mistake) => {
+                    const isSelected = formData.mistakeTags?.includes(mistake) || false;
+                    return (
+                      <button
+                        key={mistake}
+                        type="button"
+                        onClick={() => {
+                          setFormData(p => ({
+                            ...p,
+                            mistakeTags: isSelected
+                              ? (p.mistakeTags || []).filter(m => m !== mistake)
+                              : [...(p.mistakeTags || []), mistake]
+                          }));
+                        }}
+                        className={cn(
+                          "h-8 px-2.5 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-1.5 font-medium",
+                          isSelected
+                            ? "bg-red-500/15 text-red-500 border-red-500/40"
+                            : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-3 w-3 rounded border flex items-center justify-center flex-shrink-0",
+                          isSelected ? "bg-red-500 border-red-500" : "border-muted-foreground"
+                        )}>
+                          {isSelected && <Check className="h-2 w-2 text-white" />}
+                        </div>
+                        <span className="truncate">{mistake}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Mistake Input */}
+                <div className="space-y-1.5 pt-1">
+                  <Input
+                    type="text"
+                    placeholder="Add custom mistake tag..."
+                    value={formData.mistakeTagInput || ''}
+                    onChange={(e) => setFormData(p => ({ ...p, mistakeTagInput: e.target.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && formData.mistakeTagInput?.trim()) {
+                        e.preventDefault();
+                        const customTag = formData.mistakeTagInput.trim();
+                        setFormData(p => ({
+                          ...p,
+                          mistakeTags: [...(p.mistakeTags || []), customTag],
+                          mistakeTagInput: ''
+                        }));
+                      }
+                    }}
+                    className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors"
+                  />
+                </div>
+
+                {/* Selected Custom Tags */}
+                {formData.mistakeTags && formData.mistakeTags.some(tag => ![
+                  'Poor Entry', 'Ignored Setup', 'Over-traded', 'Wrong Position Size', 'No Stop Loss',
+                  'Revenge Trading', 'FOMO Entry', 'Early Exit', 'Late Exit', 'Wrong Direction'
+                ].includes(tag)) && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {formData.mistakeTags.filter(tag => ![
+                      'Poor Entry', 'Ignored Setup', 'Over-traded', 'Wrong Position Size', 'No Stop Loss',
+                      'Revenge Trading', 'FOMO Entry', 'Early Exit', 'Late Exit', 'Wrong Direction'
+                    ].includes(tag)).map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          setFormData(p => ({
+                            ...p,
+                            mistakeTags: (p.mistakeTags || []).filter(m => m !== tag)
+                          }));
+                        }}
+                        className="inline-flex items-center gap-1.5 h-6 px-2 rounded-full bg-red-500/15 text-red-500 border border-red-500/40 text-xs font-medium transition-all hover:bg-red-500/25"
+                      >
+                        {tag}
+                        <X className="h-2.5 w-2.5 cursor-pointer" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

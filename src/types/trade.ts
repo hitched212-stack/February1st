@@ -79,6 +79,8 @@ export interface Trade {
   followedRulesList?: string[];
   brokenRules?: string[];
   notes?: string;
+  mistakeTagging?: string;
+  mistakeTags?: string[];
   hasNews?: boolean;
   newsEvents?: NewsEvent[];
   isPaperTrade?: boolean;

@@ -6,7 +6,7 @@ import { usePreferences } from '@/hooks/usePreferences';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, subDays, getWeek, startOfMonth, startOfYear, endOfMonth } from 'date-fns';
 import { getCurrencySymbol, Currency } from '@/types/trade';
-import { Target, BarChart3, Scale, Crosshair, Clock, Trophy, ArrowUpRight, ArrowDownRight, XCircle, Shield, LineChart, CalendarIcon, TrendingUp, TrendingDown, Info, ChevronDown } from 'lucide-react';
+import { Target, BarChart3, Scale, Crosshair, Clock, Trophy, ArrowUpRight, ArrowDownRight, XCircle, Shield, LineChart, CalendarIcon, TrendingUp, TrendingDown, Info, ChevronDown, XIcon } from 'lucide-react';
 import { SegmentedBarChart } from '@/components/ui/SegmentedBarChart';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, BarChart, Bar, Cell, RadarChart, PolarGrid, PolarAngleAxis, Radar, ReferenceLine, CartesianGrid, PieChart, Pie, LabelList } from 'recharts';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
@@ -893,6 +893,93 @@ export default function Analytics() {
       maxViolations
     };
   }, [filteredTrades]);
+
+  // Mistake tagging analysis
+  const mistakeTagsAnalysis = useMemo(() => {
+    const mistakeMap = new Map<string, number>();
+    const mistakeByDayAndHour = new Map<string, Map<string, number>>();
+    let tradesWithMistakes = 0;
+    let totalMistakeTags = 0;
+
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const hours = ['6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM'];
+    
+    // Initialize heatmap structure
+    days.forEach(day => {
+      mistakeByDayAndHour.set(day, new Map(hours.map(h => [h, 0])));
+    });
+
+    filteredTrades.forEach(trade => {
+      if (trade.mistakeTags && trade.mistakeTags.length > 0) {
+        tradesWithMistakes++;
+        trade.mistakeTags.forEach(mistake => {
+          mistakeMap.set(mistake, (mistakeMap.get(mistake) || 0) + 1);
+          totalMistakeTags++;
+        });
+        
+        // Build heatmap data
+        const tradeDate = new Date(trade.date);
+        const dayOfWeek = tradeDate.getDay();
+        const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const dayName = days[adjustedDay];
+
+        // Get hour from entry time
+        let hour = 9; // Default
+        if (trade.entryTime) {
+          const [hourStr] = trade.entryTime.split(':');
+          hour = parseInt(hourStr) || 9;
+        }
+
+        // Convert to hour label
+        let hourLabel: string;
+        if (hour < 6) hourLabel = '6AM';
+        else if (hour > 20) hourLabel = '8PM';
+        else if (hour < 12) hourLabel = `${hour}AM`;
+        else if (hour === 12) hourLabel = '12PM';
+        else hourLabel = `${hour - 12}PM`;
+
+        const dayMap = mistakeByDayAndHour.get(dayName);
+        if (dayMap && dayMap.has(hourLabel)) {
+          dayMap.set(hourLabel, (dayMap.get(hourLabel) || 0) + trade.mistakeTags.length);
+        }
+      }
+    });
+
+    // Sort by frequency and take top 5
+    const topMistakes = Array.from(mistakeMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const mistakeFrequency = filteredTrades.length > 0 
+      ? (tradesWithMistakes / filteredTrades.length) * 100 
+      : 0;
+
+    const avgMistakesPerTrade = tradesWithMistakes > 0 
+      ? totalMistakeTags / tradesWithMistakes 
+      : 0;
+
+    // Find max value for heatmap scaling
+    let maxMistakesInCell = 0;
+    mistakeByDayAndHour.forEach(dayMap => {
+      dayMap.forEach(count => {
+        maxMistakesInCell = Math.max(maxMistakesInCell, count);
+      });
+    });
+
+    return {
+      topMistakes,
+      tradesWithMistakes,
+      totalMistakeTags,
+      mistakeFrequency,
+      avgMistakesPerTrade,
+      mistakeMap,
+      heatmapData: mistakeByDayAndHour,
+      days,
+      hours,
+      maxMistakesInCell
+    };
+  }, [filteredTrades]);
+
   return <TooltipProvider>
     <div className="min-h-screen pb-24">
       {/* Header */}
@@ -1920,6 +2007,125 @@ export default function Analytics() {
             </>
           )}
         </GlassCardWrapper>
+
+          <GlassCardWrapper patternId="mistakes-dots" className="p-5">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-white dark:text-white flex items-center gap-1.5">
+                  Repeated Mistakes
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-white dark:text-white cursor-pointer" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs text-sm">Your most frequently made mistakes with heatmap showing when they occur</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </h3>
+                <span className="text-xs px-2 py-1 rounded-md bg-red-500/15 text-red-500 font-medium">
+                  {mistakeTagsAnalysis.totalMistakeTags} total
+                </span>
+              </div>
+
+              {mistakeTagsAnalysis.topMistakes.length > 0 ? (
+                <>
+                  {/* Top Mistakes List - Compact Pill Layout */}
+                  <div className="flex flex-wrap gap-2">
+                    {mistakeTagsAnalysis.topMistakes.map(([mistake, count], index) => {
+                      const percentage = mistakeTagsAnalysis.totalMistakeTags > 0 
+                        ? (count / mistakeTagsAnalysis.totalMistakeTags) * 100 
+                        : 0;
+                      const severity = percentage >= 30 ? 'high' : percentage >= 15 ? 'medium' : 'low';
+                      const severityBgColors = {
+                        high: 'bg-red-500/20 border-red-500/40 text-red-400',
+                        medium: 'bg-orange-500/20 border-orange-500/40 text-orange-400',
+                        low: 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400'
+                      };
+
+                      return (
+                        <div
+                          key={index}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-colors ${severityBgColors[severity]}`}
+                          title={`${mistake}: ${count}x (${percentage.toFixed(0)}%)`}
+                        >
+                          <span className="truncate max-w-[150px]">{mistake}</span>
+                          <span className="text-[10px] opacity-75">{count}x</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Mistakes by Time Heatmap */}
+                  <div className="space-y-2 pt-2 border-t border-border/40">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">When Mistakes Happen</p>
+                    <div className="space-y-1.5 overflow-x-auto">
+                      {mistakeTagsAnalysis.days.map((day) => (
+                        <div key={day} className="space-y-1">
+                          <p className="text-[10px] font-medium text-muted-foreground w-12">{day}</p>
+                          <div className="flex gap-0.5 flex-wrap">
+                            {mistakeTagsAnalysis.hours.map((hour) => {
+                              const count = mistakeTagsAnalysis.heatmapData.get(day)?.get(hour) || 0;
+                              const intensity = mistakeTagsAnalysis.maxMistakesInCell > 0 
+                                ? count / mistakeTagsAnalysis.maxMistakesInCell 
+                                : 0;
+                              
+                              return (
+                                <Tooltip key={`${day}-${hour}`}>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      className={cn(
+                                        "w-5 h-5 rounded-sm cursor-pointer transition-all hover:scale-110",
+                                        intensity === 0 ? "bg-muted/30 border border-border/40" :
+                                        intensity < 0.33 ? "bg-yellow-500/40 border border-yellow-500/40" :
+                                        intensity < 0.66 ? "bg-orange-500/60 border border-orange-500/60" :
+                                        "bg-red-500/80 border border-red-500/80"
+                                      )}
+                                      title={`${day} ${hour}: ${count} mistakes`}
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">{day} {hour}: {count} {count === 1 ? 'mistake' : 'mistakes'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="flex items-center gap-3 mt-3 pt-2 border-t border-border/40">
+                      <span className="text-[10px] font-medium text-muted-foreground">Low</span>
+                      <div className="w-4 h-4 rounded-sm bg-yellow-500/40 border border-yellow-500/40" />
+                      <div className="w-4 h-4 rounded-sm bg-orange-500/60 border border-orange-500/60" />
+                      <div className="w-4 h-4 rounded-sm bg-red-500/80 border border-red-500/80" />
+                      <span className="text-[10px] font-medium text-muted-foreground">High</span>
+                    </div>
+                  </div>
+
+                  {/* Summary Stats */}
+                  <div className="pt-2 border-t border-border/40 grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Trades Tagged</p>
+                      <p className="text-2xl font-bold text-foreground">{mistakeTagsAnalysis.tradesWithMistakes}</p>
+                    </div>
+                    <div className="space-y-1 text-right">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Avg/Trade</p>
+                      <p className="text-2xl font-bold text-foreground">{mistakeTagsAnalysis.avgMistakesPerTrade.toFixed(1)}</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <p className="text-sm text-muted-foreground">No mistakes tagged yet</p>
+                  <p className="text-xs text-muted-foreground/60">Start tagging mistakes in your trades to see patterns</p>
+                </div>
+              )}
+            </div>
+          </GlassCardWrapper>
 
         {/* Top Assets */}
         <GlassCardWrapper patternId="top-assets-dots" className="p-5">
