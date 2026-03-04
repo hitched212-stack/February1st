@@ -448,7 +448,7 @@ export function RichTextEditor({
   return (
     <div className="relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-1.5 p-3 bg-muted/35 border-b border-border/60 flex-wrap z-10">
+      <div className="flex items-center gap-1.5 p-3 bg-muted/35 border-b border-border/60 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible [&>*]:shrink-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden z-10">
         <button
           type="button"
           onMouseDown={(e) => {
@@ -696,7 +696,7 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="h-9 min-w-9 px-2 rounded-lg hover:bg-background/70 transition-all duration-150 flex items-center gap-1 border border-transparent hover:border-border/70"
+            className="h-9 w-9 rounded-lg hover:bg-background/70 transition-all duration-150 flex items-center justify-center border border-transparent hover:border-border/70 leading-none"
             title="Text Color"
           >
             <span className="text-sm font-bold" style={{ color: selectedColor }}>A</span>

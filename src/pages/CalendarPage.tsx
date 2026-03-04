@@ -1380,28 +1380,28 @@ export default function CalendarPage() {
               <div className="flex items-center">
                 <button 
                   onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth}
-                  className="h-9 w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
                 >
                   <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
                 </button>
-                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[140px] font-display">
+                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[96px] sm:min-w-[140px] font-display">
                   {viewMode === 'year' ? format(currentMonth, 'yyyy') : (
                     <>
-                      <span className="sm:hidden">{format(currentMonth, 'MMM')}</span>
+                      <span className="sm:hidden">{format(currentMonth, 'MMM yyyy')}</span>
                       <span className="hidden sm:inline">{format(currentMonth, 'MMM yyyy')}</span>
                     </>
                   )}
                 </span>
                 <button 
                   onClick={viewMode === 'year' ? handleNextYear : handleNextMonth}
-                  className="h-9 w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
                 >
                   <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
                 </button>
                 <button 
                   onClick={handleToday} 
                   className={cn(
-                    'px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-2',
+                    'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-1 sm:ml-2',
                     viewMode === 'month' ? '' : 'hidden',
                     'bg-foreground text-background'
                   )}
@@ -1571,57 +1571,75 @@ export default function CalendarPage() {
             ) : (
               /* Month View - Original Calendar */
               <>
+                {/* Calendar Header with Month Stats */}
+                <div className={cn(
+                  "rounded-xl border p-4 mb-4",
+                  preferences.liquidGlassEnabled
+                    ? "border-white/10 bg-card/50 backdrop-blur-2xl"
+                    : "border-border/50 bg-card/50"
+                )}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">Total Trades This Month</p>
+                      <p className="text-2xl font-bold tabular-nums">{filteredTrades.filter(t => {
+                        const tradeDate = new Date(t.date);
+                        return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
+                      }).length}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground font-medium mb-1">Monthly P&L</p>
+                      <p className="text-2xl font-bold tabular-nums" style={{
+                        color: `hsl(var(${monthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
+                      }}>{formatPnlWithK(monthlyPnl)}</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
-                <div className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1 text-center mb-1">
+                <div className="hidden md:grid grid-cols-8 gap-1 text-center mb-3">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
                     <div key={i} className={cn(
-                      "h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-muted-foreground",
+                      "h-8 flex items-center justify-center rounded-lg border text-xs font-bold text-foreground/70 tracking-wider",
                       preferences.liquidGlassEnabled
-                        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                        : "border-border/50 bg-card"
+                        ? "border-white/5 bg-background/40 backdrop-blur-xl"
+                        : "border-border/30 bg-muted/30"
                     )}>
                       {day}
                     </div>
                   ))}
                   <div className={cn(
-                    "w-16 md:w-20 h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-foreground",
+                    "h-8 flex items-center justify-center rounded-lg border text-xs font-bold text-foreground/70 tracking-wider",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                      : "border-border/50 bg-card"
+                      ? "border-white/5 bg-background/40 backdrop-blur-xl"
+                      : "border-border/30 bg-muted/30"
                   )}>
-                    <span className="font-bold">{filteredTrades.filter(t => {
-                      const tradeDate = new Date(t.date);
-                      return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
-                    }).length}</span>
+                    WEEK
                   </div>
                 </div>
                 {/* Mobile headers - Mon to Fri only */}
-                <div className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 text-center mb-1">
+                <div className="grid md:hidden grid-cols-6 gap-0.5 text-center mb-2">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
                     <div key={i} className={cn(
-                      "h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-muted-foreground",
+                      "h-7 flex items-center justify-center rounded-lg border text-[10px] font-bold text-foreground/70",
                       preferences.liquidGlassEnabled
-                        ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                        : "border-border/50 bg-card"
+                        ? "border-white/5 bg-background/40 backdrop-blur-xl"
+                        : "border-border/30 bg-muted/30"
                     )}>
                       {day}
                     </div>
                   ))}
                   <div className={cn(
-                    "w-14 h-6 flex items-center justify-center rounded-lg border text-[10px] font-medium text-foreground",
+                    "h-7 flex items-center justify-center rounded-lg border text-[10px] font-bold text-foreground/70",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                      : "border-border/50 bg-card"
+                      ? "border-white/5 bg-background/40 backdrop-blur-xl"
+                      : "border-border/30 bg-muted/30"
                   )}>
-                    <span className="font-bold">{filteredTrades.filter(t => {
-                      const tradeDate = new Date(t.date);
-                      return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
-                    }).length}</span>
+                    WK
                   </div>
                 </div>
 
                 {/* Calendar Grid with Weekly P&L - Full week */}
-                <div className="space-y-0.5 md:space-y-1">
+                <div className="space-y-1.5 md:space-y-2">
                   {(() => {
                     const monthStart = startOfMonth(currentMonth);
                     const monthEnd = endOfMonth(currentMonth);
@@ -1646,7 +1664,14 @@ export default function CalendarPage() {
                       return (
                         <>
                         {/* Desktop/Tablet - Full week */}
-                        <div key={weekIndex} className="hidden md:grid grid-cols-[repeat(7,1fr)_auto] gap-0.5 md:gap-1">
+                        <div key={weekIndex} className="hidden md:grid grid-cols-8 gap-1 p-3 rounded-xl border" style={{
+                          background: weekData && (weekData.pnl >= 0 
+                            ? `hsl(var(--pnl-positive) / 0.05)`
+                            : `hsl(var(--pnl-negative) / 0.05)`),
+                          borderColor: weekData && (weekData.pnl >= 0 
+                            ? `hsl(var(--pnl-positive) / 0.15)`
+                            : `hsl(var(--pnl-negative) / 0.15)`)
+                        }}>
                           {week.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
                             const dayPnl = getFilteredDailyPnl(dateStr);
@@ -1667,41 +1692,42 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 md:h-20 rounded-lg flex flex-col items-center justify-center p-1 transition-all relative border',
+                                  'h-20 rounded-lg flex flex-col items-center justify-center p-2 transition-all relative border hover:shadow-md',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
-                                  isTodayDate && 'ring-2 ring-primary/60 shadow-md',
+                                  isTodayDate && 'ring-2 ring-primary shadow-lg',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'bg-card/85 backdrop-blur-2xl border-white/10 hover:bg-card/90'
-                                    : 'bg-card border-border/60 hover:bg-muted/10 hover:border-border/80')
+                                    ? 'bg-card/80 backdrop-blur-2xl border-white/10 hover:bg-card/90'
+                                    : 'bg-background border-border/40 hover:bg-muted/5')
                                 )}
                                 style={tradeCount > 0 ? {
-                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.18)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.45)`
+                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.12)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.3)`,
+                                  boxShadow: isTodayDate ? 'none' : undefined
                                 } : undefined}
                               >
                                 {/* Date number - top left */}
                                 <div className={cn(
-                                  'absolute top-0.5 left-0.5 text-[10px] font-display font-bold tabular-nums',
-                                  isTodayDate ? '' : 'text-foreground/80'
+                                  'absolute top-1 left-1.5 text-xs font-display font-bold tabular-nums',
+                                  isTodayDate ? 'text-primary' : 'text-foreground/60'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
 
                                 {/* Trade info - centered */}
                                 {tradeCount > 0 && (
-                                  <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-xs font-semibold font-display tabular-nums w-full text-center px-0.5 truncate"
+                                  <div className="flex flex-col items-center gap-1 mt-3">
+                                    <div className="text-sm font-bold font-display tabular-nums w-full text-center px-0.5 truncate"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
+                                    <div className="text-[9px] text-muted-foreground font-display font-semibold tabular-nums">
                                       {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
                                     </div>
                                   </div>
                                 )}
                                 {tradeCount === 0 && noTradeTakenCount > 0 && (
-                                  <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
-                                    No Trades
+                                  <div className="text-[9px] text-muted-foreground font-display font-bold tabular-nums">
+                                    —
                                   </div>
                                 )}
                               </button>
@@ -1710,26 +1736,33 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary */}
                           <div className={cn(
-                            "h-16 md:h-20 w-16 md:w-20 flex flex-col items-center justify-center rounded-lg p-1.5 border",
+                            "h-20 flex flex-col items-center justify-center rounded-lg p-2 border font-bold",
                             preferences.liquidGlassEnabled
-                              ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                              : "bg-card border-border/60"
+                              ? "border-white/10 bg-card/80 backdrop-blur-2xl"
+                              : "bg-card border-border/40"
                           )}>
-                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap font-display font-bold tabular-nums">
-                              Week {weekIndex + 1}
+                            <div className="text-[10px] text-muted-foreground/70 mb-1 whitespace-nowrap font-display font-semibold tracking-wider">
+                              WEEK {weekIndex + 1}
                             </div>
-                            <div className="text-xs font-bold font-display tabular-nums mb-0.5 w-full text-center truncate"
+                            <div className="text-lg font-display tabular-nums mb-1 w-full text-center truncate leading-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
-                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap font-display font-bold tabular-nums">
-                              {weekData?.tradeCount || 0} trades
+                            <div className="text-[9px] text-muted-foreground font-display font-semibold tabular-nums">
+                              {weekData?.tradeCount || 0} {weekData?.tradeCount === 1 ? 'trade' : 'trades'}
                             </div>
                           </div>
                         </div>
                         
                         {/* Mobile - Weekdays only (Mon-Fri) */}
-                        <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-[repeat(5,1fr)_auto] gap-0.5 auto-rows-[4rem] items-stretch">
+                        <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-6 gap-0.5 p-2 rounded-lg border" style={{
+                          background: weekData && (weekData.pnl >= 0 
+                            ? `hsl(var(--pnl-positive) / 0.05)`
+                            : `hsl(var(--pnl-negative) / 0.05)`),
+                          borderColor: weekData && (weekData.pnl >= 0 
+                            ? `hsl(var(--pnl-positive) / 0.15)`
+                            : `hsl(var(--pnl-negative) / 0.15)`)
+                        }}>
                           {weekdaysOnly.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
                             const dayPnl = getFilteredDailyPnl(dateStr);
@@ -1746,38 +1779,39 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 rounded-lg flex flex-col items-center justify-center p-1 transition-all relative border',
+                                  'h-16 rounded-lg flex flex-col items-center justify-center p-1.5 transition-all relative border hover:shadow-md',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
-                                  isTodayDate && 'ring-2 ring-primary/60 shadow-md',
+                                  isTodayDate && 'ring-2 ring-primary shadow-lg',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'bg-card/85 backdrop-blur-2xl border-white/10 hover:bg-card/90'
-                                    : 'bg-card border-border/60 hover:bg-muted/10 hover:border-border/80')
+                                    ? 'bg-card/80 backdrop-blur-2xl border-white/10 hover:bg-card/90'
+                                    : 'bg-background border-border/40 hover:bg-muted/5')
                                 )}
                                 style={tradeCount > 0 ? {
-                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.18)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.45)`
+                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.12)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.3)`,
+                                  boxShadow: isTodayDate ? 'none' : undefined
                                 } : undefined}
                               >
                                 <div className={cn(
-                                  'absolute top-0.5 left-0.5 text-[10px] font-display font-bold tabular-nums',
-                                  isTodayDate ? '' : 'text-foreground/80'
+                                  'absolute top-0.5 left-1 text-xs font-display font-bold tabular-nums',
+                                  isTodayDate ? 'text-primary' : 'text-foreground/60'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-[10px] font-semibold font-display tabular-nums w-full text-center px-0.5 truncate tracking-tight"
+                                    <div className="text-[10px] font-bold font-display tabular-nums w-full text-center px-0.5 truncate"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
-                                      {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
+                                    <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
+                                      {tradeCount}t
                                     </div>
                                   </div>
                                 )}
                                 {tradeCount === 0 && noTradeTakenCount > 0 && (
                                   <div className="text-[8px] text-muted-foreground font-display font-bold tabular-nums">
-                                    No Trades
+                                    —
                                   </div>
                                 )}
                               </button>
@@ -1786,19 +1820,19 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary - Mobile */}
                           <div className={cn(
-                            "h-16 w-14 flex flex-col items-center justify-center rounded-lg p-1.5 border",
+                            "h-16 flex flex-col items-center justify-center rounded-lg p-1.5 border font-bold",
                             preferences.liquidGlassEnabled
-                              ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                              : "bg-card border-border/60"
+                              ? "border-white/10 bg-card/80 backdrop-blur-2xl"
+                              : "bg-card border-border/40"
                           )}>
-                            <div className="text-[9px] text-muted-foreground mb-0.5 whitespace-nowrap font-display font-bold tabular-nums">
-                              Wk {weekIndex + 1}
+                            <div className="text-[9px] text-muted-foreground/70 mb-0.5 whitespace-nowrap font-display font-semibold tracking-wider">
+                              W{weekIndex + 1}
                             </div>
-                            <div className="text-[9px] font-bold font-display tabular-nums mb-0.5 w-full text-center truncate leading-none tracking-tight"
+                            <div className="text-xs font-display tabular-nums mb-0.5 w-full text-center truncate"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
-                            <div className="text-[8px] text-muted-foreground/70 whitespace-nowrap font-display font-bold tabular-nums">
+                            <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
                               {weekData?.tradeCount || 0}t
                             </div>
                           </div>

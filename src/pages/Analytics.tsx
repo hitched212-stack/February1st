@@ -59,6 +59,40 @@ export default function Analytics() {
   // Use active account's currency, fallback to profile settings
   const currencySymbol = activeAccount?.currency ? getCurrencySymbol(activeAccount.currency as Currency) : getCurrencySymbol(settings.currency);
 
+  const displayedDateRangeLabel = useMemo(() => {
+    const formatRange = (from: Date, to: Date) => `${format(from, 'MMM dd')} - ${format(to, 'MMM dd')}`;
+
+    if (dateRange.from) {
+      const from = new Date(dateRange.from);
+      const to = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
+      return formatRange(from, to);
+    }
+
+    const now = new Date();
+
+    switch (timeFrame) {
+      case 'Daily':
+        return formatRange(now, now);
+      case 'Week': {
+        const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        return formatRange(weekStart, weekEnd);
+      }
+      case 'Month':
+        return formatRange(startOfMonth(now), endOfMonth(now));
+      case 'Year': {
+        const yearStart = startOfYear(now);
+        const yearEnd = new Date(now.getFullYear(), 11, 31);
+        return formatRange(yearStart, yearEnd);
+      }
+      case 'All Time':
+        return 'All Time';
+      default:
+        return formatRange(startOfMonth(now), endOfMonth(now));
+    }
+  }, [dateRange.from, dateRange.to, timeFrame]);
+
   // Filter trades based on timeframe and exact date - exclude paper trades
   // Filtering rules:
   // - Daily → today's trades only
@@ -881,7 +915,7 @@ export default function Analytics() {
                   >
                     <CalendarIcon className="h-4 w-4" />
                     <span className="font-display font-bold tabular-nums">
-                      {`${format(startOfMonth(new Date()), 'MMM dd')} - ${format(endOfMonth(new Date()), 'MMM dd')}`}
+                      {displayedDateRangeLabel}
                     </span>
                     <ChevronDown className="h-3.5 w-3.5 opacity-70" />
                   </Button>
@@ -1075,11 +1109,11 @@ export default function Analytics() {
             : "border-border/60 bg-card"
         )}>
           {/* Header with Net P&L and Chart Toggle */}
-          <div className="relative flex items-start justify-between mb-6 md:mb-8 pt-4 md:pt-6 -mt-3 md:-mt-2">
+          <div className="relative flex items-start justify-between mb-6 md:mb-8 pt-5 md:pt-7">
             {/* Left: Income info */}
             <div>
-              <div className="flex items-start justify-between gap-4">
-                <p className="text-xs text-foreground mb-1 md:mb-2 font-semibold uppercase tracking-[0.2em]">Total Pnl</p>
+              <div className="flex items-center gap-2 md:items-start md:justify-between md:gap-4">
+                <p className="text-xs text-foreground mb-1 md:mb-2 font-semibold uppercase tracking-wider">Total Pnl</p>
                 <span className={cn("text-sm font-medium font-display tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
                   {stats.totalPnl >= 0 ? '+' : ''}{stats.pnlPercentage.toFixed(2)}%
                 </span>
@@ -1143,7 +1177,10 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
                   <XAxis dataKey="date" tick={{
                 fontSize: 10,
-                fill: 'hsl(var(--muted-foreground))'
+                fill: 'hsl(var(--muted-foreground))',
+                fontFamily: 'Outfit, system-ui, sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.06em'
               }} axisLine={false} tickLine={false} dy={10} interval="preserveStartEnd" />
                   <YAxis tick={{
                 fontSize: 10,
@@ -1158,7 +1195,7 @@ export default function Analytics() {
                 if (absValue >= 1000) return `${prefix}${currencySymbol}${Math.round(absValue / 1000)}k`;
                 return `${prefix}${currencySymbol}${absValue}`;
               }} width={55} />
-                  <Tooltip content={({
+                  <RechartTooltip content={({
                 active,
                 payload,
                 label
@@ -1194,25 +1231,7 @@ export default function Analytics() {
                 fill: stats.totalPnl >= 0 ? profitColor : lossColor,
                 stroke: 'hsl(var(--background))',
                 strokeWidth: 3
-              }} animationDuration={1500} animationEasing="ease-out">
-                    <LabelList 
-                      dataKey="value" 
-                      position="top" 
-                      offset={8}
-                      interval={Math.max(0, Math.floor(equityCurveData.length / 6))}
-                      formatter={(value: number) => {
-                        const absValue = Math.abs(value);
-                        if (absValue >= 1000) {
-                          return `${value >= 0 ? '+' : '-'}${currencySymbol}${(absValue / 1000).toFixed(0)}k`;
-                        }
-                        return `${value >= 0 ? '+' : '-'}${currencySymbol}${absValue.toLocaleString()}`;
-                      }}
-                      fill="hsl(var(--foreground))"
-                      fontSize={10}
-                      fontFamily="Outfit, system-ui, sans-serif"
-                      fontWeight={700}
-                    />
-                  </Area>
+              }} animationDuration={1500} animationEasing="ease-out" />
                 </AreaChart> : <BarChart data={equityCurveData} margin={{
               top: 10,
               right: 5,
@@ -1222,7 +1241,10 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
                   <XAxis dataKey="date" tick={{
                 fontSize: 10,
-                fill: 'hsl(var(--muted-foreground))'
+                fill: 'hsl(var(--muted-foreground))',
+                fontFamily: 'Outfit, system-ui, sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.06em'
               }} axisLine={false} tickLine={false} dy={10} interval="preserveStartEnd" />
                   <YAxis tick={{
                 fontSize: 10,
@@ -1237,7 +1259,7 @@ export default function Analytics() {
                 if (absValue >= 1000) return `${prefix}${currencySymbol}${Math.round(absValue / 1000)}k`;
                 return `${prefix}${currencySymbol}${absValue}`;
               }} width={55} />
-                  <Tooltip content={({
+                  <RechartTooltip content={({
                 active,
                 payload,
                 label
@@ -1266,21 +1288,6 @@ export default function Analytics() {
               }} cursor={false} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
                     {equityCurveData.map((entry, index) => <Cell key={index} fill={entry.value >= 0 ? profitColor : lossColor} className="transition-opacity duration-200" opacity={activeBarIndex === undefined || activeBarIndex === index ? 1 : 0.3} onMouseEnter={() => setActiveBarIndex(index)} />)}
-                    <LabelList 
-                      dataKey="value" 
-                      position="top" 
-                      formatter={(value: number) => {
-                        const absValue = Math.abs(value);
-                        if (absValue >= 1000) {
-                          return `${value >= 0 ? '+' : '-'}${currencySymbol}${(absValue / 1000).toFixed(0)}k`;
-                        }
-                        return `${value >= 0 ? '+' : '-'}${currencySymbol}${absValue.toLocaleString()}`;
-                      }}
-                      fill="hsl(var(--foreground))"
-                      fontSize={11}
-                      fontFamily="Outfit, system-ui, sans-serif"
-                      fontWeight={700}
-                    />
                   </Bar>
                   {activeBarIndex !== undefined && <ReferenceLine y={equityCurveData[activeBarIndex]?.value} stroke={equityCurveData[activeBarIndex]?.value >= 0 ? profitColor : lossColor} strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.5} />}
                 </BarChart>}
@@ -1572,7 +1579,7 @@ export default function Analytics() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-sm bg-pnl-positive" />
-                  <p className="text-xs font-medium text-foreground">Long Trades</p>
+                  <p className="text-xs text-foreground">Long Trades</p>
                 </div>
                 <div className="space-y-2 pl-4">
                   <div className="flex items-center justify-between">
@@ -1591,7 +1598,7 @@ export default function Analytics() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-sm bg-pnl-negative" />
-                  <p className="text-xs font-medium text-foreground">Short Trades</p>
+                  <p className="text-xs text-foreground">Short Trades</p>
                 </div>
                 <div className="space-y-2 pl-4">
                   <div className="flex items-center justify-between">
@@ -2184,7 +2191,7 @@ function StatItemCompact({
   color?: 'positive' | 'negative';
 }) {
   return <div className="flex items-center justify-between">
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className={cn('text-sm font-display font-bold tabular-nums text-foreground', color === 'positive' && 'text-pnl-positive', color === 'negative' && 'text-pnl-negative')}>
         {value}
       </p>

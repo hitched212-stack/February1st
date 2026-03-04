@@ -816,6 +816,19 @@ export function TradeForm({
         >
           <div className="w-full max-w-7xl mx-auto">
 
+          <div className="md:hidden flex justify-end mb-3">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-10 px-6 rounded-xl font-semibold text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {isSubmitting ? <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  {editTrade ? 'Updating...' : 'Saving...'}
+                </> : editTrade ? 'Update Trade' : 'Log Trade'}
+            </Button>
+          </div>
+
           <div className="hidden md:flex justify-end mb-3">
             <Button
               type="submit"
@@ -1525,23 +1538,6 @@ export function TradeForm({
           </div>
         </div>
 
-        {/* Footer - sticky on mobile with safe area padding */}
-        <div 
-          className="sticky md:hidden bottom-0 border-t border-border/50 bg-card/70 flex-shrink-0 z-40"
-          style={{
-            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1rem, env(safe-area-inset-right))',
-            paddingTop: '1rem',
-            paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))'
-          }}
-        >
-          <Button type="submit" className="w-full h-11 md:h-10 text-sm rounded-xl font-semibold text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100" disabled={isSubmitting}>
-            {isSubmitting ? <>
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                {editTrade ? 'Updating...' : 'Saving...'}
-              </> : editTrade ? 'Update Trade' : 'Log Trade'}
-          </Button>
-        </div>
       </div>
     </form>;
 }
