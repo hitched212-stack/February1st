@@ -1412,9 +1412,6 @@ export default function CalendarPage() {
               <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                 {viewMode === 'month' && (
                   <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm">
-                    <span className="text-muted-foreground whitespace-nowrap font-display font-bold tabular-nums">
-                      PnL: <span className={cn('font-display font-bold tabular-nums', monthlyPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>{formatPnlWithK(monthlyPnl)}</span>
-                    </span>
                     <span className="text-muted-foreground whitespace-nowrap hidden sm:inline font-display font-bold tabular-nums">Days: <span className="text-foreground font-display font-bold tabular-nums">{tradingDays}</span></span>
                   </div>
                 )}
@@ -1581,14 +1578,14 @@ export default function CalendarPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground font-medium mb-1">Total Trades This Month</p>
-                      <p className="text-2xl font-bold tabular-nums">{filteredTrades.filter(t => {
+                      <p className="text-2xl font-bold font-display tabular-nums">{filteredTrades.filter(t => {
                         const tradeDate = new Date(t.date);
                         return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                       }).length}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground font-medium mb-1">Monthly P&L</p>
-                      <p className="text-2xl font-bold tabular-nums" style={{
+                      <p className="text-2xl font-bold font-display tabular-nums" style={{
                         color: `hsl(var(${monthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
                       }}>{formatPnlWithK(monthlyPnl)}</p>
                     </div>
@@ -1828,7 +1825,7 @@ export default function CalendarPage() {
                             <div className="text-[9px] text-muted-foreground/70 mb-0.5 whitespace-nowrap font-display font-semibold tracking-wider">
                               W{weekIndex + 1}
                             </div>
-                            <div className="text-xs font-display tabular-nums mb-0.5 w-full text-center truncate"
+                            <div className="text-[10px] font-display tabular-nums mb-0.5 w-full text-center truncate"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
