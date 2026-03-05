@@ -1,9 +1,10 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutGrid, PieChart, CalendarDays, TrendingUp, Plus, Menu, Sun, User, Bot, Moon } from 'lucide-react';
+import { LayoutGrid, CalendarDays, TrendingUp, Plus, Menu, Sun, User, Bot, Moon, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePreferences } from '@/hooks/usePreferences';
+import { BugReportDialog } from '@/components/layout/BugReportDialog';
 
 // Use Lucide Bot icon for AI Coach
 const AIIcon = Bot;
@@ -42,6 +43,13 @@ const PlaybookIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Bar chart icon - filled three vertical bars (same as Total PnL card)
+const BarChartIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M17 20q-.425 0-.712-.288T16 19v-5q0-.425.288-.712T17 13h2q.425 0 .713.288T20 14v5q0 .425-.288.713T19 20zm-6 0q-.425 0-.712-.288T10 19V5q0-.425.288-.712T11 4h2q.425 0 .713.288T14 5v14q0 .425-.288.713T13 20zm-6 0q-.425 0-.712-.288T4 19v-9q0-.425.288-.712T5 9h2q.425 0 .713.288T8 10v9q0 .425-.288.713T7 20z"/>
+  </svg>
+);
+
 const navItems = [{
   to: '/dashboard',
   icon: LayoutGrid,
@@ -64,7 +72,7 @@ const navItems = [{
   label: 'Playbook'
 }, {
   to: '/analytics',
-  icon: PieChart,
+  icon: BarChartIcon,
   label: 'Analytics'
 }, {
   to: '/calendar',
@@ -78,6 +86,7 @@ const navItems = [{
 export function MobileSidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
   const { preferences, setTheme } = usePreferences();
   return <div className="md:hidden">
       {/* Fixed Header with Menu Button */}
@@ -140,8 +149,20 @@ export function MobileSidebar() {
                 );
               })}
               </nav>
-              
-              {/* Theme Toggle Section */}
+                            {/* Report Bug Button */}
+              <div className="px-3 pb-3">
+                <button
+                  onClick={() => {
+                    setIsBugReportOpen(true);
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all w-full text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  <Bug className="h-5 w-5 flex-shrink-0 stroke-[1.5px]" />
+                  <span className="text-sm font-medium">Report Bug</span>
+                </button>
+              </div>
+                            {/* Theme Toggle Section */}
               <div className="px-3 pb-4">
                 <div className="px-3 py-2 space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Theme</p>
@@ -180,5 +201,8 @@ export function MobileSidebar() {
 
       {/* Spacer for fixed header */}
       <div className="h-14" />
+      
+      {/* Bug Report Dialog */}
+      <BugReportDialog open={isBugReportOpen} onOpenChange={setIsBugReportOpen} />
     </div>;
 }

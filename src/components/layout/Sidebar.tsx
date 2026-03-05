@@ -12,6 +12,7 @@ import {
   Moon,
   Monitor,
 } from "lucide-react";
+import { BugReportDialog } from "@/components/layout/BugReportDialog";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { motion } from "framer-motion";
@@ -57,12 +58,10 @@ const ClockHistoryIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// Bar chart icon - three vertical bars
+// Bar chart icon - filled three vertical bars (same as Total PnL card)
 const BarChartIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <line x1="6" y1="20" x2="6" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="18" y1="20" x2="18" y2="14" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M17 20q-.425 0-.712-.288T16 19v-5q0-.425.288-.712T17 13h2q.425 0 .713.288T20 14v5q0 .425-.288.713T19 20zm-6 0q-.425 0-.712-.288T10 19V5q0-.425.288-.712T11 4h2q.425 0 .713.288T14 5v14q0 .425-.288.713T13 20zm-6 0q-.425 0-.712-.288T4 19v-9q0-.425.288-.712T5 9h2q.425 0 .713.288T8 10v9q0 .425-.288.713T7 20z"/>
   </svg>
 );
 
@@ -112,6 +111,13 @@ const TradingRulesIcon = ({ className }: { className?: string }) => (
 const SettingsIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81a.488.488 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+  </svg>
+);
+
+// Bug report icon - filled bug
+const BugIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
   </svg>
 );
 
@@ -198,6 +204,7 @@ export function Sidebar({
   const setIsCollapsed = setControlledCollapsed ?? setIsCollapsedState;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
 
   // Track active path for indicator
   const [activePath, setActivePath] = useState<string | null>(null);
@@ -487,6 +494,42 @@ export function Sidebar({
 
       {/* User Profile & Collapse */}
       <div className="p-3 border-t border-border/60 dark:border-border/20 space-y-2">
+        {/* Report Bug */}
+        <div>
+          <button
+            onClick={() => setIsBugReportOpen(true)}
+            className={cn(
+              "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out w-full text-left",
+              "hover:scale-[1.02]",
+              "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              isCollapsed ? "justify-center" : "",
+            )}
+          >
+            <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+              {isCollapsed ? (
+                <>
+                  <BugIcon className="h-[18px] w-[18px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                  <BugIcon className="h-[18px] w-[18px] absolute top-[100%] left-0 block transition-all duration-500 group-hover:translate-y-[-100%]" />
+                </>
+              ) : (
+                <BugIcon className="h-[18px] w-[18px]" />
+              )}
+            </div>
+            {!isCollapsed && (
+              <>
+                <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
+                  <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    Report Bug
+                  </span>
+                  <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    Report Bug
+                  </span>
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+        
         {/* Settings */}
         <div>
           <NavLink
@@ -647,6 +690,9 @@ export function Sidebar({
           </div>
         </button>
       </div>
+
+      {/* Bug Report Dialog */}
+      <BugReportDialog open={isBugReportOpen} onOpenChange={setIsBugReportOpen} />
     </motion.aside>
   );
 }
