@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePreferences } from '@/hooks/usePreferences';
 import { BugReportDialog } from '@/components/layout/BugReportDialog';
+import { ComingSoonDialog } from '@/components/layout/ComingSoonDialog';
 
 // Use Lucide Bot icon for AI Coach
 const AIIcon = Bot;
@@ -87,6 +88,8 @@ export function MobileSidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+  const [comingSoonFeature, setComingSoonFeature] = useState<string>("");
   const { preferences, setTheme } = usePreferences();
   return <div className="md:hidden">
       {/* Fixed Header with Menu Button */}
@@ -136,11 +139,25 @@ export function MobileSidebar() {
                 label
               }) => {
                 const isActive = location.pathname === to;
+                const isComingSoon = to === '/coach';
                 // Add divider after Dashboard, AI Coach, Calendar, Profile sections
                 const showDivider = to === '/dashboard' || to === '/coach' || to === '/calendar';
                 return (
                   <div key={to}>
-                    <NavLink to={to} onClick={() => setIsOpen(false)} className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all', isActive ? 'bg-emerald-500/15 text-emerald-400' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50')}>
+                    <NavLink 
+                      to={to} 
+                      onClick={(e) => {
+                        if (isComingSoon) {
+                          e.preventDefault();
+                          setComingSoonFeature(label);
+                          setIsComingSoonOpen(true);
+                          setIsOpen(false);
+                        } else {
+                          setIsOpen(false);
+                        }
+                      }} 
+                      className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all', isActive ? 'bg-emerald-500/15 text-emerald-400' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50')}
+                    >
                       <Icon className="h-5 w-5 flex-shrink-0 stroke-[1.5px]" />
                       <span className="text-sm font-medium">{label}</span>
                     </NavLink>
@@ -153,7 +170,8 @@ export function MobileSidebar() {
               <div className="px-3 pb-3">
                 <button
                   onClick={() => {
-                    setIsBugReportOpen(true);
+                    setComingSoonFeature("Bug reporting");
+                    setIsComingSoonOpen(true);
                     setIsOpen(false);
                   }}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all w-full text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -204,5 +222,8 @@ export function MobileSidebar() {
       
       {/* Bug Report Dialog */}
       <BugReportDialog open={isBugReportOpen} onOpenChange={setIsBugReportOpen} />
+      
+      {/* Coming Soon Dialog */}
+      <ComingSoonDialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen} featureName={comingSoonFeature} />
     </div>;
 }

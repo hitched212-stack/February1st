@@ -13,6 +13,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { BugReportDialog } from "@/components/layout/BugReportDialog";
+import { ComingSoonDialog } from "@/components/layout/ComingSoonDialog";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { motion } from "framer-motion";
@@ -205,6 +206,8 @@ export function Sidebar({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+  const [comingSoonFeature, setComingSoonFeature] = useState<string>("");
 
   // Track active path for indicator
   const [activePath, setActivePath] = useState<string | null>(null);
@@ -396,10 +399,18 @@ export function Sidebar({
           {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
           {navSections[1].items.map(({ to, icon: Icon, label }) => {
             const active = isActive(to);
+            const isComingSoon = to === "/news" || to === "/coach";
             return (
               <NavLink
                 key={to}
                 to={to}
+                onClick={(e) => {
+                  if (isComingSoon) {
+                    e.preventDefault();
+                    setComingSoonFeature(label);
+                    setIsComingSoonOpen(true);
+                  }
+                }}
                 className={cn(
                   "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out",
                   "hover:scale-[1.02]",
@@ -420,14 +431,21 @@ export function Sidebar({
                   )}
                 </div>
                 {!isCollapsed && (
-                  <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
-                    <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
-                      {label}
+                  <>
+                    <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
+                      <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                        {label}
+                      </span>
+                      <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                        {label}
+                      </span>
                     </span>
-                    <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
-                      {label}
-                    </span>
-                  </span>
+                    {(to === "/news" || to === "/coach") && (
+                      <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-violet-500/20 text-violet-400 border border-violet-500/30">
+                        Coming Soon
+                      </span>
+                    )}
+                  </>
                 )}
                 {active && !isCollapsed && (
                   <motion.div
@@ -497,7 +515,10 @@ export function Sidebar({
         {/* Report Bug */}
         <div>
           <button
-            onClick={() => setIsBugReportOpen(true)}
+            onClick={() => {
+              setComingSoonFeature("Bug reporting");
+              setIsComingSoonOpen(true);
+            }}
             className={cn(
               "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out w-full text-left",
               "hover:scale-[1.02]",
@@ -524,6 +545,9 @@ export function Sidebar({
                   <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
                     Report Bug
                   </span>
+                </span>
+                <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-violet-500/20 text-violet-400 border border-violet-500/30">
+                  Coming Soon
                 </span>
               </>
             )}
@@ -693,6 +717,9 @@ export function Sidebar({
 
       {/* Bug Report Dialog */}
       <BugReportDialog open={isBugReportOpen} onOpenChange={setIsBugReportOpen} />
+      
+      {/* Coming Soon Dialog */}
+      <ComingSoonDialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen} featureName={comingSoonFeature} />
     </motion.aside>
   );
 }
