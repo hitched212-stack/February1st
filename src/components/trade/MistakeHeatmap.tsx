@@ -18,7 +18,10 @@ export function MistakeHeatmap({ mistakeTagsAnalysis }: MistakeHeatmapProps) {
   // Listen for external filter changes
   useEffect(() => {
     const handleFilterChange = () => {
-      const filter = (window as any).__selectedMistakeFilter;
+      const appWindow = window as Window & {
+        __selectedMistakeFilter?: string | null;
+      };
+      const filter = appWindow.__selectedMistakeFilter;
       setSelectedMistake(filter);
     };
 
@@ -41,22 +44,9 @@ export function MistakeHeatmap({ mistakeTagsAnalysis }: MistakeHeatmapProps) {
 
   return (
     <div className="space-y-2 pt-2 border-t border-border/40">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          When Mistakes Happen
-        </p>
-        {selectedMistake && (
-          <button
-            onClick={() => {
-              (window as any).__selectedMistakeFilter = null;
-              setSelectedMistake(null);
-            }}
-            className="text-[10px] px-2 py-1 rounded-md bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Show All
-          </button>
-        )}
-      </div>
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        When Mistakes Happen
+      </p>
       
       {selectedMistake && (
         <p className="text-[10px] text-muted-foreground">

@@ -1350,10 +1350,12 @@ export function TradeForm({
                             mistakeTags: (p.mistakeTags || []).filter(m => m !== tag)
                           }));
                         }}
-                        className="inline-flex items-center gap-1.5 h-6 px-2 rounded-full bg-red-500/15 text-red-500 border border-red-500/40 text-xs font-medium transition-all hover:bg-red-500/25"
+                        className="group inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-md border border-red-500/40 bg-red-500/15 text-red-500 text-xs font-medium transition-all hover:bg-red-500/25"
                       >
-                        {tag}
-                        <X className="h-2.5 w-2.5 cursor-pointer" />
+                        <span className="max-w-[180px] truncate">{tag}</span>
+                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-red-500/80 transition-colors group-hover:text-red-500 group-hover:bg-red-500/20">
+                          <X className="h-2.5 w-2.5" />
+                        </span>
                       </button>
                     ))}
                   </div>

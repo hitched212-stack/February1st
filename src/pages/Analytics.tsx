@@ -39,6 +39,7 @@ export default function Analytics() {
   const [equityChartView, setEquityChartView] = useState<ChartViewType>('line');
   const [activeBarIndex, setActiveBarIndex] = useState<number | undefined>(undefined);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [selectedMistakeFilter, setSelectedMistakeFilter] = useState<string | null>(null);
   const {
     trades
   } = useTrades();
@@ -51,6 +52,28 @@ export default function Analytics() {
   const {
     preferences
   } = usePreferences();
+
+  useEffect(() => {
+    const syncMistakeFilter = () => {
+      const appWindow = window as Window & {
+        __selectedMistakeFilter?: string | null;
+      };
+      setSelectedMistakeFilter(appWindow.__selectedMistakeFilter || null);
+    };
+
+    syncMistakeFilter();
+    document.addEventListener('mistakeFilterChanged', syncMistakeFilter);
+    return () => document.removeEventListener('mistakeFilterChanged', syncMistakeFilter);
+  }, []);
+
+  const applyMistakeFilter = (mistake: string | null) => {
+    const appWindow = window as Window & {
+      __selectedMistakeFilter?: string | null;
+    };
+    appWindow.__selectedMistakeFilter = mistake;
+    setSelectedMistakeFilter(mistake);
+    document.dispatchEvent(new Event('mistakeFilterChanged'));
+  };
 
   // Get user's custom colors for charts
   const isDefaultPreset = preferences.activePresetId === 'default';
@@ -2029,7 +2052,8 @@ export default function Analytics() {
           )}
         </GlassCardWrapper>
 
-          <GlassCardWrapper patternId="mistakes-dots" className="p-5">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+          <GlassCardWrapper patternId="mistakes-dots" className="p-5 h-full">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-white dark:text-white flex items-center gap-1.5">
@@ -2037,7 +2061,7 @@ export default function Analytics() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button type="button" className="inline-flex">
-                        <Info className="h-3 w-3 text-white dark:text-white cursor-pointer" />
+                        <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -2055,53 +2079,56 @@ export default function Analytics() {
                   {/* Top Mistakes List - Compact Pill Layout */}
                   <div className="flex flex-wrap gap-2">
                     {mistakeTagsAnalysis.topMistakes.map(([mistake, count], index) => {
-                      const percentage = mistakeTagsAnalysis.totalMistakeTags > 0 
-                        ? (count / mistakeTagsAnalysis.totalMistakeTags) * 100 
+                      const percentage = mistakeTagsAnalysis.totalMistakeTags > 0
+                        ? (count / mistakeTagsAnalysis.totalMistakeTags) * 100
                         : 0;
                       const severity = percentage >= 30 ? 'high' : percentage >= 15 ? 'medium' : 'low';
                       const severityBgColors = {
-                        high: 'bg-red-500/20 border-red-500/40 text-red-400',
-                        medium: 'bg-orange-500/20 border-orange-500/40 text-orange-400',
-                        low: 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400'
+                        high: 'bg-red-500/10 border-red-500/35 text-red-300 hover:bg-red-500/15',
+                        medium: 'bg-orange-500/10 border-orange-500/35 text-orange-300 hover:bg-orange-500/15',
+                        low: 'bg-yellow-500/10 border-yellow-500/35 text-yellow-300 hover:bg-yellow-500/15'
                       };
 
                       return (
                         <button
                           key={index}
-                          onClick={() => {
-                            const currentFilter = (window as any).__selectedMistakeFilter;
-                            if (currentFilter === mistake) {
-                              (window as any).__selectedMistakeFilter = null;
-                            } else {
-                              (window as any).__selectedMistakeFilter = mistake;
-                            }
-                            document.dispatchEvent(new Event('mistakeFilterChanged'));
-                          }}
+                          onClick={() => applyMistakeFilter(selectedMistakeFilter === mistake ? null : mistake)}
                           className={cn(
-                            "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all hover:scale-105 cursor-pointer",
-                            severityBgColors[severity]
+                            "group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all duration-200 cursor-pointer",
+                            severityBgColors[severity],
+                            selectedMistakeFilter === mistake && 'ring-1 ring-primary/60 bg-primary/15 border-primary/50 text-foreground shadow-[0_0_0_1px_hsl(var(--primary)/0.15)]'
                           )}
-                          title={`${mistake}: ${count}x (${percentage.toFixed(0)}%) - Click to filter heatmap`}
+                          title={`${mistake}: ${count}x (${percentage.toFixed(0)}%) - Click to ${selectedMistakeFilter === mistake ? 'clear filter' : 'filter heatmap'}`}
                         >
-                          <span className="truncate max-w-[150px]">{mistake}</span>
-                          <span className="text-[10px] opacity-75">{count}x</span>
+                          <span className="truncate max-w-[170px] leading-none">{mistake}</span>
+                          <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-black/20 dark:bg-black/25 leading-none">
+                            {count}x
+                          </span>
                         </button>
                       );
                     })}
+                    {selectedMistakeFilter && (
+                      <button
+                        onClick={() => applyMistakeFilter(null)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all hover:scale-105 cursor-pointer bg-muted/50 border-border/60 text-muted-foreground hover:text-foreground"
+                        title="Clear mistake filter"
+                      >
+                        <XIcon className="h-3 w-3" />
+                        Clear filter
+                      </button>
+                    )}
                   </div>
 
-                  {/* Mistakes by Time Heatmap */}
                   <MistakeHeatmap mistakeTagsAnalysis={mistakeTagsAnalysis} />
 
-                  {/* Summary Stats */}
-                  <div className="pt-2 border-t border-border/40 grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Trades Tagged</p>
-                      <p className="text-2xl font-bold text-foreground">{mistakeTagsAnalysis.tradesWithMistakes}</p>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="rounded-lg border border-border/40 bg-background/40 px-3 py-2 space-y-1">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Trades Tagged</p>
+                      <p className="text-2xl font-bold text-foreground leading-none">{mistakeTagsAnalysis.tradesWithMistakes}</p>
                     </div>
-                    <div className="space-y-1 text-right">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Avg/Trade</p>
-                      <p className="text-2xl font-bold text-foreground">{mistakeTagsAnalysis.avgMistakesPerTrade.toFixed(1)}</p>
+                    <div className="rounded-lg border border-border/40 bg-background/40 px-3 py-2 space-y-1 text-right">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Avg/Trade</p>
+                      <p className="text-2xl font-bold text-foreground leading-none">{mistakeTagsAnalysis.avgMistakesPerTrade.toFixed(1)}</p>
                     </div>
                   </div>
                 </>
@@ -2114,33 +2141,34 @@ export default function Analytics() {
             </div>
           </GlassCardWrapper>
 
-        {/* Top Assets */}
-        <GlassCardWrapper patternId="top-assets-dots" className="p-5">
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-1.5">
-            Top Assets
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="inline-flex">
-                  <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">Your most profitable trading assets by P&L</p>
-              </TooltipContent>
-            </Tooltip>
-          </h3>
-          {topAssets.length === 0 ? <p className="text-sm text-muted-foreground">No profitable assets yet</p> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {topAssets.map(([symbol, pnl], index) => <div key={symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground w-4">{index + 1}</span>
-                    <span className="text-sm font-medium">{symbol}</span>
-                  </div>
-                  <span className={cn('text-sm font-display font-bold tabular-nums', pnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
-                    {formatPnl(pnl, currencySymbol)}
-                  </span>
-                </div>)}
-              </div>}
-        </GlassCardWrapper>
+          {/* Top Assets */}
+          <GlassCardWrapper patternId="top-assets-dots" className="p-5 h-full">
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              Top Assets
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex">
+                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Your most profitable trading assets by P&L</p>
+                </TooltipContent>
+              </Tooltip>
+            </h3>
+            {topAssets.length === 0 ? <p className="text-sm text-muted-foreground">No profitable assets yet</p> : <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {topAssets.map(([symbol, pnl], index) => <div key={symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/40">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-xs text-muted-foreground w-4">{index + 1}</span>
+                      <span className="text-sm font-medium truncate">{symbol}</span>
+                    </div>
+                    <span className={cn('text-sm font-display font-bold tabular-nums ml-3', pnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                      {formatPnl(pnl, currencySymbol)}
+                    </span>
+                  </div>)}
+                </div>}
+          </GlassCardWrapper>
+        </div>
 
         {/* Performance & Advanced Stats - Compact Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
