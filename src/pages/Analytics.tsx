@@ -2056,7 +2056,7 @@ export default function Analytics() {
           <GlassCardWrapper patternId="mistakes-dots" className="p-5 h-full">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-white dark:text-white flex items-center gap-1.5">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
                   Repeated Mistakes
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -2084,9 +2084,9 @@ export default function Analytics() {
                         : 0;
                       const severity = percentage >= 30 ? 'high' : percentage >= 15 ? 'medium' : 'low';
                       const severityBgColors = {
-                        high: 'bg-red-500/10 border-red-500/35 text-red-300 hover:bg-red-500/15',
-                        medium: 'bg-orange-500/10 border-orange-500/35 text-orange-300 hover:bg-orange-500/15',
-                        low: 'bg-yellow-500/10 border-yellow-500/35 text-yellow-300 hover:bg-yellow-500/15'
+                        high: 'bg-red-500/10 border-red-500/45 text-red-700 hover:bg-red-500/15 dark:border-red-500/35 dark:text-red-300 dark:hover:bg-red-500/15',
+                        medium: 'bg-orange-500/10 border-orange-500/45 text-orange-700 hover:bg-orange-500/15 dark:border-orange-500/35 dark:text-orange-300 dark:hover:bg-orange-500/15',
+                        low: 'bg-yellow-500/10 border-yellow-500/45 text-yellow-700 hover:bg-yellow-500/15 dark:border-yellow-500/35 dark:text-yellow-300 dark:hover:bg-yellow-500/15'
                       };
 
                       return (
