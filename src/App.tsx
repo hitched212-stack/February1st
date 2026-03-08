@@ -267,11 +267,7 @@ const App = () => {
 
   if (!isAppRoute) {
     if (shouldRedirectToApp) {
-      return (
-        <div className="min-h-screen w-full bg-black flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-        </div>
-      );
+      return null; // Hide loading ring on redirect - splash screen will handle loading state
     }
     return isTermsRoute ? <LandingTerms /> : <LandingHome />;
   }

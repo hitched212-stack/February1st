@@ -51,12 +51,10 @@ const AIIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWi
   </svg>
 );
 
-// Custom analytics icon - three vertical bars
-const AnalyticsIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <line x1="6" y1="20" x2="6" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="18" y1="20" x2="18" y2="14" />
+// Custom analytics icon - filled bar chart matching sidebar
+const AnalyticsIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M17 20q-.425 0-.712-.288T16 19v-5q0-.425.288-.712T17 13h2q.425 0 .713.288T20 14v5q0 .425-.288.713T19 20zm-6 0q-.425 0-.712-.288T10 19V5q0-.425.288-.712T11 4h2q.425 0 .713.288T14 5v14q0 .425-.288.713T13 20zm-6 0q-.425 0-.712-.288T4 19v-9q0-.425.288-.712T5 9h2q.425 0 .713.288T8 10v9q0 .425-.288.713T7 20z"/>
   </svg>
 );
 
@@ -122,6 +120,7 @@ export function BottomNav() {
   const isAnalyticsActive = location.pathname === '/analytics';
   const isMoreTabActive = moreOpen || isMoreActive;
   const activeTabClasses = 'gap-2 w-[128px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
+  const moreActiveTabClasses = 'gap-2 w-[104px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
   const inactiveTabClasses = 'w-11 justify-center text-white/75 scale-[0.985]';
   const tabTransitionClasses = 'transform-gpu will-change-[width,transform,opacity] transition-[width,background-color,color,box-shadow,transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none';
   
@@ -146,7 +145,7 @@ export function BottomNav() {
     >
       <div className="relative mx-auto max-w-md">
         <div 
-          className="relative flex h-[62px] items-center justify-between gap-1 px-2 rounded-[22px] bg-zinc-900/95 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.45)] overflow-hidden"
+          className="relative flex h-[62px] items-center justify-between gap-1 pl-2 pr-3 rounded-[22px] bg-zinc-900/95 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.45)] overflow-hidden"
         >
           <div className="absolute top-[1px] left-5 right-5 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
           
@@ -207,8 +206,8 @@ export function BottomNav() {
             to="/add" 
             className="relative z-10"
           >
-            <div className="relative flex h-[46px] w-[46px] -translate-y-1 items-center justify-center rounded-[16px] bg-gradient-to-br from-[#b5a4ff] to-[#8b7ae0] transition-transform duration-200 active:scale-95">
-              <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <div className="relative flex h-11 w-11 items-center justify-center rounded-[15px] bg-gradient-to-br from-[#a89dff] to-[#8b7ae0] shadow-[0_4px_16px_rgba(139,122,224,0.3)] transition-all duration-200 active:scale-95">
+              <Plus className="h-5 w-5 text-white" strokeWidth={2.6} />
             </div>
           </NavLink>
 
@@ -229,7 +228,6 @@ export function BottomNav() {
                   'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
                   isAnalyticsActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
                 )} 
-                strokeWidth={1.8}
               />
               <span className={cn(
                 'text-sm font-semibold whitespace-nowrap overflow-hidden',
@@ -247,7 +245,7 @@ export function BottomNav() {
                   "relative flex h-11 items-center rounded-full px-3",
                   tabTransitionClasses,
                   isMoreTabActive
-                    ? activeTabClasses
+                    ? moreActiveTabClasses
                     : inactiveTabClasses
                 )}>
                   <Menu 
