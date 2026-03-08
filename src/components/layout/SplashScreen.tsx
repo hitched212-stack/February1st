@@ -69,7 +69,7 @@ export function SplashScreen({ onComplete, minDisplayTime = 1000, isDataReady = 
               transition={{ duration: 0.5, ease: 'easeOut' }}
               src="/splash-icon.png"
               alt="MyTradeLog"
-              className="h-12 w-auto object-contain dark:invert-0 invert"
+              className="h-24 md:h-32 w-auto object-contain dark:invert-0 invert"
             />
           </div>
         </motion.div>

@@ -1223,28 +1223,28 @@ export default function CalendarPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                         <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Balance</p>
-                        <button 
-                          type="button" 
-                          onClick={() => setBalanceHidden(!balanceHidden)}
-                          className="inline-flex p-1 rounded hover:bg-foreground/5 transition-colors"
-                        >
-                          {balanceHidden ? (
-                            <EyeOff className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                          )}
-                        </button>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Current account balance based on starting balance and cumulative P&L.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
                       </div>
-                      <UiTooltip>
-                        <UiTooltipTrigger asChild>
-                          <button type="button" className="inline-flex">
-                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                          </button>
-                        </UiTooltipTrigger>
-                        <UiTooltipContent>
-                          <p>Current account balance based on starting balance and cumulative P&L.</p>
-                        </UiTooltipContent>
-                      </UiTooltip>
+                      <button 
+                        type="button" 
+                        onClick={() => setBalanceHidden(!balanceHidden)}
+                        className="inline-flex p-1 rounded hover:bg-foreground/5 transition-colors"
+                      >
+                        {balanceHidden ? (
+                          <EyeOff className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                        ) : (
+                          <Eye className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                        )}
+                      </button>
                     </div>
                     <div className="mt-auto space-y-2">
                       <div className="flex items-center justify-between">
@@ -1268,21 +1268,21 @@ export default function CalendarPage() {
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
                       : "border-border/60 bg-card hover:border-border hover:shadow-md"
                   )}>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                         <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Net P&L</p>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Total net profit or loss for the selected period.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
                       </div>
-                      <UiTooltip>
-                        <UiTooltipTrigger asChild>
-                          <button type="button" className="inline-flex">
-                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                          </button>
-                        </UiTooltipTrigger>
-                        <UiTooltipContent>
-                          <p>Total net profit or loss for the selected period.</p>
-                        </UiTooltipContent>
-                      </UiTooltip>
                     </div>
                     <div className="mt-auto space-y-2">
                       <div className="flex items-center justify-between">
@@ -1311,21 +1311,21 @@ export default function CalendarPage() {
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
                       : "border-border/60 bg-card hover:border-border hover:shadow-md"
                   )}>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                         <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Trade Win %</p>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
                       </div>
-                      <UiTooltip>
-                        <UiTooltipTrigger asChild>
-                          <button type="button" className="inline-flex">
-                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                          </button>
-                        </UiTooltipTrigger>
-                        <UiTooltipContent>
-                          <p>Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
-                        </UiTooltipContent>
-                      </UiTooltip>
                     </div>
 
                     <div className="mt-auto flex items-end justify-between gap-4">
@@ -1368,21 +1368,21 @@ export default function CalendarPage() {
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
                       : "border-border/60 bg-card hover:border-border hover:shadow-md"
                   )}>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                         <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Avg Win/Loss</p>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Average P&amp;L per trade over the selected period.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
                       </div>
-                      <UiTooltip>
-                        <UiTooltipTrigger asChild>
-                          <button type="button" className="inline-flex">
-                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                          </button>
-                        </UiTooltipTrigger>
-                        <UiTooltipContent>
-                          <p>Average P&amp;L per trade over the selected period.</p>
-                        </UiTooltipContent>
-                      </UiTooltip>
                     </div>
                     <div className="flex flex-col gap-1.5 mt-auto">
                       <p className="text-[10px] text-muted-foreground/80 font-semibold uppercase tracking-wider">per Trade</p>
@@ -1401,21 +1401,21 @@ export default function CalendarPage() {
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
                       : "border-border/60 bg-card hover:border-border hover:shadow-md"
                   )}>
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center mb-1.5">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                         <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Expected Value</p>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Expected return per trade based on historical outcomes.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
                       </div>
-                      <UiTooltip>
-                        <UiTooltipTrigger asChild>
-                          <button type="button" className="inline-flex">
-                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                          </button>
-                        </UiTooltipTrigger>
-                        <UiTooltipContent>
-                          <p>Expected return per trade based on historical outcomes.</p>
-                        </UiTooltipContent>
-                      </UiTooltip>
                     </div>
                     <div className="flex items-center gap-1 mb-2.5">
                       <span className="px-2 py-0.5 rounded-md text-[10px] leading-none font-bold tabular-nums bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/20">{wins}</span>
@@ -1444,17 +1444,17 @@ export default function CalendarPage() {
                         <div className="flex items-center gap-2">
                           <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                           <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Daily Cumulative P&L</h3>
+                          <UiTooltip>
+                            <UiTooltipTrigger asChild>
+                              <button type="button" className="inline-flex">
+                                <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                              </button>
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>Cumulative P&amp;L growth throughout the month by day.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
                         </div>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p>Cumulative P&L growth throughout the month by day.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
                       </div>
 
                       {monthlyTrades.length === 0 ? (
@@ -1632,21 +1632,21 @@ export default function CalendarPage() {
                       : "border-border/60 bg-card hover:border-border"
                   )}>
                     <div className="relative flex flex-col h-full">
-                      <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center mb-5">
                         <div className="flex items-center gap-2">
                           <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                           <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Performance by Day</h3>
+                          <UiTooltip>
+                            <UiTooltipTrigger asChild>
+                              <button type="button" className="inline-flex">
+                                <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                              </button>
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>Your performance for each day of the week.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
                         </div>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p>Your performance for each day of the week.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
                       </div>
 
                       <div className="flex-1 space-y-2.5">
@@ -1745,8 +1745,6 @@ export default function CalendarPage() {
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                           <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Recent Trades</h3>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
                           <UiTooltip>
                             <UiTooltipTrigger asChild>
                               <button type="button" className="inline-flex">
@@ -1757,6 +1755,8 @@ export default function CalendarPage() {
                               <p>Your 5 most recent trades</p>
                             </UiTooltipContent>
                           </UiTooltip>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
                             onClick={() => navigate('/history')}
@@ -1843,9 +1843,9 @@ export default function CalendarPage() {
                 ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                 : "border-border/60 bg-card"
             )}>
-              <div className="relative px-5 py-4">
+              <div className="relative px-4 sm:px-5 py-4">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-5 sm:mb-6">
                   <div className="flex items-center gap-2.5">
                     <div className="w-1 h-5 bg-[#9b8cff] rounded-full" />
                     <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Goal Progress</h3>
@@ -1860,15 +1860,77 @@ export default function CalendarPage() {
                       </UiTooltipContent>
                     </UiTooltip>
                   </div>
-                  <div className="flex gap-1 p-1 rounded-lg border border-border/50 bg-background/50">
+                  <div className="inline-flex w-fit gap-1 p-1 rounded-xl border border-border/50 bg-background/50">
                     {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
                   </div>
                 </div>
 
-                {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6">
+                {/* Mobile Content */}
+                <div className="sm:hidden space-y-4">
+                  <div className="grid grid-cols-[1fr,92px] items-center gap-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{format(currentMonth, 'MMMM yyyy')}</span>
+                        <div className="h-px flex-1 bg-border/40" />
+                      </div>
+
+                      <div className="flex items-end gap-2">
+                        <p className={cn('text-3xl font-bold font-display tabular-nums leading-none tracking-tight', currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative')}>
+                          {formatPnlWithK(currentPnl)}
+                        </p>
+                        <div className={cn('px-2 py-0.5 rounded-md text-[11px] font-bold tabular-nums', currentPnl >= 0 ? 'bg-[#9b8cff]/10 text-[#9b8cff]' : 'bg-pnl-negative/10 text-pnl-negative')}>
+                          {Math.round(goalProgress)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative h-[92px] w-[92px] justify-self-end">
+                      <svg className="transform -rotate-90" width="92" height="92">
+                        <circle cx="46" cy="46" r="39" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted/20" />
+                        <circle
+                          cx="46"
+                          cy="46"
+                          r="39"
+                          fill="none"
+                          stroke={currentPnl >= 0 ? '#9b8cff' : 'hsl(var(--pnl-negative))'}
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 39}`}
+                          strokeDashoffset={`${2 * Math.PI * 39 * (1 - Math.max(0, Math.min(goalProgress, 100)) / 100)}`}
+                          className="transition-all duration-700 ease-out"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-xl font-bold font-display tabular-nums text-foreground leading-none">{Math.round(goalProgress)}%</span>
+                        <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                          {goalPeriod === 'D' ? 'Daily' : goalPeriod === 'W' ? 'Weekly' : goalPeriod === 'M' ? 'Monthly' : 'Yearly'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">{formatPnlWithK(currentGoal, false)} Goal</span>
+                    </div>
+                    <div className="relative h-2.5 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                      <div
+                        className={cn('h-full rounded-full transition-all duration-700 ease-out', currentPnl >= 0 ? 'bg-gradient-to-r from-[#9b8cff] to-[#b8acff]' : 'bg-gradient-to-r from-pnl-negative to-red-400')}
+                        style={{ width: `${Math.max(0, Math.min(goalProgress, 100))}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] font-semibold uppercase tracking-wider">
+                      <span className="text-muted-foreground/60">0%</span>
+                      <span className="text-muted-foreground/60">100%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop/Tablet Content */}
+                <div className="hidden sm:grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6">
                   {/* Left: Stats and Progress Bar */}
                   <div className="space-y-4">
                     {/* Period Label */}
@@ -1958,7 +2020,7 @@ export default function CalendarPage() {
                 >
                   <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
                 </button>
-                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[96px] sm:min-w-[140px] font-display">
+                <span className="text-base font-semibold text-foreground text-center whitespace-nowrap min-w-[84px] sm:min-w-[140px] font-display">
                   {viewMode === 'year' ? format(currentMonth, 'yyyy') : (
                     <>
                       <span className="sm:hidden">{format(currentMonth, 'MMM yyyy')}</span>
@@ -1983,10 +2045,29 @@ export default function CalendarPage() {
                   Today
                 </button>
               </div>
+
+              {/* Mobile inline stats - same row, compact to prevent overlap */}
+              {viewMode === 'month' && (
+                <div className="sm:hidden flex-1 min-w-0 px-2 text-center">
+                  <span className="inline-flex items-center gap-2.5 text-[12px] text-muted-foreground font-display font-semibold tabular-nums whitespace-nowrap truncate">
+                    <span>
+                      Trades: <span className="text-foreground">{filteredTrades.filter(t => {
+                        const tradeDate = new Date(t.date);
+                        return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
+                      }).length}</span>
+                    </span>
+                    <span>
+                      P&amp;L: <span style={{
+                        color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
+                      }}>{formatPnlWithK(displayedMonthlyPnl)}</span>
+                    </span>
+                  </span>
+                </div>
+              )}
               
               {/* Center - Stats */}
               {viewMode === 'month' && (
-                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-4 absolute left-1/2 -translate-x-1/2 text-center justify-center">
+                <div className="hidden sm:flex items-center gap-4 absolute left-1/2 -translate-x-1/2 text-center justify-center">
                   <span className="text-xs text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-xs text-foreground font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
                     const tradeDate = new Date(t.date);
                     return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();

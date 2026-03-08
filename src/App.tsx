@@ -141,11 +141,7 @@ function ProtectedLayout() {
 
   // Show loading state while checking auth/account/subscription
   if (authLoading || accountLoading || subscriptionStatus === 'loading') {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return null;
   }
 
   // If Supabase failed but we have a user, still allow them to access the app
@@ -223,6 +219,34 @@ const AppRoutes = () => {
   );
 };
 
+function AppWithSplash() {
+  const { isHydrating } = useDataStore();
+  const { loading: authLoading } = useAuth();
+  const { loading: accountLoading } = useAccount();
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashComplete, setSplashComplete] = useState(false);
+
+  // Data is considered ready once auth/account have resolved and hydration has finished
+  const isDataReady = !authLoading && !accountLoading && !isHydrating;
+
+  const handleSplashComplete = () => {
+    setSplashComplete(true);
+    setShowSplash(false);
+  };
+
+  return (
+    <>
+      <AppRoutes />
+      <SplashScreenController
+        showSplash={showSplash}
+        splashComplete={splashComplete}
+        isDataReady={isDataReady}
+        onSplashComplete={handleSplashComplete}
+      />
+    </>
+  );
+}
+
 const App = () => {
   // Check if we're on an app route (any route under /app)
   const isAppRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/app");
@@ -263,8 +287,8 @@ const App = () => {
           <AuthProvider>
             <PreferencesProvider>
               <AccountProvider>
-                {/* App routes - always render to prevent hooks mismatch */}
-                <AppRoutes />
+                {/* App routes + splash overlay */}
+                <AppWithSplash />
               </AccountProvider>
             </PreferencesProvider>
           </AuthProvider>

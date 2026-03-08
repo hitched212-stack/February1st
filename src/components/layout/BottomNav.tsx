@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 // Custom 4-dot grid icon - filled rectangles matching sidebar
 const GridDotsIcon = ({ className }: { className?: string }) => (
@@ -112,42 +112,18 @@ export function BottomNav() {
   const location = useLocation();
   const scrollDirection = useScrollDirection();
   const { preferences, setTheme } = usePreferences();
-  const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
   const [moreOpen, setMoreOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 40 });
   
   const isMoreActive = ['/settings', '/news', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
-  
-  // Calculate active index for the sliding indicator
-  const getActiveIndex = () => {
-    if (location.pathname === '/dashboard') return 0;
-    if (location.pathname === '/history') return 1;
-    if (location.pathname === '/analytics') return 2;
-    if (isMoreActive || moreOpen) return 3;
-    return -1;
-  };
 
-  const activeIndex = getActiveIndex();
-
-  // Update indicator position based on actual DOM elements
-  useLayoutEffect(() => {
-    if (!containerRef.current) return;
-    
-    const navItems = containerRef.current.querySelectorAll('[data-nav-item]');
-    const activeItem = navItems[activeIndex] as HTMLElement;
-    
-    if (activeItem && activeIndex !== -1) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const itemRect = activeItem.getBoundingClientRect();
-      
-      setIndicatorStyle({
-        left: itemRect.left - containerRect.left + (itemRect.width - 40) / 2,
-        width: 40,
-      });
-    }
-  }, [activeIndex, moreOpen]);
+  const isDashboardActive = location.pathname === '/dashboard';
+  const isHistoryActive = location.pathname === '/history';
+  const isAnalyticsActive = location.pathname === '/analytics';
+  const isMoreTabActive = moreOpen || isMoreActive;
+  const activeTabClasses = 'gap-2 w-[128px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
+  const inactiveTabClasses = 'w-11 justify-center text-white/75 scale-[0.985]';
+  const tabTransitionClasses = 'transform-gpu will-change-[width,transform,opacity] transition-[width,background-color,color,box-shadow,transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none';
   
   useEffect(() => {
     const timer = setTimeout(() => setHasAnimated(true), 100);
@@ -163,128 +139,129 @@ export function BottomNav() {
   return (
     <nav 
       className={cn(
-        'fixed bottom-6 left-4 right-4 z-50 md:hidden transition-all duration-500 ease-out',
+        'fixed bottom-4 left-3 right-3 z-50 md:hidden transform-gpu transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
         scrollDirection === 'down' ? 'translate-y-24 opacity-0' : 'translate-y-0 opacity-100',
         !hasAnimated && 'translate-y-24 opacity-0'
       )}
     >
-      <div className="relative mx-auto max-w-sm">
+      <div className="relative mx-auto max-w-md">
         <div 
-          ref={containerRef}
-          className={cn(
-            "relative flex h-14 items-center justify-between px-2 rounded-[24px] backdrop-blur-xl border border-border/50 shadow-2xl overflow-hidden",
-            isGlassEnabled
-              ? "bg-background/95 dark:bg-black/85"
-              : "bg-background/90 dark:bg-black/80"
-          )}
+          className="relative flex h-[62px] items-center justify-between gap-1 px-2 rounded-[22px] bg-zinc-900/95 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.45)] overflow-hidden"
         >
-          {/* Dot pattern - only show when glass is enabled */}
-          {isGlassEnabled && (
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="bottomnav-dots" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="0.75" className="fill-foreground/[0.08] dark:fill-foreground/[0.05]" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#bottomnav-dots)" />
-            </svg>
-          )}
-          {/* Subtle inner highlight */}
-          <div className="absolute top-[1px] left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent pointer-events-none z-10" />
-          
-          {/* Fluid sliding indicator - Apple-style */}
-          <div 
-            className={cn(
-              'absolute h-10 rounded-2xl bg-foreground/[0.12] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] pointer-events-none',
-              'transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
-              activeIndex === -1 && 'opacity-0'
-            )}
-            style={{
-              left: `${indicatorStyle.left}px`,
-              width: `${indicatorStyle.width}px`,
-              top: '7px',
-            }}
-          />
+          <div className="absolute top-[1px] left-5 right-5 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
           
           {/* Dashboard */}
           <NavLink 
             to="/dashboard" 
-            data-nav-item
-            className="relative flex items-center justify-center z-10"
+            className="relative z-10"
           >
-            <div className="relative flex items-center justify-center w-12 h-12">
+            <div className={cn(
+              "relative flex h-11 items-center rounded-full px-3",
+              tabTransitionClasses,
+              isDashboardActive
+                ? activeTabClasses
+                : inactiveTabClasses
+            )}>
               <GridDotsIcon 
                 className={cn(
-                  'transition-all duration-300 ease-out',
-                  location.pathname === '/dashboard' 
-                    ? 'h-[22px] w-[22px] text-foreground' 
-                    : 'h-5 w-5 text-muted-foreground'
+                  'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                  isDashboardActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
                 )} 
               />
+              <span className={cn(
+                'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                isDashboardActive ? 'max-w-[96px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
+              )}>Dashboard</span>
             </div>
           </NavLink>
           
           {/* History */}
           <NavLink 
             to="/history" 
-            data-nav-item
-            className="relative flex items-center justify-center z-10"
+            className="relative z-10"
           >
-            <div className="relative flex items-center justify-center w-12 h-12">
+            <div className={cn(
+              "relative flex h-11 items-center rounded-full px-3",
+              tabTransitionClasses,
+              isHistoryActive
+                ? activeTabClasses
+                : inactiveTabClasses
+            )}>
               <HistoryIcon 
                 className={cn(
-                  'transition-all duration-300 ease-out',
-                  location.pathname === '/history' 
-                    ? 'h-[22px] w-[22px] text-foreground' 
-                    : 'h-5 w-5 text-muted-foreground'
+                  'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                  isHistoryActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
                 )} 
               />
+              <span className={cn(
+                'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                isHistoryActive ? 'max-w-[64px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
+              )}>History</span>
             </div>
           </NavLink>
 
-          {/* Center Add Button - Box design */}
+          {/* Add */}
           <NavLink 
             to="/add" 
-            className="relative flex items-center justify-center z-10"
+            className="relative z-10"
           >
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-foreground text-background transition-all duration-200 active:scale-95">
-              <Plus className="h-5 w-5" strokeWidth={2.5} />
+            <div className="relative flex h-[46px] w-[46px] -translate-y-1 items-center justify-center rounded-[16px] bg-gradient-to-br from-[#b5a4ff] to-[#8b7ae0] transition-transform duration-200 active:scale-95">
+              <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
             </div>
           </NavLink>
 
           {/* Analytics */}
           <NavLink 
             to="/analytics" 
-            data-nav-item
-            className="relative flex items-center justify-center z-10"
+            className="relative z-10"
           >
-            <div className="relative flex items-center justify-center w-12 h-12">
+            <div className={cn(
+              "relative flex h-11 items-center rounded-full px-3",
+              tabTransitionClasses,
+              isAnalyticsActive
+                ? activeTabClasses
+                : inactiveTabClasses
+            )}>
               <AnalyticsIcon 
                 className={cn(
-                  'transition-all duration-300 ease-out',
-                  location.pathname === '/analytics' 
-                    ? 'h-[22px] w-[22px] text-foreground' 
-                    : 'h-5 w-5 text-muted-foreground'
+                  'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                  isAnalyticsActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
                 )} 
-                strokeWidth={1.5}
+                strokeWidth={1.8}
               />
+              <span className={cn(
+                'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                isAnalyticsActive ? 'max-w-[72px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
+              )}>Analytics</span>
             </div>
           </NavLink>
 
           {/* More Menu */}
           <Popover open={moreOpen} onOpenChange={setMoreOpen}>
             <PopoverTrigger asChild>
-              <button data-nav-item className="relative flex items-center justify-center z-10">
-                <div className="relative flex items-center justify-center w-12 h-12">
+              <button className="relative z-10">
+                <div className={cn(
+                  "relative flex h-11 items-center rounded-full px-3",
+                  tabTransitionClasses,
+                  isMoreTabActive
+                    ? activeTabClasses
+                    : inactiveTabClasses
+                )}>
                   <Menu 
                     className={cn(
-                      'transition-all duration-300 ease-out',
-                      moreOpen || isMoreActive
-                        ? 'h-[22px] w-[22px] text-foreground' 
-                        : 'h-5 w-5 text-muted-foreground'
+                      'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                      isMoreTabActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
                     )} 
-                    strokeWidth={1.5}
+                    strokeWidth={1.8}
                   />
+                  <span className={cn(
+                    'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                    'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                    isMoreTabActive ? 'max-w-[44px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
+                  )}>More</span>
                 </div>
               </button>
             </PopoverTrigger>
@@ -292,7 +269,7 @@ export function BottomNav() {
               side="top" 
               align="end" 
               sideOffset={12}
-              className="w-48 p-2 bg-background/95 dark:bg-black/90 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl"
+              className="w-52 p-2 bg-background/95 dark:bg-black/90 backdrop-blur-2xl border border-border/50 shadow-2xl rounded-3xl"
             >
               <div className="flex flex-col gap-0.5">
                 <NavLink 
