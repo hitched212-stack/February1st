@@ -40,7 +40,6 @@ import SelectAccount from "@/pages/SelectAccount";
 import Paywall from "@/pages/Paywall";
 
 import History from "@/pages/History";
-import Summary from "@/pages/Summary";
 import NotFound from "@/pages/NotFound";
 
 // Check if device is mobile
@@ -202,7 +201,6 @@ const AppRoutes = () => {
         <Route path="/news" element={<EconomicNews />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/history" element={<History />} />
-        <Route path="/summary" element={<Summary />} />
         <Route path="/add" element={<AddTrade />} />
         <Route path="/edit/:id" element={<EditTrade />} />
         <Route path="/analytics" element={<Analytics />} />

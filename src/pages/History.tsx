@@ -261,7 +261,7 @@ export default function History() {
         {/* Top row: Title and Search */}
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Trade History</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Trade History</h3>
             <p className="text-xs text-muted-foreground mt-1">{filteredTrades.length} total trades</p>
           </div>
           
@@ -518,14 +518,14 @@ export default function History() {
       </div>
 
       {/* Desktop/Tablet Header - Single Row */}
-      <div className="hidden md:flex items-center gap-3 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="hidden md:flex items-center gap-3 rounded-3xl border border-border/40 bg-card/95 backdrop-blur-xl p-3 relative overflow-hidden shadow-sm">
         {/* Title and Stats */}
-        <div className="relative flex items-center gap-4 flex-shrink-0">
+        <div className="relative flex items-center gap-4 flex-shrink-0 px-1">
           <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Trade History</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Trade History</h3>
             <p className="text-xs text-muted-foreground mt-1">{filteredTrades.length} total trades</p>
           </div>
-          <div className="w-px h-8 bg-border/50" />
+          <div className="w-px h-10 bg-border/40" />
           <div className="flex items-center gap-3">
             <div className="text-center">
               <div className="text-xs font-medium text-muted-foreground">Buys</div>
@@ -539,8 +539,8 @@ export default function History() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <div className="relative flex-1 max-w-sm rounded-full border border-border/40 bg-card/95 backdrop-blur-xl shadow-sm">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by symbol..."
             value={searchQuery}
@@ -548,23 +548,25 @@ export default function History() {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-8 h-9 rounded-xl bg-muted/50 dark:bg-black/20 border-border/50 dark:border-white/10 text-sm"
+            className="pl-11 pr-4 h-10 rounded-full bg-transparent border-0 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
 
         {/* Date Picker */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "h-9 gap-2 rounded-xl bg-muted/50 dark:bg-black/20 border-border/50 dark:border-white/10 hover:bg-muted dark:hover:bg-black/30 flex-shrink-0 px-3",
-                dateRange.from ? "text-foreground" : "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="h-4 w-4" />
-              <span className="text-sm">Date</span>
-            </Button>
+            <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "h-10 gap-2 rounded-full px-4 flex-shrink-0 hover:bg-muted/30",
+                  dateRange.from ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span className="text-sm">Date</span>
+              </Button>
+            </div>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
             <Calendar
@@ -606,7 +608,7 @@ export default function History() {
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="w-auto h-9 gap-2 rounded-xl bg-muted/50 dark:bg-black/20 border-border/50 dark:border-white/10 hover:bg-muted dark:hover:bg-black/30 flex-shrink-0 px-3">
+          <SelectTrigger className="w-auto h-10 gap-2 rounded-full border-border/40 bg-card/95 backdrop-blur-xl shadow-sm hover:shadow-md transition-all flex-shrink-0 px-4">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -618,7 +620,7 @@ export default function History() {
         </Select>
 
         {/* Direction Filter Buttons */}
-        <div className="flex gap-1 bg-muted/50 dark:bg-black/20 border border-border/50 dark:border-white/10 rounded-xl p-1 flex-shrink-0">
+        <div className="flex gap-1 rounded-full border border-border/40 bg-card/95 backdrop-blur-xl p-1 shadow-sm flex-shrink-0">
           {[
             { value: 'all' as const, label: 'All' },
             { value: 'long' as const, label: 'Buy' },
@@ -628,7 +630,7 @@ export default function History() {
               key={option.value}
               onClick={() => setDirectionFilter(option.value)}
               className={cn(
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap',
+                'px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap',
                 directionFilter === option.value
                   ? 'bg-foreground text-background shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -643,12 +645,12 @@ export default function History() {
       {/* Mobile Table View */}
       <div className="md:hidden">
         {paginatedTrades.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card text-center py-12 text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-card text-center py-12 text-muted-foreground">
             {searchQuery ? 'No trades match your search' : 'No trades recorded yet'}
           </div>
         ) : (
           <>
-            <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs" style={{ minWidth: '800px' }}>
                   <thead>
@@ -884,7 +886,7 @@ export default function History() {
 
       {/* Desktop Table View - Professional Binance-style */}
       <div className={cn(
-        "hidden md:block rounded-[1.75rem] border overflow-hidden relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+        "hidden md:block rounded-2xl border overflow-hidden relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
         isGlassEnabled
           ? "border-white/10 bg-card/85 backdrop-blur-2xl"
           : "border-border/60 bg-card"

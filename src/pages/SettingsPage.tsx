@@ -415,25 +415,31 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen pb-24">
       {/* Profile Header */}
-      <header className="px-4 pt-8 pb-6 md:px-6 lg:px-8 border-b border-border/50">
+      <header className="px-4 pt-6 pb-5 md:px-6 lg:px-8 border-b border-border/40">
         {/* Top Bar with Settings Title and Profile */}
-        <div className="flex items-start justify-between mb-6">
-          <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Settings</h1>
+        <div className="flex items-start justify-between mb-5">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-1 h-5 rounded-full bg-[#9b8cff]" />
+              <div className="min-w-0">
+                <h1 className="text-[11px] font-bold uppercase tracking-widest text-foreground">Settings</h1>
+                <p className="hidden sm:block text-xs text-muted-foreground truncate">Manage your account and preferences</p>
+              </div>
+          </div>
           
-          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/60 px-3 py-2 shadow-sm">
+          <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-2.5 shadow-sm">
             <div className="text-right">
               <p className="text-sm font-semibold text-foreground leading-tight">{settings.username || 'User'}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
-            <div className="relative h-10 w-10 rounded-full bg-muted/70 flex items-center justify-center border border-border/70">
-              <User className="h-5 w-5 text-foreground/60" strokeWidth={1.5} />
+            <div className="relative h-9 w-9 rounded-full bg-[#9b8cff]/10 flex items-center justify-center border border-[#9b8cff]/20">
+              <User className="h-4 w-4 text-[#9b8cff]" strokeWidth={2} />
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
         <div className="w-full overflow-x-auto md:overflow-x-visible [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
-          <div className="inline-flex items-center gap-1 rounded-xl bg-muted/40 border border-border/60 p-1">
+          <div className="inline-flex items-center gap-1.5 rounded-xl bg-background border border-border/40 p-1">
             {tabs.map((tab) => {
               const TabIcon = tab.icon;
               return (
@@ -441,13 +447,13 @@ export default function SettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors duration-200 ease-out whitespace-nowrap rounded-lg flex-shrink-0",
+                    "flex items-center gap-2 px-4 md:px-5 py-2.5 text-sm font-semibold transition-all duration-200 ease-out whitespace-nowrap rounded-lg flex-shrink-0",
                     activeTab === tab.id
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-foreground text-background shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                   )}
                 >
-                  <TabIcon className="h-4 w-4" strokeWidth={1.5} />
+                  <TabIcon className="h-4 w-4" strokeWidth={2} />
                   {tab.label}
                 </button>
               );
@@ -460,29 +466,37 @@ export default function SettingsPage() {
       <div className="px-4 md:px-6 lg:px-8 py-6">
         {/* Organization Tab */}
         {activeTab === 'organization' && (
-          <div className="space-y-6 max-w-5xl w-full">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Profile Details</h3>
-              <SettingsSection title="Profile" isGlassEnabled={isGlassEnabled} patternId="settings-org-profile">
+          <div className="space-y-8 max-w-4xl">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#9b8cff] rounded-full" />
+                <h2 className="text-xl font-bold text-foreground">Profile Details</h2>
+              </div>
+              <div className={cn(
+                "rounded-2xl border overflow-hidden transition-all duration-300 shadow-sm",
+                isGlassEnabled
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/40 bg-card"
+              )}>
                 <Collapsible open={showUsernameChange} onOpenChange={setShowUsernameChange}>
-                  <CollapsibleTrigger className="w-full flex items-center justify-between gap-4 p-6 hover:bg-muted/30 transition-colors text-left group">
+                  <CollapsibleTrigger className="w-full flex items-center justify-between gap-4 p-6 hover:bg-muted/20 transition-colors text-left group">
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">User Name</Label>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">User Name</Label>
                         <p className="text-base font-semibold text-foreground">{settings.username || 'H1tched'}</p>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</Label>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Email</Label>
                         <p className="text-base font-medium text-foreground">{user?.email}</p>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Member Since</Label>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Member Since</Label>
                         <p className="text-base font-medium text-foreground">
                           {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '02/02/2026'}
                         </p>
                       </div>
                     </div>
-                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={1.5} />
+                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={2} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="border-t border-border/60">
                     <div className="p-6 space-y-5 bg-muted/20">
@@ -547,22 +561,30 @@ export default function SettingsPage() {
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
-              </SettingsSection>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Account Settings</h3>
-              <SettingsSection title="Account" isGlassEnabled={isGlassEnabled} patternId="settings-account-dots">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#9b8cff] rounded-full" />
+                <h2 className="text-xl font-bold text-foreground">Account Settings</h2>
+              </div>
+              <div className={cn(
+                "rounded-2xl border overflow-hidden transition-all duration-300 shadow-sm",
+                isGlassEnabled
+                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                  : "border-border/40 bg-card"
+              )}>
                 <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
-                  <CollapsibleTrigger className="w-full flex items-center gap-4 p-6 hover:bg-muted/30 transition-colors text-left group">
-                    <div className="h-11 w-11 rounded-xl bg-muted/70 flex items-center justify-center border border-border/60 group-hover:border-border transition-colors flex-shrink-0">
-                      <Lock className="h-5 w-5 text-foreground/70" strokeWidth={1.5} />
+                  <CollapsibleTrigger className="w-full flex items-center gap-4 p-6 hover:bg-muted/20 transition-colors text-left group">
+                    <div className="h-11 w-11 rounded-xl bg-[#9b8cff]/10 flex items-center justify-center border border-[#9b8cff]/20 group-hover:border-[#9b8cff]/40 transition-colors flex-shrink-0">
+                      <Lock className="h-5 w-5 text-[#9b8cff]" strokeWidth={2} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base text-foreground">Change Password</p>
                       <p className="text-sm text-muted-foreground">Update your account password</p>
                     </div>
-                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={1.5} />
+                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={2} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="border-t border-border/60">
                     <div className="p-6 space-y-5 bg-muted/20">
@@ -624,55 +646,48 @@ export default function SettingsPage() {
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
-              </SettingsSection>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Time Zone & Localization</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#9b8cff] rounded-full" />
+                <h2 className="text-xl font-bold text-foreground">Time Zone & Localization</h2>
+              </div>
               <div className={cn(
-                "rounded-[1.75rem] border overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] relative",
+                "rounded-2xl border overflow-hidden shadow-sm relative transition-all duration-300",
                 isGlassEnabled
                   ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                  : "border-border/60 bg-card"
+                  : "border-border/40 bg-card"
               )}>
-                {isGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="settings-timezone-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-foreground/[0.04] dark:fill-foreground/[0.03]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#settings-timezone-dots)" />
-                  </svg>
-                )}
-                <div className="relative p-5">
+                <div className="relative p-6">
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                        <GlobeIcon className="w-5 h-5 text-primary" />
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-[#9b8cff]/10 border border-[#9b8cff]/20 flex items-center justify-center flex-shrink-0">
+                        <GlobeIcon className="w-6 h-6 text-[#9b8cff]" />
                       </div>
                       <div>
-                        <h4 className="text-base font-semibold text-foreground">Time Zone</h4>
-                        <p className="text-xs text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
+                        <h4 className="text-base font-semibold text-foreground mb-0.5">Time Zone</h4>
+                        <p className="text-sm text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Current Time</div>
-                      <div className="text-2xl font-bold text-foreground tabular-nums tracking-tight">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
+                    <div className="text-left lg:text-right">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Time</div>
+                      <div className="text-3xl font-bold text-foreground tabular-nums tracking-tight">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
                     </div>
                   </div>
 
                   {/* Timezone Select */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
-                      <SelectTrigger className="w-full h-11 rounded-xl bg-muted/30 border-border/60 text-sm font-medium hover:bg-muted/40 transition-colors">
+                      <SelectTrigger className="w-full h-12 rounded-xl bg-background border-border/40 text-sm font-medium hover:border-border transition-colors">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
                         {TIMEZONE_GROUPS.map((group) => (
                           <div key={group.region}>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                               {group.region}
                             </div>
                             {group.timezones.map((tz) => (
@@ -688,7 +703,7 @@ export default function SettingsPage() {
 
                     <Button
                       onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
-                      className="w-full h-10 rounded-xl text-sm font-semibold bg-foreground text-background hover:bg-foreground/90"
+                      className="w-full h-11 rounded-xl text-sm font-semibold bg-foreground text-background hover:bg-foreground/90 shadow-sm"
                       disabled={preferences.timeZone === timeZoneInput}
                     >
                       Save

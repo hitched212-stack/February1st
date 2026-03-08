@@ -680,23 +680,30 @@ export default function Backtesting() {
     <div className="min-h-screen bg-background relative">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 relative">
-        <div className="flex items-center justify-between px-4 py-4 md:px-6">
-          <div className="space-y-1">
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Backtesting</h1>
-            <p className="text-xs text-muted-foreground">Test and analyze your strategies</p>
+        <div className="px-4 py-3 md:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-1 h-5 rounded-full bg-[#9b8cff]" />
+              <div className="min-w-0">
+                <h1 className="text-[11px] font-bold uppercase tracking-widest text-foreground">Backtesting</h1>
+                <p className="hidden sm:block text-xs text-muted-foreground truncate">Test and analyze your strategies</p>
+              </div>
+            </div>
+            <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl p-1 shadow-sm hover:shadow-md transition-all">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-10 rounded-full gap-2 px-4 text-foreground hover:bg-muted/30"
+                onClick={() => {
+                  setEditingFolder(null);
+                  setIsFolderDialogOpen(true);
+                }}
+              >
+                <FolderPlus className="h-4 w-4" />
+                <span className="hidden sm:inline font-display font-bold tabular-nums">New Folder</span>
+              </Button>
+            </div>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-2xl gap-2 bg-card/60 border-border/50 shadow-sm hover:bg-card"
-            onClick={() => {
-              setEditingFolder(null);
-              setIsFolderDialogOpen(true);
-            }}
-          >
-            <FolderPlus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Folder</span>
-          </Button>
         </div>
       </header>
 

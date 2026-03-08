@@ -124,133 +124,139 @@ export function BugReportDialog({ open, onOpenChange }: BugReportDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Bug report form</DialogTitle>
+      <DialogContent className="sm:max-w-[680px] max-h-[92vh] overflow-y-auto rounded-3xl border border-border/70 bg-card/95 backdrop-blur-xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/40">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+            <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Support</p>
+          </div>
+          <DialogTitle className="text-2xl font-bold tracking-tight">Bug report form</DialogTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            Use this form to report any bugs or issues you encounter
+            Help us fix issues faster by sharing what happened and how to reproduce it.
           </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
-          {/* Email Field */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Your email <span className="text-red-500">*</span>
-            </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-9"
-                required
-              />
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-semibold">
+                Your email <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-11 pl-9 rounded-xl border-border/70 bg-background/70"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="severity" className="text-sm font-semibold">
+                Severity <span className="text-red-500">*</span>
+              </Label>
+              <Select value={severity} onValueChange={setSeverity} required>
+                <SelectTrigger id="severity" className="h-11 rounded-xl border-border/70 bg-background/70">
+                  <SelectValue placeholder="Select severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low - Minor inconvenience</SelectItem>
+                  <SelectItem value="medium">Medium - Affects functionality</SelectItem>
+                  <SelectItem value="high">High - Major issue</SelectItem>
+                  <SelectItem value="critical">Critical - App unusable</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Brief Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">
-              Brief description of the issue
+            <Label htmlFor="description" className="text-sm font-semibold">
+              Brief description <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="description"
-              placeholder="Brief description of the issue"
+              placeholder="Summarize the issue in one or two sentences"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="resize-none min-h-[80px]"
+              className="resize-none min-h-[92px] rounded-xl border-border/70 bg-background/70"
               required
             />
           </div>
 
-          {/* Steps to Reproduce */}
           <div className="space-y-2">
-            <Label htmlFor="steps" className="text-sm font-medium">
-              Steps to reproduce the issue <span className="text-red-500">*</span>
+            <Label htmlFor="steps" className="text-sm font-semibold">
+              Steps to reproduce <span className="text-red-500">*</span>
             </Label>
-            <p className="text-xs text-muted-foreground">Please be as detailed as possible!</p>
+            <p className="text-xs text-muted-foreground">Please be as detailed as possible.</p>
             <Textarea
               id="steps"
-              placeholder="1. Go to... 2. Click on... 3. Notice that..."
+              placeholder="1. Go to...\n2. Click on...\n3. Notice that..."
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
-              className="resize-none min-h-[100px]"
+              className="resize-none min-h-[120px] rounded-xl border-border/70 bg-background/70"
               required
             />
           </div>
 
-          {/* Severity */}
           <div className="space-y-2">
-            <Label htmlFor="severity" className="text-sm font-medium">
-              Severity of the issue
+            <Label htmlFor="screenshot" className="text-sm font-semibold">
+              Screenshot or video
             </Label>
-            <Select value={severity} onValueChange={setSeverity} required>
-              <SelectTrigger id="severity">
-                <SelectValue placeholder="Select severity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low - Minor inconvenience</SelectItem>
-                <SelectItem value="medium">Medium - Affects functionality</SelectItem>
-                <SelectItem value="high">High - Major issue</SelectItem>
-                <SelectItem value="critical">Critical - App unusable</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Screenshot Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="screenshot" className="text-sm font-medium">
-              Screenshot or video of the issue
-            </Label>
-            <div className="flex items-center gap-3">
-              <label
-                htmlFor="screenshot"
-                className="flex items-center gap-2 px-4 py-2 rounded-md border border-border bg-background hover:bg-muted/50 cursor-pointer transition-colors text-sm font-medium"
-              >
-                <Upload className="h-4 w-4" />
-                Choose file
-              </label>
-              <Input
-                id="screenshot"
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              {screenshot && (
-                <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-md bg-muted/50 text-sm">
-                  <span className="truncate flex-1">{screenshot.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setScreenshot(null)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+            <label
+              htmlFor="screenshot"
+              className="group flex items-center justify-between gap-4 rounded-xl border border-dashed border-border/70 bg-background/50 px-4 py-3 cursor-pointer hover:border-[#9b8cff]/50 hover:bg-background/80 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-9 w-9 rounded-lg border border-border/70 bg-background/80 flex items-center justify-center">
+                  <Upload className="h-4 w-4 text-muted-foreground group-hover:text-[#9b8cff] transition-colors" />
                 </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {screenshot ? screenshot.name : "Choose file"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Image or video • Max 10MB</p>
+                </div>
+              </div>
+              {screenshot && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setScreenshot(null);
+                  }}
+                  className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  aria-label="Remove attached file"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               )}
-            </div>
-            {!screenshot && (
-              <p className="text-xs text-muted-foreground">Max file size: 10MB</p>
-            )}
+            </label>
+            <Input
+              id="screenshot"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 pt-4 border-t border-border/40">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className="rounded-xl"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Report"}
+            <Button type="submit" disabled={isSubmitting} className="rounded-xl">
+              {isSubmitting ? "Submitting..." : "Submit report"}
             </Button>
           </div>
         </form>

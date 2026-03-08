@@ -376,10 +376,10 @@ export function Sidebar({
                 </div>
                 {!isCollapsed && (
                   <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
-                    <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                       {label}
                     </span>
-                    <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                       {label}
                     </span>
                   </span>
@@ -433,10 +433,10 @@ export function Sidebar({
                 {!isCollapsed && (
                   <>
                     <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
-                      <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                         {label}
                       </span>
-                      <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                      <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                         {label}
                       </span>
                     </span>
@@ -487,10 +487,10 @@ export function Sidebar({
                 </div>
                 {!isCollapsed && (
                   <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
-                    <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                       {label}
                     </span>
-                    <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                    <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                       {label}
                     </span>
                   </span>
@@ -516,8 +516,7 @@ export function Sidebar({
         <div>
           <button
             onClick={() => {
-              setComingSoonFeature("Bug reporting");
-              setIsComingSoonOpen(true);
+              setIsBugReportOpen(true);
             }}
             className={cn(
               "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out w-full text-left",
@@ -539,15 +538,12 @@ export function Sidebar({
             {!isCollapsed && (
               <>
                 <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
-                  <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                  <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                     Report Bug
                   </span>
-                  <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                  <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                     Report Bug
                   </span>
-                </span>
-                <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-violet-500/20 text-violet-400 border border-violet-500/30">
-                  Coming Soon
                 </span>
               </>
             )}
@@ -580,10 +576,10 @@ export function Sidebar({
             {!isCollapsed && (
               <>
                 <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
-                  <span className="block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
-                    Settings
+                  <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
+                    {"Settings"}
                   </span>
-                  <span className="absolute top-[100%] left-0 block text-sm font-medium transition-all duration-500 group-hover:translate-y-[-100%]">
+                  <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                     Settings
                   </span>
                 </span>
@@ -612,13 +608,28 @@ export function Sidebar({
             >
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarImage src={avatarUrl || undefined} />
-                <AvatarFallback className="text-xs bg-muted">{userInitials}</AvatarFallback>
+                <AvatarFallback
+                  className="text-xs bg-muted"
+                  style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.06em' }}
+                >
+                  {userInitials}
+                </AvatarFallback>
               </Avatar>
               {!isCollapsed && (
                 <div className="flex items-center justify-between flex-1 overflow-hidden min-w-0 transition-opacity duration-200">
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium text-foreground truncate">{userName}</span>
-                    <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
+                    <span
+                      className="text-sm text-foreground truncate"
+                      style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}
+                    >
+                      {userName}
+                    </span>
+                    <span
+                      className="text-xs text-muted-foreground truncate"
+                      style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}
+                    >
+                      {userEmail}
+                    </span>
                   </div>
                   <ChevronsUpDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 </div>
@@ -635,11 +646,26 @@ export function Sidebar({
             <div className="flex items-center gap-3 p-2.5 rounded-xl">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={avatarUrl || undefined} />
-                <AvatarFallback className="text-sm bg-muted/70">{userInitials}</AvatarFallback>
+                <AvatarFallback
+                  className="text-sm bg-muted/70"
+                  style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.06em' }}
+                >
+                  {userInitials}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-semibold text-foreground truncate">{userName}</span>
-                <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
+                <span
+                  className="text-sm text-foreground truncate"
+                  style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}
+                >
+                  {userName}
+                </span>
+                <span
+                  className="text-xs text-muted-foreground truncate"
+                  style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}
+                >
+                  {userEmail}
+                </span>
               </div>
             </div>
             <DropdownMenuSeparator className="my-1.5" />

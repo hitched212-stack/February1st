@@ -5,11 +5,11 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAccount } from '@/hooks/useAccount';
 import { usePreferences, GoalPeriod } from '@/hooks/usePreferences';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ChevronDown, ArrowLeftRight, TrendingUp, TrendingDown, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, Pencil, Trash2, BarChart3 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, getDay, startOfWeek, endOfWeek, isSameMonth, eachWeekOfInterval, addYears, subYears, startOfYear, eachMonthOfInterval, endOfYear, subDays } from 'date-fns';
+import { ChevronLeft, ChevronRight, ChevronDown, ArrowLeftRight, Target, Activity, X, Plus, Link2, Calendar as CalendarIcon, MoreVertical, Eye, EyeOff, Pencil, Trash2, BarChart3, Info } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, addMonths, subMonths, getDay, startOfWeek, endOfWeek, isSameMonth, eachWeekOfInterval, addYears, subYears, startOfYear, eachMonthOfInterval, endOfYear, subDays, startOfDay, endOfDay } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, LabelList, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, LabelList, RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, CartesianGrid, Line, AreaChart, Area, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
 // Weekdays only (Mon-Fri) - excludes Saturday (6) and Sunday (0)
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -28,9 +28,9 @@ import { toast } from 'sonner';
 import { TradeViewDialogContent } from '@/components/trade/TradeViewDialog';
 import { ImageZoomDialog } from '@/components/ui/ImageZoomDialog';
 import { SymbolIcon } from '@/components/ui/SymbolIcon';
-import { BalanceCard } from '@/components/journal/BalanceCard';
 import { TypewriterDate } from '@/components/ui/TypewriterDate';
 import { DashboardAccountSelector } from '@/components/account/DashboardAccountSelector';
+import { Tooltip as UiTooltip, TooltipContent as UiTooltipContent, TooltipTrigger as UiTooltipTrigger } from '@/components/ui/tooltip';
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -51,9 +51,19 @@ export default function CalendarPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [allTimeMode, setAllTimeMode] = useState(false);
+  const [balanceHidden, setBalanceHidden] = useState(() => {
+    const saved = localStorage.getItem('balanceHidden');
+    return saved === 'true';
+  });
   const isMobile = useIsMobile();
   const goalPeriod = preferences.goalPeriod;
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Persist balance hidden preference
+  useEffect(() => {
+    localStorage.setItem('balanceHidden', balanceHidden.toString());
+  }, [balanceHidden]);
 
   const displayRange = useMemo(() => {
     if (dateRange.from) return dateRange;
@@ -72,10 +82,7 @@ export default function CalendarPage() {
     getYearlyPnl,
     deleteTrade
   } = useTrades();
-  const {
-    settings,
-    setBalanceHidden
-  } = useSettings();
+  const { settings } = useSettings();
   const { activeAccount } = useAccount();
   // Use active account's currency, fallback to profile settings (match dashboard)
   const currencySymbol = useMemo(
@@ -106,10 +113,19 @@ export default function CalendarPage() {
 
   const formatPnlAxis = (value: number) => {
     const absValue = Math.abs(value);
+    const sign = value >= 0 ? '+' : '-';
     if (absValue >= 1000) {
-      return `${value >= 0 ? '+' : '-'}${currencySymbol}${(absValue / 1000).toFixed(1)}k`;
+      return `${sign}${currencySymbol}${(absValue / 1000).toFixed(1)}k`;
     }
-    return `${value >= 0 ? '+' : ''}${currencySymbol}${value.toFixed(0)}`;
+    return value >= 0 ? `+${currencySymbol}${value.toFixed(0)}` : `-${currencySymbol}${absValue.toFixed(0)}`;
+  };
+
+  const formatCurrency = (value: number, showSign = true) => {
+    const sign = value > 0 ? '+' : value < 0 ? '-' : showSign ? '+' : '';
+    return `${sign}${currencySymbol}${Math.abs(value).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   };
 
   const accountTrades = useMemo(() => {
@@ -117,20 +133,33 @@ export default function CalendarPage() {
     return trades.filter(trade => trade.accountId === activeAccount.id);
   }, [trades, activeAccount?.id]);
 
+  const hasDateRangeFilter = Boolean(dateRange.from || dateRange.to);
+
   // Filter trades by date range
   const filteredTrades = useMemo(() => {
-    if (!dateRange.from && !dateRange.to) return accountTrades;
-    
+    if (!hasDateRangeFilter) return accountTrades;
+
+    const fromDate = dateRange.from ? startOfDay(new Date(dateRange.from)) : undefined;
+    const toDate = dateRange.to ? endOfDay(new Date(dateRange.to)) : undefined;
+
     return accountTrades.filter(trade => {
-      const tradeDate = new Date(trade.date);
-      if (dateRange.from && dateRange.to) {
-        return tradeDate >= dateRange.from && tradeDate <= dateRange.to;
-      } else if (dateRange.from) {
-        return tradeDate >= dateRange.from;
+      const tradeDate = startOfDay(new Date(trade.date));
+
+      if (fromDate && toDate) {
+        return tradeDate >= fromDate && tradeDate <= toDate;
       }
+
+      if (fromDate) {
+        return tradeDate >= fromDate;
+      }
+
+      if (toDate) {
+        return tradeDate <= toDate;
+      }
+
       return true;
     });
-  }, [accountTrades, dateRange]);
+  }, [accountTrades, hasDateRangeFilter, dateRange.from, dateRange.to]);
 
   const filteredDailyPnlMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -334,17 +363,12 @@ export default function CalendarPage() {
     };
   }, [accountTrades]);
 
-  const accountBalance = useMemo(() => {
-    const startingBalance = activeAccount?.starting_balance || 0;
-    return startingBalance + dashboardStats.totalPnl;
-  }, [activeAccount?.starting_balance, dashboardStats.totalPnl]);
-
   const todayPnl = useMemo(() => getFilteredDailyPnl(format(new Date(), 'yyyy-MM-dd')), [filteredDailyPnlMap]);
 
   const recentTrades = useMemo(() => {
     return [...filteredTrades]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 6);
+      .slice(0, 5);
   }, [filteredTrades]);
 
   useEffect(() => {
@@ -361,16 +385,30 @@ export default function CalendarPage() {
     }
   }, [dayDialogOpen]);
 
-  // Get monthly trades for stats - exclude paper trades
+  // Get dashboard trades for stats/cards - respects date range when active
   const monthlyTrades = useMemo(() => {
+    if (hasDateRangeFilter || allTimeMode) {
+      return filteredTrades.filter(trade => !trade.isPaperTrade && !trade.noTradeTaken);
+    }
+
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
+
     return filteredTrades.filter(trade => {
       if (trade.isPaperTrade || trade.noTradeTaken) return false;
       const tradeDate = new Date(trade.date);
       return tradeDate.getFullYear() === year && tradeDate.getMonth() === month;
     });
-  }, [filteredTrades, currentMonth]);
+  }, [filteredTrades, currentMonth, hasDateRangeFilter, allTimeMode]);
+
+  // Calculate true account balance (all-time, ignores date filters)
+  const accountBalance = useMemo(() => {
+    const startingBalance = activeAccount?.starting_balance || 0;
+    const allTimePnl = accountTrades
+      .filter(t => !t.isPaperTrade && !t.noTradeTaken)
+      .reduce((sum, t) => sum + t.pnlAmount, 0);
+    return startingBalance + allTimePnl;
+  }, [activeAccount?.starting_balance, accountTrades]);
 
   // Calculate wins and losses
   const {
@@ -391,6 +429,145 @@ export default function CalendarPage() {
       winRate: Math.round(winCount / monthlyTrades.length * 100)
     };
   }, [monthlyTrades]);
+
+  const monthlyOverview = useMemo(() => {
+    if (monthlyTrades.length === 0) {
+      return {
+        netPnl: 0,
+        profitFactor: 0,
+        expectancy: 0,
+        avgWin: 0,
+        avgLoss: 0,
+        breakeven: 0,
+        totalTrades: 0
+      };
+    }
+
+    const winningTrades = monthlyTrades.filter(t => t.pnlAmount > 0);
+    const losingTrades = monthlyTrades.filter(t => t.pnlAmount < 0);
+    const breakevenTrades = monthlyTrades.filter(t => t.pnlAmount === 0);
+
+    const totalWins = winningTrades.reduce((sum, t) => sum + t.pnlAmount, 0);
+    const totalLosses = Math.abs(losingTrades.reduce((sum, t) => sum + t.pnlAmount, 0));
+    const avgWin = winningTrades.length > 0 ? totalWins / winningTrades.length : 0;
+    const avgLoss = losingTrades.length > 0 ? totalLosses / losingTrades.length : 0;
+    const winProbability = winningTrades.length / monthlyTrades.length;
+    const lossProbability = losingTrades.length / monthlyTrades.length;
+
+    return {
+      netPnl: monthlyTrades.reduce((sum, t) => sum + t.pnlAmount, 0),
+      profitFactor: totalLosses > 0 ? totalWins / totalLosses : totalWins > 0 ? Infinity : 0,
+      expectancy: (winProbability * avgWin) - (lossProbability * avgLoss),
+      avgWin,
+      avgLoss,
+      breakeven: breakevenTrades.length,
+      totalTrades: monthlyTrades.length
+    };
+  }, [monthlyTrades]);
+
+  const avgPnlPerTrade = useMemo(() => {
+    if (monthlyOverview.totalTrades === 0) return 0;
+    return monthlyOverview.netPnl / monthlyOverview.totalTrades;
+  }, [monthlyOverview.netPnl, monthlyOverview.totalTrades]);
+
+  const monthlyNetPnlPercentage = useMemo(() => {
+    return monthlyTrades
+      .filter(t => !t.isPaperTrade && !t.noTradeTaken)
+      .reduce((sum, t) => sum + (t.pnlPercentage || 0), 0);
+  }, [monthlyTrades]);
+
+  const cumulativePnlChart = useMemo(() => {
+    const relevantTrades = monthlyTrades
+      .filter(t => !t.isPaperTrade && !t.noTradeTaken)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    if (relevantTrades.length === 0) {
+      return {
+        data: [],
+        peak: 0,
+        trough: 0,
+        current: 0,
+        sessions: 0
+      };
+    }
+
+    const defaultFrom = hasDateRangeFilter && dateRange.from
+      ? startOfDay(dateRange.from)
+      : startOfMonth(currentMonth);
+
+    const defaultTo = hasDateRangeFilter
+      ? endOfDay(dateRange.to || dateRange.from || defaultFrom)
+      : endOfMonth(currentMonth);
+
+    const fromDate = defaultFrom;
+    const toDate = defaultTo;
+
+    const dailyPnlMap = new Map<string, number>();
+    relevantTrades.forEach(trade => {
+      const dayKey = format(new Date(trade.date), 'yyyy-MM-dd');
+      dailyPnlMap.set(dayKey, (dailyPnlMap.get(dayKey) || 0) + (trade.pnlAmount || 0));
+    });
+
+    let cumulativePnl = 0;
+    const data = eachDayOfInterval({ start: fromDate, end: toDate }).map(day => {
+      const dayKey = format(day, 'yyyy-MM-dd');
+      cumulativePnl += dailyPnlMap.get(dayKey) || 0;
+      return {
+        date: format(day, 'MMM d'),
+        pnl: Number(cumulativePnl.toFixed(2))
+      };
+    });
+
+    const values = data.map(point => point.pnl);
+    const peak = values.length > 0 ? Math.max(...values) : 0;
+    const trough = values.length > 0 ? Math.min(...values) : 0;
+    const current = values.length > 0 ? values[values.length - 1] : 0;
+
+    return {
+      data,
+      peak,
+      trough,
+      current,
+      sessions: new Set(relevantTrades.map(trade => format(new Date(trade.date), 'yyyy-MM-dd'))).size
+    };
+  }, [monthlyTrades, hasDateRangeFilter, dateRange.from, dateRange.to, currentMonth]);
+
+  const holdingTimeInsight = useMemo(() => {
+    const winners = monthlyTrades.filter(t => t.pnlAmount > 0 && !t.isPaperTrade && !t.noTradeTaken);
+    const losers = monthlyTrades.filter(t => t.pnlAmount < 0 && !t.isPaperTrade && !t.noTradeTaken);
+
+    const winnerMinutes = winners.reduce((sum, t) => sum + parseHoldingTime(t.holdingTime), 0);
+    const loserMinutes = losers.reduce((sum, t) => sum + parseHoldingTime(t.holdingTime), 0);
+
+    const winnerAvg = winners.length > 0 ? winnerMinutes / winners.length : 0;
+    const loserAvg = losers.length > 0 ? loserMinutes / losers.length : 0;
+
+    return {
+      winnerAvg,
+      loserAvg,
+      edgeMinutes: winnerAvg - loserAvg
+    };
+  }, [monthlyTrades]);
+
+  const entryTimeInsight = useMemo(() => {
+    if (entryTimeChartData.length === 0) {
+      return {
+        bestWindow: '—',
+        worstWindow: '—',
+        dataPoints: 0
+      };
+    }
+
+    const sortedByPnl = [...entryTimeChartData].sort((a, b) => b.pnl - a.pnl);
+    const best = sortedByPnl[0];
+    const worst = sortedByPnl[sortedByPnl.length - 1];
+
+    return {
+      bestWindow: best?.timeRange || '—',
+      worstWindow: worst?.timeRange || '—',
+      dataPoints: entryTimeChartData.length
+    };
+  }, [entryTimeChartData]);
 
   // Calculate average R-R
   const avgRR = useMemo(() => {
@@ -565,7 +742,23 @@ export default function CalendarPage() {
     }
   }, [goalPeriod, currentMonth, getDailyPnl, getWeeklyPnl, getMonthlyPnl, getYearlyPnl, settings.goals]);
   const goalProgress = currentGoal > 0 ? Math.min(currentPnl / currentGoal * 100, 100) : 0;
+  
+  // Dashboard cards P&L (respects date range filter)
   const monthlyPnl = useMemo(() => monthlyTrades.reduce((sum, t) => sum + t.pnlAmount, 0), [monthlyTrades]);
+  
+  // Header display P&L (always shows current month, ignores date range)
+  const displayedMonthlyPnl = useMemo(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    return filteredTrades
+      .filter(trade => {
+        if (trade.isPaperTrade || trade.noTradeTaken) return false;
+        const tradeDate = new Date(trade.date);
+        return tradeDate.getFullYear() === year && tradeDate.getMonth() === month;
+      })
+      .reduce((sum, t) => sum + t.pnlAmount, 0);
+  }, [filteredTrades, currentMonth]);
+  
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
     const end = endOfMonth(currentMonth);
@@ -750,11 +943,15 @@ export default function CalendarPage() {
     return <div className="min-h-screen pb-24">
       <div className="px-4 pt-2 md:px-6 md:pt-6 lg:px-8">
         <div className="flex flex-col gap-6">
-          {/* Greeting + Balance */}
+          {/* Modern Header */}
           <section className="w-full">
-            <div className="mb-4 flex items-start justify-between gap-2 sm:gap-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              {/* Greeting */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+                <h1
+                  className="text-xl sm:text-2xl text-foreground"
+                  style={{ fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700, letterSpacing: '0.02em' }}
+                >
                   Hey{settings.username ? `, ${settings.username}` : ''}
                 </h1>
                 <p className="text-muted-foreground text-xs sm:text-sm mt-1 font-display font-bold tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
@@ -762,35 +959,23 @@ export default function CalendarPage() {
                 </p>
               </div>
 
-              {/* Action Buttons Bar */}
-              <div className="flex items-center gap-2 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "group h-9 transition-all duration-200 flex-shrink-0 text-sm flex items-center justify-center",
-                    "hover:bg-muted/50",
-                    isMobile ? "w-9 p-0 rounded-xl" : "px-3 gap-2 rounded-xl"
-                  )}
-                  onClick={() => navigate('/summary')}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center text-foreground">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor" style={{opacity:1}}>
-                      <path d="m58 362.09l-6.51-14.59A224 224 0 0 1 256 32h16v234.37Z"/>
-                      <path d="M304 66.46v220.65L94.62 380.78A208.31 208.31 0 0 0 272 480c114.69 0 208-93.31 208-208c0-103.81-76.45-190.1-176-205.54"/>
-                    </svg>
-                  </span>
-                  {!isMobile && <span className="font-display font-bold tabular-nums text-foreground">Summary</span>}
-                </Button>
-                <div className="w-px h-6 bg-border/50" />
-                <DashboardAccountSelector />
-                <div className="w-px h-6 bg-border/50" />
+              {/* Action Pills */}
+              <div className="flex items-center gap-2">
+                {/* Account Selector */}
+                <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
+                  <DashboardAccountSelector />
+                </div>
                 
+                {/* Date Range Selector */}
+                
+                {/* Date Range Selector */}
+                <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
                 {dayDialogOpen ? (
                   <Button
                     key="disabled-btn"
                     variant="ghost"
                     className={cn(
-                      "h-9 rounded-xl px-3 gap-2 flex-shrink-0 text-sm",
+                      "h-10 rounded-full px-4 gap-2 flex-shrink-0 text-sm",
                       "opacity-50 cursor-not-allowed"
                     )}
                     disabled
@@ -811,8 +996,8 @@ export default function CalendarPage() {
                       <Button
                         variant="ghost"
                         className={cn(
-                          "group h-9 transition-all duration-200 px-3 gap-2 flex-shrink-0 text-sm rounded-xl",
-                          "hover:bg-muted/50"
+                          "group h-10 transition-all duration-200 px-4 gap-2 flex-shrink-0 text-sm rounded-full",
+                          "hover:bg-muted/30"
                         )}
                       >
                         <CalendarIcon className="h-4 w-4 text-foreground" />
@@ -825,7 +1010,7 @@ export default function CalendarPage() {
                             )
                           ) : 'Date Range'}
                         </span>
-                        <ChevronDown className="hidden md:inline-flex h-3.5 w-3.5 text-muted-foreground" />
+                        <ChevronDown className="hidden md:inline-flex h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:rotate-180 duration-200" />
                       </Button>
                     </PopoverTrigger>
                     {!dayDialogOpen && !tradeViewOpen && (
@@ -934,6 +1119,7 @@ export default function CalendarPage() {
                                 const monthStart = startOfMonth(today);
                                 setDateRange({ from: monthStart, to: today });
                                 setCurrentMonth(today);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -953,6 +1139,7 @@ export default function CalendarPage() {
                                 const yearStart = startOfYear(today);
                                 setDateRange({ from: yearStart, to: today });
                                 setCurrentMonth(today);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -970,10 +1157,11 @@ export default function CalendarPage() {
                               onClick={() => {
                                 setDateRange({ from: undefined, to: undefined });
                                 setCurrentMonth(new Date());
+                                setAllTimeMode(true);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
-                                !dateRange.from && !dateRange.to && "bg-muted font-medium"
+                                allTimeMode && "bg-muted font-medium"
                               )}
                             >
                               All time
@@ -986,6 +1174,7 @@ export default function CalendarPage() {
                               selected={dateRange}
                               onSelect={(range) => {
                                 setDateRange(range || { from: undefined, to: undefined } as any);
+                                setAllTimeMode(false);
                                 if (range?.from) {
                                   setCurrentMonth(range.from);
                                 }
@@ -1006,6 +1195,7 @@ export default function CalendarPage() {
                               className="w-full text-muted-foreground"
                               onClick={() => {
                                 setDateRange({ from: undefined, to: undefined });
+                                setAllTimeMode(false);
                               }}
                             >
                               Clear date filter
@@ -1016,367 +1206,751 @@ export default function CalendarPage() {
                     )}
                   </Popover>
                 )}
+                </div>
               </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr] items-stretch">
-              <div className="h-full flex flex-col">
-                <BalanceCard
-                  currentBalance={accountBalance}
-                  currencySymbol={currencySymbol}
-                  trades={accountTrades.map(t => ({
-                    date: t.date,
-                    pnlAmount: t.pnlAmount
-                  }))}
-                  initialBalance={activeAccount?.starting_balance || 0}
-                  isBalanceHidden={settings.balanceHidden}
-                  onToggleBalanceHidden={() => setBalanceHidden(!settings.balanceHidden)}
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 flex-1 min-h-0">
-                  {/* Avg. Holding Time */}
+            {/* 4 KPI Cards Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                  {/* Account Balance Card */}
                   <div className={cn(
-                    "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] h-full",
+                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                      : "border-border/60 bg-card"
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
                   )}>
-                    {preferences.liquidGlassEnabled && (
-                      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <pattern id="holding-time-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                            <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#holding-time-dots)" />
-                      </svg>
-                    )}
-                    <div className="relative h-full flex flex-col">
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground mb-2">
-                        Avg. Holding Time
-                      </h3>
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
-                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Winners:</span>
-                          <span className="text-sm font-semibold" style={{ color: profitColor }}>{avgHoldingTimeWins}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: lossColor }} />
-                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Losers:</span>
-                          <span className="text-sm font-semibold" style={{ color: lossColor }}>{avgHoldingTimeLosses}</span>
-                        </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Balance</p>
+                        <button 
+                          type="button" 
+                          onClick={() => setBalanceHidden(!balanceHidden)}
+                          className="inline-flex p-1 rounded hover:bg-foreground/5 transition-colors"
+                        >
+                          {balanceHidden ? (
+                            <EyeOff className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                          )}
+                        </button>
                       </div>
-                      <div className="flex-1 min-h-[180px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2}>
-                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontFamily: 'Outfit, system-ui, sans-serif', fontWeight: 700 }} dy={5} />
-                            <YAxis hide />
-                            <Tooltip cursor={{ fill: 'hsl(var(--muted) / 0.2)' }} contentStyle={{
-                              backgroundColor: 'hsl(var(--card))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              color: 'hsl(var(--card-foreground))'
-                            }} formatter={(value: number, name: string) => [`${formatHoldingTime(value)}`, name === 'wins' ? 'Winners' : 'Losers']} />
-                            <Bar dataKey="wins" fill={profitColor} radius={[4, 4, 0, 0]} maxBarSize={18} />
-                            <Bar dataKey="losses" fill={lossColor} radius={[4, 4, 0, 0]} maxBarSize={18} />
-                          </BarChart>
-                        </ResponsiveContainer>
+                      <UiTooltip>
+                        <UiTooltipTrigger asChild>
+                          <button type="button" className="inline-flex">
+                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                          </button>
+                        </UiTooltipTrigger>
+                        <UiTooltipContent>
+                          <p>Current account balance based on starting balance and cumulative P&L.</p>
+                        </UiTooltipContent>
+                      </UiTooltip>
+                    </div>
+                    <div className="mt-auto space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Account</span>
+                        <span className="text-[10px] text-foreground font-bold uppercase tracking-wider">
+                          {activeAccount?.name || 'Default'}
+                        </span>
+                      </div>
+                      <p className="text-2xl font-bold font-display tabular-nums tracking-tight text-foreground">
+                        {balanceHidden ? '••••••' : `${currencySymbol}${accountBalance.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={cn(
+                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
+                  )}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Net P&L</p>
+                      </div>
+                      <UiTooltip>
+                        <UiTooltipTrigger asChild>
+                          <button type="button" className="inline-flex">
+                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                          </button>
+                        </UiTooltipTrigger>
+                        <UiTooltipContent>
+                          <p>Total net profit or loss for the selected period.</p>
+                        </UiTooltipContent>
+                      </UiTooltip>
+                    </div>
+                    <div className="mt-auto space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Return</span>
+                        <span className={cn(
+                          "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-bold font-display tabular-nums",
+                          monthlyNetPnlPercentage >= 0
+                            ? "text-pnl-positive bg-pnl-positive/15 border-pnl-positive/30"
+                            : "text-pnl-negative bg-pnl-negative/15 border-pnl-negative/30"
+                        )}>
+                          {monthlyNetPnlPercentage >= 0 ? '+' : ''}{monthlyNetPnlPercentage.toFixed(2)}%
+                        </span>
+                      </div>
+                      <p className={cn(
+                        "text-2xl font-bold font-display tabular-nums tracking-tight",
+                        monthlyOverview.netPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                      )}>
+                        {formatCurrency(monthlyOverview.netPnl)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={cn(
+                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
+                  )}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Trade Win %</p>
+                      </div>
+                      <UiTooltip>
+                        <UiTooltipTrigger asChild>
+                          <button type="button" className="inline-flex">
+                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                          </button>
+                        </UiTooltipTrigger>
+                        <UiTooltipContent>
+                          <p>Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
+                        </UiTooltipContent>
+                      </UiTooltip>
+                    </div>
+
+                    <div className="mt-auto flex items-end justify-between gap-4">
+                      <p className="text-2xl font-bold font-display tabular-nums tracking-tight text-foreground">{winRate.toFixed(1)}%</p>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <svg viewBox="0 0 100 55" className="w-20 h-10">
+                          <path
+                            d="M 10 50 A 40 40 0 0 1 90 50"
+                            fill="none"
+                            stroke="hsl(var(--muted))"
+                            strokeWidth="10"
+                            strokeLinecap="round"
+                            pathLength={100}
+                          />
+                          <path
+                            d="M 10 50 A 40 40 0 0 1 90 50"
+                            fill="none"
+                            stroke="#9b8cff"
+                            strokeWidth="10"
+                            strokeLinecap="round"
+                            pathLength={100}
+                            strokeDasharray={`${Math.max(0, Math.min(100, winRate))} 100`}
+                            className="transition-all duration-500"
+                          />
+                        </svg>
+
+                        <div className="flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/20">{wins}</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums bg-[#9b8cff]/20 text-[#9b8cff] border border-[#9b8cff]/30">{monthlyOverview.breakeven}</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/20">{losses}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Entry Time Range */}
                   <div className={cn(
-                    "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] h-full",
+                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                      : "border-border/60 bg-card"
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
                   )}>
-                    {preferences.liquidGlassEnabled && (
-                      <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <pattern id="entry-time-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                            <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#entry-time-dots)" />
-                      </svg>
-                    )}
-                    <div className="relative h-full flex flex-col">
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground mb-2">
-                        Entry Time Range
-                      </h3>
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
-                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Winners</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: lossColor }} />
-                          <span className="text-[11px] text-muted-foreground font-display font-semibold">Losers</span>
-                        </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Avg Win/Loss</p>
                       </div>
-                      <div className="flex-1 min-h-[180px]" style={{ height: Math.max(180, entryTimeChartData.length * 34) }}>
-                        {entryTimeChartData.length === 0 ? (
-                          <div className="h-full flex items-center justify-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            No entry time data available
-                          </div>
-                        ) : (
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={entryTimeChartData}
-                              layout="vertical"
-                              barCategoryGap="20%"
-                              margin={{ left: 0, right: 10, top: 5, bottom: 5 }}
-                            >
-                              <XAxis
-                                type="number"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{
-                                  fill: 'hsl(var(--muted-foreground))',
-                                  fontSize: 10,
-                                  fontFamily: 'Outfit, system-ui, sans-serif',
-                                  fontWeight: 700
-                                }}
-                                tickFormatter={value => formatPnlAxis(value)}
-                              />
-                              <YAxis
-                                type="category"
-                                dataKey="timeRange"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{
-                                  fill: 'hsl(var(--muted-foreground))',
-                                  fontSize: 10,
-                                  fontFamily: 'Outfit, system-ui, sans-serif',
-                                  fontWeight: 700,
-                                  style: { whiteSpace: 'nowrap' }
-                                }}
-                                width={72}
-                              />
-                              <Tooltip
-                                cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
-                                contentStyle={{
-                                  backgroundColor: 'hsl(var(--card))',
-                                  border: '1px solid hsl(var(--border))',
-                                  borderRadius: '8px',
-                                  fontSize: '12px',
-                                  color: 'hsl(var(--card-foreground))'
-                                }}
-                                labelStyle={{ color: 'hsl(var(--card-foreground))' }}
-                                itemStyle={{ color: 'hsl(var(--card-foreground))' }}
-                                formatter={(value: number) => [formatPnlAxis(value), 'P&L']}
-                                labelFormatter={label => label}
-                              />
-                              <Bar dataKey="pnl" radius={[0, 4, 4, 0]} fill="hsl(var(--primary))">
-                                {entryTimeChartData.map((entry, index) => (
-                                  <Cell
-                                    key={`entry-cell-${index}`}
-                                    fill={entry.pnl >= 0 ? profitColor : lossColor}
-                                  />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        )}
-                      </div>
+                      <UiTooltip>
+                        <UiTooltipTrigger asChild>
+                          <button type="button" className="inline-flex">
+                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                          </button>
+                        </UiTooltipTrigger>
+                        <UiTooltipContent>
+                          <p>Average P&amp;L per trade over the selected period.</p>
+                        </UiTooltipContent>
+                      </UiTooltip>
                     </div>
+                    <div className="flex flex-col gap-1.5 mt-auto">
+                      <p className="text-[10px] text-muted-foreground/80 font-semibold uppercase tracking-wider">per Trade</p>
+                      <p className={cn(
+                        "text-2xl font-bold font-display tabular-nums tracking-tight",
+                        avgPnlPerTrade >= 0 ? "text-foreground" : "text-pnl-negative"
+                      )}>
+                        {avgPnlPerTrade.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={cn(
+                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
+                  )}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Expected Value</p>
+                      </div>
+                      <UiTooltip>
+                        <UiTooltipTrigger asChild>
+                          <button type="button" className="inline-flex">
+                            <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                          </button>
+                        </UiTooltipTrigger>
+                        <UiTooltipContent>
+                          <p>Expected return per trade based on historical outcomes.</p>
+                        </UiTooltipContent>
+                      </UiTooltip>
+                    </div>
+                    <div className="flex items-center gap-1 mb-2.5">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] leading-none font-bold tabular-nums bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/20">{wins}</span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] leading-none font-bold tabular-nums bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/20">{losses}</span>
+                    </div>
+                    <p className={cn(
+                      "text-2xl font-bold font-display tabular-nums tracking-tight mt-auto",
+                      monthlyOverview.expectancy >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                    )}>
+                      {formatCurrency(monthlyOverview.expectancy)}
+                    </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Recent Trades */}
-              <div className={cn(
-                "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] h-full flex flex-col",
-                preferences.liquidGlassEnabled
-                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                  : "border-border/60 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="recent-trades-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#recent-trades-dots)" />
-                  </svg>
-                )}
-                <div className="relative flex-1 min-h-0 flex flex-col">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Recent Trades</h3>
-                    </div>
-                    <button
-                      onClick={() => navigate('/history')}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 bg-foreground text-background hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      View All
-                    </button>
-                  </div>
+                {/* 3 Card Row: Best/Worst Trades, Performance by Day, Recent Trades */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                  {/* Daily Net Cumulative P&L Chart */}
+                  <div className={cn(
+                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
+                  )}>
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                          <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Daily Cumulative P&L</h3>
+                        </div>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Cumulative P&L growth throughout the month by day.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
+                      </div>
 
-                {recentTrades.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center py-10 text-center rounded-xl border border-dashed border-border bg-card">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades found</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 flex-1 overflow-y-auto">
-                    {recentTrades.map(trade => (
-                      <div
-                        key={trade.id}
-                        onClick={() => {
-                          setSelectedTrade(trade);
-                          setTradeViewOpen(true);
-                        }}
-                        className={cn(
-                          "rounded-2xl border px-3 py-2.5 cursor-pointer relative overflow-hidden group",
-                          "transition-all duration-200",
-                          "hover:scale-[1.01] hover:-translate-y-0.5",
-                          preferences.liquidGlassEnabled
-                            ? "border-white/12 bg-black/25 backdrop-blur-sm shadow-[0_14px_30px_-22px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/22 hover:bg-black/30 hover:shadow-[0_18px_38px_-22px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)]"
-                            : "border-border/70 bg-card shadow-sm hover:border-border hover:shadow-md"
-                        )}
-                      >
-                        {preferences.liquidGlassEnabled && (
-                          <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                              <pattern id={`calendar-recent-${trade.id}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                                <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                              </pattern>
-                            </defs>
-                            <rect width="100%" height="100%" fill={`url(#calendar-recent-${trade.id})`} />
-                          </svg>
-                        )}
+                      {monthlyTrades.length === 0 ? (
+                        <div className="h-56 flex items-center justify-center">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades this month</p>
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex flex-col">
+                          <div className="grid grid-cols-3 gap-2 mb-4">
+                            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+                              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Peak</p>
+                              <p className={cn("text-xs font-bold font-display tabular-nums", cumulativePnlChart.peak >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                                {formatCurrency(cumulativePnlChart.peak)}
+                              </p>
+                            </div>
+                            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+                              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Lowest P&L</p>
+                              <p className={cn("text-xs font-bold font-display tabular-nums", cumulativePnlChart.trough >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                                {formatCurrency(cumulativePnlChart.trough)}
+                              </p>
+                            </div>
+                            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+                              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Sessions</p>
+                              <p className="text-xs font-bold font-display text-foreground tabular-nums">{cumulativePnlChart.sessions}</p>
+                            </div>
+                          </div>
 
-                        <div className="flex items-center justify-between relative">
-                          <div className="flex items-center gap-2">
-                            <SymbolIcon symbol={trade.symbol} size="sm" />
-                            <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-bold text-foreground">{trade.symbol}</span>
-                                <span
-                                  className={cn(
-                                    "inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide capitalize whitespace-nowrap",
-                                    trade.direction === 'long'
-                                      ? "bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/45"
-                                      : "bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/45"
-                                  )}
-                                >
-                                  {trade.direction}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-muted-foreground mt-0.5">
-                                {format(new Date(trade.date), 'dd/MM/yyyy')}
+                          <div className="flex-1 min-h-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={cumulativePnlChart.data} margin={{ top: 8, right: 8, left: -8, bottom: 6 }}>
+                                <defs>
+                                  <linearGradient id="cumulativePnlFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop
+                                      offset="0%"
+                                      stopColor={cumulativePnlChart.current >= 0 ? '#9b8cff' : '#ef4444'}
+                                      stopOpacity={0.32}
+                                    />
+                                    <stop
+                                      offset="100%"
+                                      stopColor={cumulativePnlChart.current >= 0 ? '#9b8cff' : '#ef4444'}
+                                      stopOpacity={0.02}
+                                    />
+                                  </linearGradient>
+                                </defs>
+                                <CartesianGrid stroke="hsl(var(--border))" strokeOpacity={0.28} strokeDasharray="4 6" vertical={false} />
+                                <XAxis 
+                                  dataKey="date" 
+                                  tick={{
+                                    fontSize: 10,
+                                    fill: 'hsl(var(--muted-foreground))',
+                                    fontFamily: 'Outfit, system-ui, sans-serif',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.06em'
+                                  }}
+                                  tickLine={false}
+                                  axisLine={false}
+                                  minTickGap={24}
+                                  dy={8}
+                                />
+                                <YAxis 
+                                  tick={{
+                                    fontSize: 10,
+                                    fill: 'hsl(var(--muted-foreground))',
+                                    fontFamily: 'Outfit, system-ui, sans-serif',
+                                    fontWeight: 700
+                                  }}
+                                  tickLine={false}
+                                  axisLine={false}
+                                  width={58}
+                                  tickMargin={10}
+                                  tickFormatter={(value: number) => formatPnlAxis(value)}
+                                  domain={[
+                                    (dataMin: number) => Math.floor((dataMin - 40) / 50) * 50,
+                                    (dataMax: number) => Math.ceil((dataMax + 40) / 50) * 50,
+                                  ]}
+                                />
+                                <ReferenceLine y={0} stroke="hsl(var(--border))" strokeOpacity={0.6} strokeDasharray="3 5" />
+                                <Tooltip 
+                                  cursor={{ stroke: 'hsl(var(--border))', strokeDasharray: '3 5', strokeOpacity: 0.5 }}
+                                  contentStyle={{
+                                    backgroundColor: 'hsl(var(--background) / 0.94)',
+                                    border: '1px solid hsl(var(--border) / 0.7)',
+                                    borderRadius: '12px',
+                                    fontSize: '10px',
+                                    fontFamily: 'Outfit, system-ui, sans-serif',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.06em',
+                                    boxShadow: '0 8px 28px rgba(0, 0, 0, 0.28)',
+                                  }}
+                                  formatter={(value: number) => formatCurrency(value)}
+                                  labelStyle={{
+                                    color: 'hsl(var(--foreground))',
+                                    fontFamily: 'Outfit, system-ui, sans-serif',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.06em'
+                                  }}
+                                  itemStyle={{
+                                    fontFamily: 'Outfit, system-ui, sans-serif',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.06em',
+                                    textTransform: 'uppercase'
+                                  }}
+                                />
+                                <Area
+                                  type="monotone" 
+                                  dataKey="pnl" 
+                                  stroke={cumulativePnlChart.current >= 0 ? '#9b8cff' : '#ef4444'}
+                                  fill="url(#cumulativePnlFill)"
+                                  strokeWidth={2.4}
+                                  dot={false}
+                                  activeDot={{
+                                    r: 5,
+                                    strokeWidth: 2,
+                                    stroke: 'hsl(var(--background))',
+                                    fill: cumulativePnlChart.current >= 0 ? '#9b8cff' : '#ef4444'
+                                  }}
+                                  isAnimationActive
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey="pnl"
+                                  stroke={cumulativePnlChart.current >= 0 ? '#9b8cff' : '#ef4444'}
+                                  strokeWidth={1.25}
+                                  dot={false}
+                                  isAnimationActive={false}
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                          
+                          {/* Summary Stats */}
+                          <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-border/40">
+                            <div className="text-center">
+                              <p
+                                className="text-[10px] text-muted-foreground font-bold uppercase"
+                                style={{ fontFamily: 'Outfit, system-ui, sans-serif', letterSpacing: '0.06em' }}
+                              >
+                                Start
+                              </p>
+                              <p className="text-sm font-bold font-display text-foreground">£0.00</p>
+                            </div>
+                            <div className="text-center">
+                              <p
+                                className="text-[10px] text-muted-foreground font-bold uppercase"
+                                style={{ fontFamily: 'Outfit, system-ui, sans-serif', letterSpacing: '0.06em' }}
+                              >
+                                Current
+                              </p>
+                              <p className={cn("text-sm font-bold font-display", cumulativePnlChart.current >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                                {formatCurrency(cumulativePnlChart.current)}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p
+                                className="text-[10px] text-muted-foreground font-bold uppercase"
+                                style={{ fontFamily: 'Outfit, system-ui, sans-serif', letterSpacing: '0.06em' }}
+                              >
+                                Range
+                              </p>
+                              <p className="text-sm font-bold font-display text-foreground">
+                                {formatCurrency(cumulativePnlChart.peak - cumulativePnlChart.trough)}
                               </p>
                             </div>
                           </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                          {!trade.isPaperTrade && !trade.noTradeTaken ? (
-                            <div className="text-right flex flex-col">
-                              <span
-                                className={cn(
-                                  'font-semibold text-sm font-display',
-                                  trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
-                                )}
-                              >
-                                {formatPnlCompact(trade.pnlAmount)}
-                              </span>
-                              <span
-                                className={cn(
-                                  'text-[10px] font-display mt-0.5',
-                                  trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
-                                )}
-                              >
-                                {calculatePnlPercentage(trade.pnlAmount) >= 0 ? '+' : ''}
-                                {calculatePnlPercentage(trade.pnlAmount).toFixed(2)}%
-                              </span>
+                  {/* Performance by Day */}
+                  <div className={cn(
+                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm hover:shadow-md",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/50"
+                      : "border-border/60 bg-card hover:border-border"
+                  )}>
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                          <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Performance by Day</h3>
+                        </div>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p>Your performance for each day of the week.</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
+                      </div>
+
+                      <div className="flex-1 space-y-2.5">
+                        {dayOfWeekStats.map((day) => {
+                          const isBestDay = day.day === bestDay.day && bestDay.pnl > 0;
+                          const isWorstDay = day.day === worstDay.day && worstDay.pnl < 0;
+                          const maxPnl = Math.max(...dayOfWeekStats.map(d => Math.abs(d.pnl)), 1);
+                          const barWidth = day.pnl !== 0 ? Math.abs(day.pnl) / maxPnl * 100 : 0;
+                          
+                          return (
+                            <div 
+                              key={day.day} 
+                              className={cn(
+                                'relative px-3.5 py-2.5 rounded-2xl transition-all duration-200 border',
+                                isBestDay && 'bg-pnl-positive/10 border-pnl-positive/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]',
+                                isWorstDay && 'bg-pnl-negative/10 border-pnl-negative/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]',
+                                !isBestDay && !isWorstDay && 'bg-muted/10 border-border/25'
+                              )}
+                            >
+                              <div className="flex items-center gap-3">
+                                {/* Day Label */}
+                                <div className={cn(
+                                  'w-14 h-8 rounded-xl flex items-center justify-center border flex-shrink-0',
+                                  isBestDay && 'bg-pnl-positive/15 border-pnl-positive/35',
+                                  isWorstDay && 'bg-pnl-negative/15 border-pnl-negative/35',
+                                  !isBestDay && !isWorstDay && 'bg-muted/20 border-border/30'
+                                )}>
+                                  <span className={cn(
+                                    'text-xs font-bold uppercase tracking-widest',
+                                    isBestDay ? 'text-pnl-positive' : isWorstDay ? 'text-pnl-negative' : 'text-muted-foreground'
+                                  )}>
+                                    {day.shortDay}
+                                  </span>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="flex-1 min-w-0">
+                                  <div className={cn(
+                                    'h-8 rounded-xl overflow-hidden border border-border/20',
+                                    day.pnl === 0 ? 'bg-muted/15' : 'bg-muted/25'
+                                  )}>
+                                    {day.pnl !== 0 && (
+                                      <div 
+                                        className={cn(
+                                          'h-full rounded-xl transition-all duration-500',
+                                          day.pnl >= 0 
+                                            ? isBestDay 
+                                              ? 'bg-gradient-to-r from-pnl-positive/85 to-pnl-positive' 
+                                              : 'bg-gradient-to-r from-pnl-positive/45 to-pnl-positive/70'
+                                            : isWorstDay
+                                              ? 'bg-gradient-to-r from-pnl-negative/85 to-pnl-negative'
+                                              : 'bg-gradient-to-r from-pnl-negative/45 to-pnl-negative/70'
+                                        )} 
+                                        style={{ width: `${barWidth}%` }}
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* P&L Amount and Badge */}
+                                <div className="flex items-center gap-2.5 flex-shrink-0">
+                                  <span className={cn(
+                                    'text-sm font-bold font-display tabular-nums min-w-[86px] text-right',
+                                    day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground'
+                                  )}>
+                                    {formatPnlWithK(day.pnl)}
+                                  </span>
+                                  
+                                  {(isBestDay || isWorstDay) && (
+                                    <div className={cn(
+                                      'px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border',
+                                      isBestDay && 'bg-pnl-positive/20 text-pnl-positive border-pnl-positive/30',
+                                      isWorstDay && 'bg-pnl-negative/20 text-pnl-negative border-pnl-negative/30'
+                                    )}>
+                                      {isBestDay ? 'Best' : 'Worst'}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-white/5 text-muted-foreground/90 border border-white/10 whitespace-nowrap">
-                              {trade.isPaperTrade ? 'Paper' : 'No Trade'}
-                            </span>
-                          )}
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Trades */}
+                  <div className={cn(
+                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm hover:shadow-md",
+                    preferences.liquidGlassEnabled
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/50"
+                      : "border-border/60 bg-card hover:border-border"
+                  )}>
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex items-center justify-between gap-2 mb-5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                          <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Recent Trades</h3>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <UiTooltip>
+                            <UiTooltipTrigger asChild>
+                              <button type="button" className="inline-flex">
+                                <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                              </button>
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>Your 5 most recent trades</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                          <button
+                            type="button"
+                            onClick={() => navigate('/history')}
+                            className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-card/80 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-border transition-colors whitespace-nowrap"
+                          >
+                            View all
+                            <ChevronRight className="h-3 w-3" />
+                          </button>
                         </div>
                       </div>
-                    ))}
+
+                      {/* Recent trades list with improved spacing */}
+                      <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-1">
+                        {monthlyTrades.length > 0 ? (
+                          [...monthlyTrades]
+                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                            .slice(0, 5)
+                            .map(trade => (
+                            <div
+                              key={trade.id}
+                              onClick={() => {
+                                setSelectedTrade(trade);
+                                setTradeViewOpen(true);
+                              }}
+                              className="flex items-center gap-3 p-3 rounded-xl bg-card/40 hover:bg-card/60 border border-border/40 transition-all duration-200 cursor-pointer group/trade relative overflow-hidden"
+                            >
+                              {/* Left border accent based on P&L */}
+                              <div className={cn(
+                                "absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-200",
+                                trade.pnlAmount >= 0 ? "bg-[#9b8cff]" : "bg-pnl-negative",
+                                "opacity-0 group-hover/trade:opacity-100"
+                              )} />
+                              {/* Left: Trade type icon and symbol */}
+                              <div className="flex-shrink-0">
+                                <SymbolIcon symbol={trade.symbol} size="sm" />
+                              </div>
+
+                              {/* Middle: Symbol and date */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold text-foreground truncate">
+                                    {trade.symbol}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-muted-foreground font-medium tracking-wide block">
+                                  {format(new Date(trade.date), 'dd/MM/yyyy')}
+                                </span>
+                              </div>
+
+                              {/* Right: P&L Info */}
+                              <div className="flex-shrink-0 text-right space-y-0.5">
+                                <span className={cn(
+                                  "text-sm font-bold font-display tabular-nums block",
+                                  trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                                )}>
+                                  {formatCurrency(trade.pnlAmount)}
+                                </span>
+                                <span className={cn(
+                                  "text-[9px] font-semibold tabular-nums block",
+                                  trade.pnlPercentage >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                                )}>
+                                  {trade.pnlPercentage >= 0 ? '+' : ''}{trade.pnlPercentage.toFixed(2)}%
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            <p className="text-xs">No recent trades</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
                 </div>
-              </div>
-            </div>
           </section>
 
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
-            {/* Goal Progress Card - Professional Design */}
+            {/* Goal Progress Card - Modern Redesign */}
             <div className={cn(
-              "rounded-[1.9rem] border relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+              "rounded-2xl border relative overflow-hidden transition-all duration-300 shadow-sm",
               preferences.liquidGlassEnabled
                 ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                 : "border-border/60 bg-card"
             )}>
-              {/* Dot pattern - only show when glass is enabled */}
-              {preferences.liquidGlassEnabled && (
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="calendar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                      <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#calendar-dots)" />
-                </svg>
-              )}
-              <div className="relative p-4">
-                {/* Header with Month and Period Filters */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="space-y-0.5">
-                    <h3 className="text-xs font-semibold text-foreground uppercase tracking-[0.16em]">
-                      {format(currentMonth, 'MMMM yyyy')}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground font-display font-semibold">{goalLabel}</p>
+              <div className="relative px-5 py-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-1 h-5 bg-[#9b8cff] rounded-full" />
+                    <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Goal Progress</h3>
+                    <UiTooltip>
+                      <UiTooltipTrigger asChild>
+                        <button type="button" className="inline-flex">
+                          <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 hover:text-[#9b8cff] transition-colors" />
+                        </button>
+                      </UiTooltipTrigger>
+                      <UiTooltipContent>
+                        <p>Track your progress toward your {goalPeriod === 'D' ? 'daily' : goalPeriod === 'W' ? 'weekly' : goalPeriod === 'M' ? 'monthly' : 'yearly'} P&L goal.</p>
+                      </UiTooltipContent>
+                    </UiTooltip>
                   </div>
-                  <div className="flex gap-1 p-1 rounded-xl border border-border/50 bg-muted/50 dark:bg-black/20">
-                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+                  <div className="flex gap-1 p-1 rounded-lg border border-border/50 bg-background/50">
+                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
                         {period}
                       </button>)}
                   </div>
                 </div>
-                
-                {/* P&L Display */}
-                <div className="mb-3">
-                  <span className={cn('text-2xl font-bold font-display tabular-nums', currentPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
-                    {formatPnlWithK(currentPnl)}
-                  </span>
-                </div>
-                
-                {/* Progress Bar - Enhanced */}
-                <div className="space-y-1.5">
-                  <div className="h-3 rounded-full bg-foreground/15 dark:bg-white/10 overflow-hidden ring-1 ring-border/60 dark:ring-white/15">
-                    <div className={cn('h-full rounded-full transition-all duration-500 relative overflow-hidden', currentPnl >= 0 ? 'bg-pnl-positive' : 'bg-pnl-negative')} style={{
-                    width: `${Math.max(0, Math.min(goalProgress, 100))}%`
-                  }}>
-                      {/* Shimmer effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6">
+                  {/* Left: Stats and Progress Bar */}
+                  <div className="space-y-4">
+                    {/* Period Label */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{format(currentMonth, 'MMMM yyyy')}</span>
+                      <div className="h-px flex-1 bg-border/40" />
+                    </div>
+                    
+                    {/* P&L Value */}
+                    <div className="flex items-baseline gap-3">
+                      <p className={cn('text-4xl font-bold font-display tabular-nums leading-none tracking-tight', currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative')}>
+                        {formatPnlWithK(currentPnl)}
+                      </p>
+                      <div className={cn('px-2.5 py-1 rounded-md text-xs font-bold tabular-nums', currentPnl >= 0 ? 'bg-[#9b8cff]/10 text-[#9b8cff]' : 'bg-pnl-negative/10 text-pnl-negative')}>
+                        {Math.round(goalProgress)}%
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="text-foreground">{formatPnlWithK(currentGoal, false)} Goal</span>
+                      </div>
+                      <div className="relative h-3 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                        <div
+                          className={cn('h-full rounded-full transition-all duration-700 ease-out', currentPnl >= 0 ? 'bg-gradient-to-r from-[#9b8cff] to-[#b8acff]' : 'bg-gradient-to-r from-pnl-negative to-red-400')}
+                          style={{ width: `${Math.max(0, Math.min(goalProgress, 100))}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-semibold uppercase tracking-wider">
+                        <span className="text-muted-foreground/60">0%</span>
+                        <span className="text-muted-foreground/60">100%</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <span className="font-display font-bold tabular-nums text-foreground dark:text-white/95">
-                      {Math.round(goalProgress)}% of Goal
-                    </span>
-                    <span className="font-display font-bold tabular-nums text-foreground dark:text-white/95">
-                      {currentPnl < 0 ? `${currencySymbol}0` : formatPnlWithK(currentPnl, false)} <span className="text-foreground/70 dark:text-white/70">/</span> {formatPnlWithK(currentGoal, false)}
-                    </span>
+
+                  {/* Right: Circular Progress */}
+                  <div className="flex items-center justify-center lg:justify-end">
+                    <div className="relative">
+                      <svg className="transform -rotate-90" width="120" height="120">
+                        {/* Background circle */}
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r="52"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          className="text-muted/20"
+                        />
+                        {/* Progress circle */}
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r="52"
+                          fill="none"
+                          stroke={currentPnl >= 0 ? "#9b8cff" : "hsl(var(--pnl-negative))"}
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 52}`}
+                          strokeDashoffset={`${2 * Math.PI * 52 * (1 - Math.max(0, Math.min(goalProgress, 100)) / 100)}`}
+                          className="transition-all duration-700 ease-out"
+                          style={{ filter: 'drop-shadow(0 0 8px currentColor)' }}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-bold font-display tabular-nums text-foreground leading-none">
+                          {Math.round(goalProgress)}%
+                        </span>
+                        <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                          {goalPeriod === 'D' ? 'Daily' : goalPeriod === 'W' ? 'Weekly' : goalPeriod === 'M' ? 'Monthly' : 'Yearly'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Calendar Navigation */}
-            <div className="flex items-center justify-between py-2">
+            <div className="relative flex items-center justify-between py-2">
               <div className="flex items-center">
                 <button 
                   onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth}
@@ -1409,12 +1983,21 @@ export default function CalendarPage() {
                   Today
                 </button>
               </div>
+              
+              {/* Center - Stats */}
+              {viewMode === 'month' && (
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-4 absolute left-1/2 -translate-x-1/2 text-center justify-center">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-xs text-foreground font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
+                    const tradeDate = new Date(t.date);
+                    return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
+                  }).length}</span></span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-xs font-display font-semibold tabular-nums" style={{
+                    color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
+                  }}>{formatPnlWithK(displayedMonthlyPnl)}</span></span>
+                </div>
+              )}
+              
               <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-                {viewMode === 'month' && (
-                  <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm">
-                    <span className="text-muted-foreground whitespace-nowrap hidden sm:inline font-display font-bold tabular-nums">Days: <span className="text-foreground font-display font-bold tabular-nums">{tradingDays}</span></span>
-                  </div>
-                )}
                 {/* Mobile View Mode Toggle - Minimal M/Y switch */}
                 <div className="sm:hidden flex items-center">
                   <button
@@ -1568,75 +2151,31 @@ export default function CalendarPage() {
             ) : (
               /* Month View - Original Calendar */
               <>
-                {/* Calendar Header with Month Stats */}
-                <div className={cn(
-                  "rounded-xl border p-4 mb-4",
-                  preferences.liquidGlassEnabled
-                    ? "border-white/10 bg-card/50 backdrop-blur-2xl"
-                    : "border-border/50 bg-card/50"
-                )}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-medium mb-1">Total Trades This Month</p>
-                      <p className="text-2xl font-bold font-display tabular-nums">{filteredTrades.filter(t => {
-                        const tradeDate = new Date(t.date);
-                        return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
-                      }).length}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground font-medium mb-1">Monthly P&L</p>
-                      <p className="text-2xl font-bold font-display tabular-nums" style={{
-                        color: `hsl(var(${monthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
-                      }}>{formatPnlWithK(monthlyPnl)}</p>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
-                <div className="hidden md:grid grid-cols-8 gap-1 text-center mb-3">
+                <div className="hidden md:grid grid-cols-8 gap-2 text-center mb-4">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className={cn(
-                      "h-8 flex items-center justify-center rounded-lg border text-xs font-bold text-foreground/70 tracking-wider",
-                      preferences.liquidGlassEnabled
-                        ? "border-white/5 bg-background/40 backdrop-blur-xl"
-                        : "border-border/30 bg-muted/30"
-                    )}>
+                    <div key={i} className="h-7 flex items-center justify-center text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
                       {day}
                     </div>
                   ))}
-                  <div className={cn(
-                    "h-8 flex items-center justify-center rounded-lg border text-xs font-bold text-foreground/70 tracking-wider",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/5 bg-background/40 backdrop-blur-xl"
-                      : "border-border/30 bg-muted/30"
-                  )}>
+                  <div className="h-7 flex items-center justify-center text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
                     WEEK
                   </div>
                 </div>
                 {/* Mobile headers - Mon to Fri only */}
-                <div className="grid md:hidden grid-cols-6 gap-0.5 text-center mb-2">
+                <div className="grid md:hidden grid-cols-6 gap-1 text-center mb-3">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className={cn(
-                      "h-7 flex items-center justify-center rounded-lg border text-[10px] font-bold text-foreground/70",
-                      preferences.liquidGlassEnabled
-                        ? "border-white/5 bg-background/40 backdrop-blur-xl"
-                        : "border-border/30 bg-muted/30"
-                    )}>
+                    <div key={i} className="h-6 flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
                       {day}
                     </div>
                   ))}
-                  <div className={cn(
-                    "h-7 flex items-center justify-center rounded-lg border text-[10px] font-bold text-foreground/70",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/5 bg-background/40 backdrop-blur-xl"
-                      : "border-border/30 bg-muted/30"
-                  )}>
+                  <div className="h-6 flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
                     WK
                   </div>
                 </div>
 
                 {/* Calendar Grid with Weekly P&L - Full week */}
-                <div className="space-y-1.5 md:space-y-2">
+                <div className="space-y-2 md:space-y-3">
                   {(() => {
                     const monthStart = startOfMonth(currentMonth);
                     const monthEnd = endOfMonth(currentMonth);
@@ -1661,13 +2200,14 @@ export default function CalendarPage() {
                       return (
                         <>
                         {/* Desktop/Tablet - Full week */}
-                        <div key={weekIndex} className="hidden md:grid grid-cols-8 gap-1 p-3 rounded-xl border" style={{
-                          background: weekData && (weekData.pnl >= 0 
-                            ? `hsl(var(--pnl-positive) / 0.05)`
-                            : `hsl(var(--pnl-negative) / 0.05)`),
-                          borderColor: weekData && (weekData.pnl >= 0 
-                            ? `hsl(var(--pnl-positive) / 0.15)`
-                            : `hsl(var(--pnl-negative) / 0.15)`)
+                        <div key={weekIndex} className={cn(
+                          "hidden md:grid grid-cols-8 gap-2 p-3 rounded-2xl border transition-all",
+                          !weekData?.tradeCount && (preferences.liquidGlassEnabled
+                            ? "border-white/10 bg-card/30 backdrop-blur-xl"
+                            : "border-border/40 bg-muted/20")
+                        )} style={{
+                          backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.05)` : undefined,
+                          borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.2)` : undefined
                         }}>
                           {week.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
@@ -1689,41 +2229,40 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-20 rounded-lg flex flex-col items-center justify-center p-2 transition-all relative border hover:shadow-md',
-                                  isCurrentMonth ? 'opacity-100' : 'opacity-40',
-                                  isTodayDate && 'ring-2 ring-primary shadow-lg',
+                                  'h-24 rounded-xl flex flex-col items-center justify-center p-2.5 transition-all relative border-2 hover:scale-[1.02] hover:shadow-lg group',
+                                  isCurrentMonth ? 'opacity-100' : 'opacity-35',
+                                  isTodayDate && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'bg-card/80 backdrop-blur-2xl border-white/10 hover:bg-card/90'
-                                    : 'bg-background border-border/40 hover:bg-muted/5')
+                                    ? 'bg-card/40 backdrop-blur-xl border-white/5 hover:bg-card/60'
+                                    : 'bg-background border-border/20 hover:bg-muted/30')
                                 )}
                                 style={tradeCount > 0 ? {
-                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.12)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.3)`,
-                                  boxShadow: isTodayDate ? 'none' : undefined
+                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.08)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.25)`,
                                 } : undefined}
                               >
                                 {/* Date number - top left */}
                                 <div className={cn(
-                                  'absolute top-1 left-1.5 text-xs font-display font-bold tabular-nums',
-                                  isTodayDate ? 'text-primary' : 'text-foreground/60'
+                                  'absolute top-1.5 left-2 text-sm font-display font-bold tabular-nums',
+                                  isTodayDate ? 'text-primary' : 'text-foreground/50'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
 
                                 {/* Trade info - centered */}
                                 {tradeCount > 0 && (
-                                  <div className="flex flex-col items-center gap-1 mt-3">
-                                    <div className="text-sm font-bold font-display tabular-nums w-full text-center px-0.5 truncate"
+                                  <div className="flex flex-col items-center gap-1 mt-4">
+                                    <div className="text-base font-bold font-display tabular-nums w-full text-center px-0.5 truncate"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[9px] text-muted-foreground font-display font-semibold tabular-nums">
-                                      {tradeCount} trade{tradeCount !== 1 ? 's' : ''}
+                                    <div className="text-[10px] text-muted-foreground font-display font-semibold tabular-nums bg-muted/40 px-2 py-0.5 rounded-full">
+                                      {tradeCount} {tradeCount !== 1 ? 'trades' : 'trade'}
                                     </div>
                                   </div>
                                 )}
                                 {tradeCount === 0 && noTradeTakenCount > 0 && (
-                                  <div className="text-[9px] text-muted-foreground font-display font-bold tabular-nums">
+                                  <div className="text-xs text-muted-foreground/50 font-display font-bold tabular-nums">
                                     —
                                   </div>
                                 )}
@@ -1733,32 +2272,33 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary */}
                           <div className={cn(
-                            "h-20 flex flex-col items-center justify-center rounded-lg p-2 border font-bold",
+                            "h-24 flex flex-col items-center justify-center rounded-xl p-3 border-2 font-bold transition-all",
                             preferences.liquidGlassEnabled
-                              ? "border-white/10 bg-card/80 backdrop-blur-2xl"
-                              : "bg-card border-border/40"
+                              ? "border-white/10 bg-card/60 backdrop-blur-2xl"
+                              : "bg-card/80 border-border/30"
                           )}>
-                            <div className="text-[10px] text-muted-foreground/70 mb-1 whitespace-nowrap font-display font-semibold tracking-wider">
-                              WEEK {weekIndex + 1}
+                            <div className="text-[9px] text-muted-foreground/70 mb-1.5 whitespace-nowrap font-display font-bold uppercase tracking-widest">
+                              Week {weekIndex + 1}
                             </div>
-                            <div className="text-lg font-display tabular-nums mb-1 w-full text-center truncate leading-tight"
+                            <div className="text-base font-display tabular-nums mb-1 w-full text-center truncate leading-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
-                            <div className="text-[9px] text-muted-foreground font-display font-semibold tabular-nums">
-                              {weekData?.tradeCount || 0} {weekData?.tradeCount === 1 ? 'trade' : 'trades'}
+                            <div className="text-[10px] text-muted-foreground font-display font-semibold tabular-nums bg-muted/30 px-2 py-0.5 rounded-full">
+                              {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
                             </div>
                           </div>
                         </div>
                         
                         {/* Mobile - Weekdays only (Mon-Fri) */}
-                        <div key={`${weekIndex}-mobile`} className="grid md:hidden grid-cols-6 gap-0.5 p-2 rounded-lg border" style={{
-                          background: weekData && (weekData.pnl >= 0 
-                            ? `hsl(var(--pnl-positive) / 0.05)`
-                            : `hsl(var(--pnl-negative) / 0.05)`),
-                          borderColor: weekData && (weekData.pnl >= 0 
-                            ? `hsl(var(--pnl-positive) / 0.15)`
-                            : `hsl(var(--pnl-negative) / 0.15)`)
+                        <div key={`${weekIndex}-mobile`} className={cn(
+                          "grid md:hidden grid-cols-6 gap-1 p-2.5 rounded-2xl border",
+                          !weekData?.tradeCount && (preferences.liquidGlassEnabled
+                            ? "border-white/10 bg-card/30 backdrop-blur-xl"
+                            : "border-border/40 bg-muted/20")
+                        )} style={{
+                          backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.05)` : undefined,
+                          borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.2)` : undefined
                         }}>
                           {weekdaysOnly.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
@@ -1823,14 +2363,14 @@ export default function CalendarPage() {
                               : "bg-card border-border/40"
                           )}>
                             <div className="text-[9px] text-muted-foreground/70 mb-0.5 whitespace-nowrap font-display font-semibold tracking-wider">
-                              W{weekIndex + 1}
+                              Week {weekIndex + 1}
                             </div>
                             <div className="text-[10px] font-display tabular-nums mb-0.5 w-full text-center truncate"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
-                              {weekData?.tradeCount || 0}t
+                              {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
                             </div>
                           </div>
                         </div>
@@ -1841,18 +2381,18 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Calendar Legend */}
-                <div className="flex items-center justify-center gap-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-md bg-pnl-positive/20 border-2 border-pnl-positive/60" />
-                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Profitable</span>
+                <div className="flex flex-wrap items-center justify-center gap-6 py-6">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-4 w-4 rounded-md bg-pnl-positive/15 border-2 border-pnl-positive/50" />
+                    <span className="text-xs text-muted-foreground font-display font-semibold">Profitable</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-md bg-pnl-negative/20 border-2 border-pnl-negative/60" />
-                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Loss</span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-4 w-4 rounded-md bg-pnl-negative/15 border-2 border-pnl-negative/50" />
+                    <span className="text-xs text-muted-foreground font-display font-semibold">Loss</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-md bg-muted/30 ring-2 ring-foreground/40" />
-                    <span className="text-sm text-muted-foreground font-display font-bold tabular-nums">Today</span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-4 w-4 rounded-md bg-muted/20 ring-2 ring-primary ring-offset-1 ring-offset-background" />
+                    <span className="text-xs text-muted-foreground font-display font-semibold">Today</span>
                   </div>
                 </div>
               </>
@@ -1921,222 +2461,7 @@ export default function CalendarPage() {
                 </div>
               </div>
             </div>
-          ) : (
-            /* Month View - All Stats */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {/* Monthly Summary */}
-              <div className={cn(
-                "rounded-[1.75rem] border p-5 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
-                preferences.liquidGlassEnabled
-                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                  : "border-border/60 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="summary-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#summary-dots)" />
-                  </svg>
-                )}
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-                      Win Rate
-                    </h3>
-                    <span className="text-3xl font-display font-bold tabular-nums" style={{ color: profitColor }}>
-                      {winRate}%
-                    </span>
-                  </div>
-                  
-                  {monthlyTrades.length === 0 ? (
-                    <div className="h-56 flex items-center justify-center">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades this month</p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center">
-                      <ChartContainer 
-                        config={{
-                          wins: { label: "Wins", color: profitColor },
-                          losses: { label: "Losses", color: "hsl(var(--pnl-negative))" }
-                        } satisfies ChartConfig} 
-                        className="mx-auto aspect-square h-52 [&_.recharts-text]:fill-background"
-                      >
-                        <PieChart>
-                          <ChartTooltip 
-                            content={({ active, payload }) => {
-                              if (active && payload && payload.length) {
-                                const data = payload[0];
-                                return (
-                                  <div className="rounded-lg px-3 py-2 shadow-xl bg-card border border-border">
-                                    <p className="text-sm font-medium text-foreground">
-                                      {data.name}: {data.value}
-                                    </p>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }} 
-                          />
-                          <Pie 
-                            data={[
-                              { name: 'Wins', value: wins, fill: profitColor },
-                              { name: 'Losses', value: losses, fill: 'hsl(var(--pnl-negative))' }
-                            ]} 
-                            dataKey="value" 
-                            innerRadius={30}
-                            outerRadius={80}
-                            cornerRadius={6}
-                            paddingAngle={3}
-                            strokeWidth={0}
-                          >
-                            <LabelList 
-                              dataKey="value" 
-                              stroke="none" 
-                              fontSize={12} 
-                              fontWeight={600} 
-                              fill="white"
-                              formatter={(value: number) => value.toString()} 
-                            />
-                          </Pie>
-                        </PieChart>
-                      </ChartContainer>
-                      
-                      {/* Legend */}
-                      <div className="flex items-center justify-center gap-6 mt-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: profitColor }} />
-                          <span className="text-xs text-muted-foreground">Wins ({wins})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-sm bg-pnl-negative" />
-                          <span className="text-xs text-muted-foreground">Losses ({losses})</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Performance Score Radar */}
-              <div className={cn(
-                "rounded-[1.75rem] border p-5 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
-                preferences.liquidGlassEnabled
-                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                  : "border-border/60 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="perf-radar-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#perf-radar-dots)" />
-                  </svg>
-                )}
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">Performance Score</h3>
-                    <span className="text-3xl font-display font-bold tabular-nums" style={{ color: profitColor }}>
-                      {Math.round(tradepathScoreData.overallScore)}%
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    {monthlyTrades.length === 0 ? (
-                      <div className="h-56 flex items-center justify-center">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">No trades this month</p>
-                      </div>
-                    ) : (
-                      <div className="w-full h-56">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RadarChart data={tradepathScoreData.radarData} margin={{
-                            top: 20,
-                            right: 20,
-                            bottom: 20,
-                            left: 20
-                          }}>
-                            <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                            <PolarAngleAxis dataKey="metric" tick={{
-                              fontSize: 11,
-                              fill: 'hsl(var(--muted-foreground))',
-                              fontWeight: 600
-                            }} />
-                            <Radar name="Score" dataKey="value" stroke={profitColor} fill={profitColor} fillOpacity={0.3} strokeWidth={2} />
-                            <Tooltip contentStyle={{
-                              backgroundColor: 'hsl(var(--card))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px',
-                              fontSize: '11px',
-                              color: 'hsl(var(--card-foreground))'
-                            }} labelStyle={{
-                              color: 'hsl(var(--card-foreground))'
-                            }} itemStyle={{
-                              color: 'hsl(var(--card-foreground))'
-                            }} formatter={(value: number) => [`${value.toFixed(1)}%`, 'Score']} />
-                          </RadarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Performance by Day */}
-              <div className={cn(
-                "rounded-[1.75rem] border p-4 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
-                preferences.liquidGlassEnabled
-                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                  : "border-border/60 bg-card"
-              )}>
-                {/* Dot pattern - only show when glass is enabled */}
-                {preferences.liquidGlassEnabled && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="dayperf-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                        <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#dayperf-dots)" />
-                  </svg>
-                )}
-                <div className="relative">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">Performance by Day</h3>
-                  <div className="space-y-1.5">
-                    {dayOfWeekStats.map(day => {
-                    const isBestDay = day.day === bestDay.day && bestDay.pnl > 0;
-                    const isWorstDay = day.day === worstDay.day && worstDay.pnl < 0;
-                    const maxPnl = Math.max(...dayOfWeekStats.map(d => Math.abs(d.pnl)), 1);
-                    const barWidth = day.pnl !== 0 ? Math.abs(day.pnl) / maxPnl * 100 : 0;
-                    return <div key={day.day} className={cn('flex items-center gap-2 p-2 rounded-xl transition-colors', isBestDay && 'bg-pnl-positive/10 border border-pnl-positive/20', isWorstDay && 'bg-pnl-negative/10 border border-pnl-negative/20', !isBestDay && !isWorstDay && (preferences.liquidGlassEnabled ? 'bg-black/20 border border-white/10' : 'bg-muted/30 border border-transparent'))}>
-                          <div className="w-10 flex-shrink-0">
-                            <span className={cn('text-xs font-semibold', day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground')}>
-                              {day.shortDay}
-                            </span>
-                          </div>
-                          <div className="flex-1 h-5 bg-muted/50 dark:bg-white/5 rounded-lg overflow-hidden relative">
-                            {day.pnl !== 0 && <div className={cn('h-full rounded-lg transition-all', day.pnl >= 0 ? 'bg-pnl-positive/70' : 'bg-pnl-negative/70')} style={{
-                          width: `${barWidth}%`
-                        }} />}
-                          </div>
-                          <div className="w-16 text-right flex-shrink-0">
-                            <span className={cn('text-xs font-semibold font-display', day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground')}>
-                              {formatPnlWithK(day.pnl)}
-                            </span>
-                          </div>
-                          {isBestDay && <span className="text-[8px] text-pnl-positive font-bold bg-pnl-positive/20 px-1.5 py-0.5 rounded-md uppercase tracking-wide">Best</span>}
-                          {isWorstDay && <span className="text-[8px] text-pnl-negative font-bold bg-pnl-negative/20 px-1.5 py-0.5 rounded-md uppercase tracking-wide">Worst</span>}
-                        </div>;
-                  })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -2220,7 +2545,7 @@ export default function CalendarPage() {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="z-[10000]">
                             <DropdownMenuItem onClick={e => {
                               e.stopPropagation();
                               setSelectedTrade(trade);

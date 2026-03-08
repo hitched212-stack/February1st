@@ -667,6 +667,21 @@ export default function Analytics() {
     return data;
   }, [filteredTrades, timeFrame]);
 
+  const equityCurveSummary = useMemo(() => {
+    const values = equityCurveData.map(point => point.value);
+    const peak = values.length > 0 ? Math.max(...values) : 0;
+    const trough = values.length > 0 ? Math.min(...values) : 0;
+    const current = values.length > 0 ? values[values.length - 1] : 0;
+
+    return {
+      peak,
+      trough,
+      current,
+      range: peak - trough,
+      sessions: Math.max(equityCurveData.length - 1, 0)
+    };
+  }, [equityCurveData]);
+
   // Tradepath Score data for radar chart
   const tradepathScoreData = useMemo(() => {
     if (filteredTrades.length === 0) {
@@ -1027,21 +1042,27 @@ export default function Analytics() {
   return <TooltipProvider>
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
-        <div className="px-4 pt-5 pb-2 md:px-6">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <h1 className="text-sm font-bold uppercase tracking-widest text-foreground font-display">Analytics</h1>
-            
-            {/* Unified Bar with Controls */}
-            <div className="flex items-center gap-2 rounded-[1.75rem] border border-white/10 bg-card/85 backdrop-blur-2xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] pb-3">
+      <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="px-4 py-3 md:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-1 h-5 rounded-full bg-[#9b8cff]" />
+              <div className="min-w-0">
+                <h1 className="text-[11px] font-bold uppercase tracking-widest text-foreground">Analytics</h1>
+                <p className="hidden sm:block text-xs text-muted-foreground truncate">Performance and behavior insights</p>
+              </div>
+            </div>
+
+            {/* Date range control */}
+            <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl p-1 shadow-sm hover:shadow-md transition-all">
               {/* Date Range Picker */}
               <Popover>
                 <PopoverTrigger asChild>
                   <Button 
                     variant="ghost" 
                     className={cn(
-                      "h-9 text-sm gap-2 rounded-xl px-3 transition-all duration-200",
-                      "hover:bg-muted/50 text-foreground"
+                      "h-10 text-sm gap-2 rounded-full px-4 transition-all duration-200",
+                      "hover:bg-muted/30 text-foreground"
                     )}
                   >
                     <CalendarIcon className="h-4 w-4" />
@@ -1234,27 +1255,48 @@ export default function Analytics() {
         
         {/* Equity Curve with Net P&L - Premium Dark Fintech Style */}
         <div className={cn(
-          "rounded-[1.75rem] px-4 md:px-6 pb-4 relative overflow-hidden border shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+          "rounded-2xl px-4 md:px-6 pb-4 relative overflow-hidden border shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
           preferences.liquidGlassEnabled
             ? "border-white/10 bg-card/85 backdrop-blur-2xl"
             : "border-border/60 bg-card"
         )}>
           {/* Header with Net P&L and Chart Toggle */}
-          <div className="relative flex items-start justify-between mb-6 md:mb-8 pt-5 md:pt-7">
+          <div className="relative flex items-start justify-between mb-6 md:mb-8 pt-5 md:pt-7 pb-4 border-b border-border/30">
             {/* Left: Income info */}
-            <div>
-              <div className="flex items-center gap-2 md:items-start md:justify-between md:gap-4">
-                <p className="text-xs text-foreground mb-1 md:mb-2 font-semibold uppercase tracking-wider">Total Pnl</p>
-                <span className={cn("text-sm font-medium font-display tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
-                  {stats.totalPnl >= 0 ? '+' : ''}{stats.pnlPercentage.toFixed(2)}%
-                </span>
+            <div className="flex-1">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Total Pnl</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Total profit and loss for the selected period, with percentage return.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
-              <p className={cn("text-3xl tracking-tight md:text-3xl font-display font-bold tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
-                {stats.totalPnl >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(stats.totalPnl).toLocaleString('en-US', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-              })}
-              </p>
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-3">
+                  <p className={cn("text-4xl tracking-tight font-display font-bold tabular-nums", stats.totalPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                    {stats.totalPnl >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(stats.totalPnl).toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}
+                  </p>
+                  <span className={cn("text-xs font-semibold px-2 py-1 rounded-md", 
+                    stats.totalPnl >= 0 
+                      ? "bg-pnl-positive/10 text-pnl-positive" 
+                      : "bg-pnl-negative/10 text-pnl-negative"
+                  )}>
+                    {stats.totalPnl >= 0 ? '+' : ''}{stats.pnlPercentage.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
             </div>
             
             {/* Right: Chart Type Toggle */}
@@ -1277,25 +1319,44 @@ export default function Analytics() {
             </div>
           </div>
           
+          <div className="grid grid-cols-3 gap-2 mb-4 md:mb-5">
+            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Peak</p>
+              <p className={cn("text-xs font-bold font-display tabular-nums", equityCurveSummary.peak >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                {formatPnl(equityCurveSummary.peak, currencySymbol)}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Lowest P&L</p>
+              <p className={cn("text-xs font-bold font-display tabular-nums", equityCurveSummary.trough >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
+                {formatPnl(equityCurveSummary.trough, currencySymbol)}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Sessions</p>
+              <p className="text-xs font-bold font-display text-foreground tabular-nums">{equityCurveSummary.sessions}</p>
+            </div>
+          </div>
+
           {/* Chart - responsive height */}
-          <div className="relative h-56 md:h-72 -mx-2 md:mx-0">
+          <div className="relative h-56 md:h-72 -mx-1 md:mx-0">
             <ResponsiveContainer width="100%" height="100%">
               {equityChartView === 'line' ? <AreaChart data={equityCurveData} margin={{
               top: 10,
-              right: 5,
-              left: -10,
+              right: 8,
+              left: 0,
               bottom: 0
             }}>
                   <defs>
                     {/* Gradient for positive P&L */}
                     <linearGradient id="pnlGradientPositive" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={profitColor} stopOpacity={0.2} />
-                      <stop offset="100%" stopColor={profitColor} stopOpacity={0} />
+                      <stop offset="0%" stopColor={profitColor} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={profitColor} stopOpacity={0.02} />
                     </linearGradient>
                     {/* Gradient for negative P&L */}
                     <linearGradient id="pnlGradientNegative" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={lossColor} stopOpacity={0} />
-                      <stop offset="100%" stopColor={lossColor} stopOpacity={0.2} />
+                      <stop offset="0%" stopColor={lossColor} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={lossColor} stopOpacity={0.02} />
                     </linearGradient>
                     <filter id="glowEffect" x="-50%" y="-50%" width="200%" height="200%">
                       <feGaussianBlur stdDeviation="4" result="blur" />
@@ -1305,14 +1366,14 @@ export default function Analytics() {
                       </feMerge>
                     </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
+                  <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
                   <XAxis dataKey="date" tick={{
                 fontSize: 10,
                 fill: 'hsl(var(--muted-foreground))',
                 fontFamily: 'Outfit, system-ui, sans-serif',
                 fontWeight: 700,
                 letterSpacing: '0.06em'
-              }} axisLine={false} tickLine={false} dy={10} interval="preserveStartEnd" />
+              }} axisLine={false} tickLine={false} dy={10} minTickGap={24} interval="preserveStartEnd" />
                   <YAxis tick={{
                 fontSize: 10,
                 fill: 'hsl(var(--muted-foreground))',
@@ -1325,7 +1386,8 @@ export default function Analytics() {
                 if (absValue >= 1000000) return `${prefix}${currencySymbol}${(absValue / 1000000).toFixed(0)}M`;
                 if (absValue >= 1000) return `${prefix}${currencySymbol}${Math.round(absValue / 1000)}k`;
                 return `${prefix}${currencySymbol}${absValue}`;
-              }} width={55} />
+              }} width={62} tickMargin={4} domain={[(dataMin: number) => Math.floor((dataMin - 40) / 50) * 50, (dataMax: number) => Math.ceil((dataMax + 40) / 50) * 50]} />
+                  <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="3 5" strokeOpacity={0.65} />
                   <RechartTooltip content={({
                 active,
                 payload,
@@ -1337,12 +1399,12 @@ export default function Analytics() {
                   const absValue = Math.abs(value);
                   const formattedValue = absValue >= 1000000 ? `${currencySymbol}${(absValue / 1000000).toFixed(2)}M` : absValue >= 1000 ? `${currencySymbol}${(absValue / 1000).toFixed(2)}k` : `${currencySymbol}${absValue.toLocaleString()}`;
                   return <div className="rounded-xl px-4 py-3 shadow-2xl backdrop-blur-sm" style={{
-                    background: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    background: 'hsl(var(--background) / 0.94)',
+                    border: '1px solid hsl(var(--border) / 0.7)',
+                    boxShadow: '0 8px 28px rgba(0, 0, 0, 0.28)'
                   }}>
-                            <p className="text-sm font-semibold text-foreground mb-1">{label}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">{label}</p>
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
                               P&L: <span className="font-medium" style={{
                         color: isPositive ? profitColor : lossColor
                       }}>
@@ -1353,30 +1415,31 @@ export default function Analytics() {
                 }
                 return null;
               }} cursor={{
-                stroke: 'hsl(var(--muted-foreground))',
+                stroke: 'hsl(var(--border))',
                 strokeWidth: 1,
-                strokeOpacity: 0.5
+                strokeDasharray: '3 5',
+                strokeOpacity: 0.55
               }} />
-                  <Area type="monotone" dataKey="value" stroke={stats.totalPnl >= 0 ? profitColor : lossColor} strokeWidth={2.5} fill={stats.totalPnl >= 0 ? "url(#pnlGradientPositive)" : "url(#pnlGradientNegative)"} dot={false} activeDot={{
+                  <Area type="monotone" dataKey="value" stroke={equityCurveSummary.current >= 0 ? profitColor : lossColor} strokeWidth={2.4} fill={equityCurveSummary.current >= 0 ? "url(#pnlGradientPositive)" : "url(#pnlGradientNegative)"} dot={false} activeDot={{
                 r: 8,
-                fill: stats.totalPnl >= 0 ? profitColor : lossColor,
+                fill: equityCurveSummary.current >= 0 ? profitColor : lossColor,
                 stroke: 'hsl(var(--background))',
                 strokeWidth: 3
-              }} animationDuration={1500} animationEasing="ease-out" />
+              }} animationDuration={1200} animationEasing="ease-out" />
                 </AreaChart> : <BarChart data={equityCurveData} margin={{
               top: 10,
-              right: 5,
-              left: -10,
+              right: 8,
+              left: 0,
               bottom: 0
             }} onMouseLeave={() => setActiveBarIndex(undefined)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
+                  <CartesianGrid strokeDasharray="4 6" stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
                   <XAxis dataKey="date" tick={{
                 fontSize: 10,
                 fill: 'hsl(var(--muted-foreground))',
                 fontFamily: 'Outfit, system-ui, sans-serif',
                 fontWeight: 700,
                 letterSpacing: '0.06em'
-              }} axisLine={false} tickLine={false} dy={10} interval="preserveStartEnd" />
+              }} axisLine={false} tickLine={false} dy={10} minTickGap={24} interval="preserveStartEnd" />
                   <YAxis tick={{
                 fontSize: 10,
                 fill: 'hsl(var(--muted-foreground))',
@@ -1389,7 +1452,8 @@ export default function Analytics() {
                 if (absValue >= 1000000) return `${prefix}${currencySymbol}${(absValue / 1000000).toFixed(0)}M`;
                 if (absValue >= 1000) return `${prefix}${currencySymbol}${Math.round(absValue / 1000)}k`;
                 return `${prefix}${currencySymbol}${absValue}`;
-              }} width={55} />
+              }} width={62} tickMargin={4} domain={[(dataMin: number) => Math.floor((dataMin - 40) / 50) * 50, (dataMax: number) => Math.ceil((dataMax + 40) / 50) * 50]} />
+                  <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="3 5" strokeOpacity={0.65} />
                   <RechartTooltip content={({
                 active,
                 payload,
@@ -1401,12 +1465,12 @@ export default function Analytics() {
                   const absValue = Math.abs(value);
                   const formattedValue = absValue >= 1000000 ? `${currencySymbol}${(absValue / 1000000).toFixed(2)}M` : absValue >= 1000 ? `${currencySymbol}${(absValue / 1000).toFixed(2)}k` : `${currencySymbol}${absValue.toLocaleString()}`;
                   return <div className="rounded-xl px-4 py-3 shadow-2xl backdrop-blur-sm" style={{
-                    background: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    background: 'hsl(var(--background) / 0.94)',
+                    border: '1px solid hsl(var(--border) / 0.7)',
+                    boxShadow: '0 8px 28px rgba(0, 0, 0, 0.28)'
                   }}>
-                            <p className="text-sm font-semibold text-foreground mb-1">{label}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-1">{label}</p>
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
                               P&L: <span className="font-medium" style={{
                         color: isPositive ? profitColor : lossColor
                       }}>
@@ -1429,20 +1493,25 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Performance Score Radar */}
           <GlassCardWrapper patternId="perf-score-dots" className="p-5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                Performance Score
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="inline-flex">
-                      <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Overall performance score based on win rate, profit factor, risk/reward ratio, consistency, and rule adherence</p>
-                  </TooltipContent>
-                </Tooltip>
-              </h3>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                    Performance Score
+                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Overall performance score based on win rate, profit factor, risk/reward ratio, consistency, and rule adherence</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
               <span className="text-lg text-pnl-positive font-display font-bold tabular-nums">
                 {tradepathScoreData.overallScore.toFixed(0)}%
               </span>
@@ -1482,20 +1551,25 @@ export default function Analytics() {
 
           {/* Rule Compliance - Session Based */}
           <GlassCardWrapper patternId="rule-compliance-dots" className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                Session Compliance
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="inline-flex">
-                      <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Percentage of trading sessions where you followed all your trading rules</p>
-                  </TooltipContent>
-                </Tooltip>
-              </h3>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                    Session Compliance
+                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Percentage of trading sessions where you followed all your trading rules</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
               <span className="text-lg font-display font-bold tabular-nums" style={{ color: profitColor }}>
                 {ruleComplianceData.complianceRate.toFixed(0)}%
               </span>
@@ -1580,20 +1654,25 @@ export default function Analytics() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Win Rate Pie Chart */}
           <GlassCardWrapper patternId="winrate-dots" className="p-5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                Win Rate
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="inline-flex">
-                      <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Percentage of trades that resulted in profit</p>
-                  </TooltipContent>
-                </Tooltip>
-              </h3>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                    Win Rate
+                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Percentage of trades that resulted in profit</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
               <span className="text-lg font-display font-bold tabular-nums" style={{ color: profitColor }}>
                 {stats.winRate.toFixed(0)}%
               </span>
@@ -1669,20 +1748,25 @@ export default function Analytics() {
 
           {/* Direction Performance Bar */}
           <GlassCardWrapper patternId="direction-dots" className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                Direction Performance
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="inline-flex">
-                      <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Performance comparison between long (buy) and short (sell) trades</p>
-                  </TooltipContent>
-                </Tooltip>
-              </h3>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                    Direction Performance
+                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Performance comparison between long (buy) and short (sell) trades</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
               <span className="text-sm font-display font-medium tabular-nums text-muted-foreground">
                 {stats.longTrades.count + stats.shortTrades.count} trades
               </span>
@@ -1758,20 +1842,25 @@ export default function Analytics() {
 
         {/* Performance Grade Consistency Card */}
         <GlassCardWrapper patternId="consistency-dots" className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-              Performance Consistency
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">How consistently you execute quality trades based on your performance grades</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  Performance Consistency
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">How consistently you execute quality trades based on your performance grades</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
             <span className={cn(
               "text-lg font-display font-bold tabular-nums",
               performanceConsistency.score >= 80 ? "text-pnl-positive" :
@@ -1808,8 +1897,11 @@ export default function Analytics() {
               </div>
 
               {/* Grade Distribution */}
-              <div className="space-y-2 pt-3 border-t border-border/50">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Grade Distribution</p>
+              <div className="space-y-3 pt-4 border-t border-border/30">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Grade Distribution</p>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground mb-1">Grade 1</p>
@@ -1833,8 +1925,11 @@ export default function Analytics() {
               </div>
 
               {/* Insights */}
-              <div className="space-y-2 pt-3 border-t border-border/50">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Insight</p>
+              <div className="space-y-3 pt-4 border-t border-border/30">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Insight</p>
+                </div>
                 <div className="bg-muted/30 rounded-lg p-3">
                   <p className="text-xs text-foreground">
                     {performanceConsistency.score >= 85
@@ -1852,22 +1947,29 @@ export default function Analytics() {
         </GlassCardWrapper>
 
         {/* Holding Time & Entry Analysis */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible">
           {/* Holding Time Card - Grouped Bar Chart */}
-          <GlassCardWrapper patternId="holding-time-dots" className="p-5 h-full flex flex-col">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              Avg. Holding Time
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Average time you hold winning vs losing positions</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+          <GlassCardWrapper patternId="holding-time-dots" className="p-5 h-full flex flex-col overflow-visible">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                    Avg. Holding Time
+                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Average time you hold winning vs losing positions</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
             
             {stats.avgHoldingTimeWins !== '0m' || stats.avgHoldingTimeLosses !== '0m' ? <>
                 {/* Summary Stats */}
@@ -1889,28 +1991,43 @@ export default function Analytics() {
                 </div>
                 
                 {/* Grouped Bar Chart */}
-                <div className="h-56">
+                <div className="h-56 -mx-5 px-5">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2}>
+                    <BarChart data={holdingTimeByDay} barCategoryGap="20%" barGap={2} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
                       <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{
                     fill: 'hsl(var(--muted-foreground))',
                     fontSize: 11
                   }} dy={5} />
                       <YAxis hide />
-                      <Tooltip contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: 'hsl(var(--card-foreground))'
-                  }} labelStyle={{
-                    color: 'hsl(var(--card-foreground))',
-                    fontWeight: 500
-                  }} itemStyle={{
-                    color: 'hsl(var(--card-foreground))'
-                  }} formatter={(value: number, name: string) => [`${Math.floor(value / 60)}h ${Math.round(value % 60)}m`, name === 'wins' ? 'Winners' : 'Losers']} />
-                      <Bar dataKey="wins" fill={profitColor} radius={[4, 4, 0, 0]} maxBarSize={24} />
-                      <Bar dataKey="losses" fill={lossColor} radius={[4, 4, 0, 0]} maxBarSize={24} />
+                      <RechartTooltip
+                        cursor={{ fill: 'rgba(155, 140, 255, 0.06)' }}
+                        content={({ active, label, payload }) => {
+                          if (!active || !payload || payload.length === 0) return null;
+
+                          return (
+                            <div className="min-w-[132px] rounded-lg border border-border/60 bg-card/95 px-2.5 py-2 text-xs font-medium shadow-lg backdrop-blur-sm">
+                              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                {label}
+                              </p>
+                              <div className="space-y-1">
+                                {payload.map((item, index) => {
+                                  const minutes = Number(item.value || 0);
+                                  return (
+                                    <div key={index} className="flex items-center justify-between gap-2 text-xs">
+                                      <span className="text-muted-foreground">{item.name}</span>
+                                      <span className="font-semibold text-foreground">
+                                        {Math.floor(minutes / 60)}h {Math.round(minutes % 60)}m
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
+                      <Bar dataKey="wins" fill={profitColor} radius={[4, 4, 0, 0]} maxBarSize={24} name="Winners" />
+                      <Bar dataKey="losses" fill={lossColor} radius={[4, 4, 0, 0]} maxBarSize={24} name="Losers" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1920,20 +2037,27 @@ export default function Analytics() {
           </GlassCardWrapper>
 
           {/* Entry Time Analysis Card */}
-          <GlassCardWrapper patternId="entry-time-dots" className="p-5 h-full flex flex-col">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              Entry Time Range
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs text-sm">Distribution of entry times during the trading day.</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+          <GlassCardWrapper patternId="entry-time-dots" className="p-5 h-full flex flex-col overflow-visible">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                    Entry Time Range
+                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs text-sm">Distribution of entry times during the trading day.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
             
             {entryTimeChartData.chartData.length > 0 ? <>
                 {/* Color Key */}
@@ -1954,7 +2078,7 @@ export default function Analytics() {
                 
                 <div style={{
             height: Math.max(224, entryTimeChartData.chartData.length * 40)
-          }}>
+          }} className="-mx-5 px-5">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={entryTimeChartData.chartData} layout="vertical" barCategoryGap="20%" margin={{
                 left: 0,
@@ -1975,18 +2099,28 @@ export default function Analytics() {
                     whiteSpace: 'nowrap'
                   }
                 }} width={90} />
-                    <Tooltip contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  color: 'hsl(var(--card-foreground))'
-                }} labelStyle={{
-                  color: 'hsl(var(--card-foreground))'
-                }} itemStyle={{
-                  color: 'hsl(var(--card-foreground))'
-                }} formatter={(value: number) => [formatPnl(value, currencySymbol), 'P&L']} labelFormatter={label => label} />
-                    <Bar dataKey="pnl" radius={[0, 4, 4, 0]} fill="hsl(var(--primary))">
+                    <RechartTooltip
+                      cursor={{ fill: 'rgba(155, 140, 255, 0.06)' }}
+                      content={({ active, label, payload }) => {
+                        if (!active || !payload || payload.length === 0) return null;
+                        const value = Number(payload[0]?.value || 0);
+
+                        return (
+                          <div className="min-w-[132px] rounded-lg border border-border/60 bg-card/95 px-2.5 py-2 text-xs font-medium shadow-lg backdrop-blur-sm">
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                              {label}
+                            </p>
+                            <div className="flex items-center justify-between gap-2 text-xs">
+                              <span className="text-muted-foreground">P&L</span>
+                              <span className={cn('font-semibold', value >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                                {formatPnl(value, currencySymbol)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Bar dataKey="pnl" radius={[0, 4, 4, 0]} fill="hsl(var(--primary))" name="P&L">
                       {entryTimeChartData.chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.pnl >= 0 ? 'hsl(var(--pnl-positive))' : 'hsl(var(--pnl-negative))'} />)}
                     </Bar>
                   </BarChart>
@@ -2000,19 +2134,26 @@ export default function Analytics() {
 
         {/* Strategy Profitability Bar */}
         <GlassCardWrapper patternId="strategy-dots" className="p-5">
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-1.5">
-            Most Profitable Strategies
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="inline-flex">
-                  <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">Your trading strategies ranked by profitability</p>
-              </TooltipContent>
-            </Tooltip>
-          </h3>
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/30">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  Most Profitable Strategies
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Your trading strategies ranked by profitability</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
           {strategyProfitabilityData.length === 0 ? (
             <p className="text-sm text-muted-foreground">No profitable strategies yet</p>
           ) : (
@@ -2054,21 +2195,26 @@ export default function Analytics() {
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
           <GlassCardWrapper patternId="mistakes-dots" className="p-5 h-full">
-            <div className="space-y-5">
+            <div className="space-y-5 border-b border-border/30 pb-5 mb-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                  Repeated Mistakes
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="inline-flex">
-                        <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs text-sm">Click on a mistake tag to filter the heatmap and see when that specific mistake happens</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </h3>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                      Repeated Mistakes
+                    </h3>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="inline-flex">
+                          <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs text-sm">Click on a mistake tag to filter the heatmap and see when that specific mistake happens</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
                 <span className="text-xs px-2 py-1 rounded-md bg-red-500/15 text-red-500 font-medium">
                   {mistakeTagsAnalysis.totalMistakeTags} total
                 </span>
@@ -2143,19 +2289,24 @@ export default function Analytics() {
 
           {/* Top Assets */}
           <GlassCardWrapper patternId="top-assets-dots" className="p-5 h-full">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              Top Assets
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Your most profitable trading assets by P&L</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-border/30">
+              <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  Top Assets
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Your most profitable trading assets by P&L</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
             {topAssets.length === 0 ? <p className="text-sm text-muted-foreground">No profitable assets yet</p> : <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {topAssets.map(([symbol, pnl], index) => <div key={symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/40">
                     <div className="flex items-center gap-3 min-w-0">
@@ -2174,19 +2325,24 @@ export default function Analytics() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Trade Performance - Compact */}
           <GlassCardWrapper patternId="trade-perf-dots" className="p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              Trade Performance
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Average profit per winning trade vs average loss per losing trade</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                  Trade Performance
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Average profit per winning trade vs average loss per losing trade</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
             <div className="space-y-1.5">
               <StatItemCompact label="Avg Win" value={`+${currencySymbol}${stats.avgWin.toFixed(0)}`} color="positive" />
               <StatItemCompact label="Avg Loss" value={`-${currencySymbol}${Math.abs(stats.avgLoss).toFixed(0)}`} color="negative" />
@@ -2194,19 +2350,24 @@ export default function Analytics() {
           </GlassCardWrapper>
           
           <GlassCardWrapper patternId="bestworst-dots" className="p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              Best & Worst
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Your single best and worst trades in terms of profit/loss</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                  Best & Worst
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Your single best and worst trades in terms of profit/loss</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
             <div className="space-y-1.5">
               <StatItemCompact label="Best" value={stats.bestTrade > 0 ? `+${currencySymbol}${stats.bestTrade.toFixed(0)}` : `${currencySymbol}0`} color={stats.bestTrade > 0 ? 'positive' : undefined} />
               <StatItemCompact label="Worst" value={stats.worstTrade < 0 ? `-${currencySymbol}${Math.abs(stats.worstTrade).toFixed(0)}` : `${currencySymbol}0`} color={stats.worstTrade < 0 ? 'negative' : undefined} />
@@ -2215,19 +2376,24 @@ export default function Analytics() {
 
           {/* Streaks - Compact */}
           <GlassCardWrapper patternId="streaks-dots" className="p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              Streaks
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Longest winning and losing streaks in your trades</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                  Streaks
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Longest winning and losing streaks in your trades</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
             <div className="space-y-1.5">
               <StatItemCompact label="Win Streak" value={stats.consecutiveWins.toString()} color={stats.consecutiveWins > 0 ? 'positive' : undefined} />
               <StatItemCompact label="Loss Streak" value={stats.consecutiveLosses.toString()} color={stats.consecutiveLosses > 0 ? 'negative' : undefined} />
@@ -2235,19 +2401,24 @@ export default function Analytics() {
           </GlassCardWrapper>
           
           <GlassCardWrapper patternId="frequency-dots" className="p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              Frequency
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="inline-flex">
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs text-sm">How often you trade per week and per day on average.</p>
-                </TooltipContent>
-              </Tooltip>
-            </h3>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                  Frequency
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs text-sm">How often you trade per week and per day on average.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
             <div className="space-y-1.5">
               <StatItemCompact label="Trades/Week" value={(stats.totalTrades / 4).toFixed(1)} />
               <StatItemCompact label="Trade Freq." value={filteredTrades.length > 0 ? `${(filteredTrades.length / (timeFrame === 'Daily' ? 1 : timeFrame === 'Week' ? 7 : timeFrame === 'Month' ? 30 : 365)).toFixed(1)}/day` : '0/day'} />
@@ -2257,7 +2428,7 @@ export default function Analytics() {
 
         {/* Rule Violations Heatmap - Compact Design */}
         <div className={cn(
-          "rounded-[1.75rem] border p-5 overflow-hidden relative transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+          "rounded-2xl border p-5 overflow-hidden relative transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
           emotionData.level === 1 && "bg-red-500/15 border-red-500/30 dark:bg-red-500/10 dark:border-red-500/20",
           emotionData.level === 2 && "bg-yellow-500/15 border-yellow-500/30 dark:bg-yellow-500/10 dark:border-yellow-500/20",
           emotionData.level === 3 && "bg-emerald-500/15 border-emerald-500/30 dark:bg-emerald-500/10 dark:border-emerald-500/20",
@@ -2302,14 +2473,14 @@ function GlassCardWrapper({
   
   return (
     <div className={cn(
-      "rounded-[1.75rem] border transition-all duration-300 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+      "rounded-2xl border transition-all duration-300 relative shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
       isGlassEnabled
         ? "border-white/10 bg-card/85 backdrop-blur-2xl"
         : "border-border/60 bg-card",
       className
     )}>
       {isGlassEnabled && (
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id={patternId} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
               <circle cx="1.5" cy="1.5" r="1" className="fill-white/[0.08] dark:fill-white/[0.04]" />
@@ -2318,7 +2489,7 @@ function GlassCardWrapper({
           <rect width="100%" height="100%" fill={`url(#${patternId})`} />
         </svg>
       )}
-      <div className="relative">{children}</div>
+      <div className="relative overflow-visible">{children}</div>
     </div>
   );
 }
@@ -2356,20 +2527,23 @@ function MetricCard({
         </svg>
       )}
       <div className="relative">
-        <div className="text-muted-foreground mb-2 flex items-center gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em]">{label}</span>
-          {tooltip && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="inline-flex">
-                  <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs text-sm">{tooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">{label}</span>
+            {tooltip && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex">
+                    <Info className="h-3 w-3 text-[#9b8cff]/70 hover:text-[#9b8cff] cursor-pointer transition-colors" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">{tooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </div>
         <p className="text-xl font-display font-bold tabular-nums">{value}</p>
       </div>

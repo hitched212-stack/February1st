@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Palette, Check, Plus, Trash2, Sparkles, Grid3x3 } from 'lucide-react';
+import { ArrowLeft, Palette, Check, Plus, Trash2, Sparkles } from 'lucide-react';
 import { usePreferences, ColorPreset } from '@/hooks/usePreferences';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { ThemeSwitch } from '@/components/ui/theme-switch';
 import {
   Dialog,
@@ -102,7 +101,7 @@ interface PreferencesSettingsProps {
 
 export default function PreferencesSettings({ embedded = false }: PreferencesSettingsProps) {
   const navigate = useNavigate();
-  const { preferences, setTheme, setCustomColor, setLiquidGlassEnabled, createPreset, deletePreset, applyPreset } = usePreferences();
+  const { preferences, setTheme, setCustomColor, createPreset, deletePreset, applyPreset } = usePreferences();
   const { toast } = useToast();
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -180,35 +179,6 @@ export default function PreferencesSettings({ embedded = false }: PreferencesSet
               </p>
             </div>
             <ThemeSwitch value={preferences.theme} onChange={setTheme} />
-          </section>
-
-          {/* Visual Effects Section */}
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-sm font-medium text-foreground">Visual Effects</h2>
-              <p className="text-xs text-muted-foreground mt-1">
-                Control interface effects and animations
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border/50 bg-card/50 px-4">
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
-                    <Grid3x3 className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-foreground">Dot Pattern</span>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Add subtle dot texture to cards and surfaces
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={preferences.liquidGlassEnabled}
-                  onCheckedChange={setLiquidGlassEnabled}
-                />
-              </div>
-            </div>
           </section>
 
           {/* Presets Section */}
