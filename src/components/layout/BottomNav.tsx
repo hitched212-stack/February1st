@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { User, Menu, Sun, Moon, Monitor } from 'lucide-react';
+import { Settings, Menu, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -129,7 +129,7 @@ export function BottomNav() {
   const isHistoryActive = location.pathname === '/history';
   const isAnalyticsActive = location.pathname === '/analytics';
   const isMoreTabActive = moreOpen || isMoreActive;
-  const activeTabClasses = 'gap-2 w-[128px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
+  const activeTabClasses = 'gap-2 w-[145px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
   const moreActiveTabClasses = 'gap-2 w-[104px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
   const inactiveTabClasses = 'w-11 justify-center text-white/75 scale-[0.985]';
   const tabTransitionClasses = 'transform-gpu will-change-[width,transform,opacity] transition-[width,background-color,color,box-shadow,transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none';
@@ -168,7 +168,7 @@ export function BottomNav() {
               "relative flex h-11 items-center rounded-full px-3",
               tabTransitionClasses,
               isDashboardActive
-                ? activeTabClasses
+                ? 'gap-2 w-[145px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100'
                 : inactiveTabClasses
             )}>
               <GridDotsIcon 
@@ -178,9 +178,9 @@ export function BottomNav() {
                 )} 
               />
               <span className={cn(
-                'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
                 'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                isDashboardActive ? 'max-w-[96px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
+                isDashboardActive ? 'max-w-[180px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
               )}>Dashboard</span>
             </div>
           </NavLink>
@@ -194,7 +194,7 @@ export function BottomNav() {
               "relative flex h-11 items-center rounded-full px-3",
               tabTransitionClasses,
               isHistoryActive
-                ? activeTabClasses
+                ? 'gap-2 w-[115px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100'
                 : inactiveTabClasses
             )}>
               <HistoryIcon 
@@ -204,7 +204,7 @@ export function BottomNav() {
                 )} 
               />
               <span className={cn(
-                'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
                 'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
                 isHistoryActive ? 'max-w-[64px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
               )}>History</span>
@@ -214,10 +214,10 @@ export function BottomNav() {
           {/* Add */}
           <button 
             onClick={() => setShowAccountDialog(true)}
-            className="relative z-10 h-11 w-11 flex items-center justify-center rounded-full text-[#9b8cff] active:scale-95 transition-transform duration-200"
+            className="relative z-10 h-12 w-12 flex items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-[#9b8cff] text-white active:scale-95 transition-all duration-200"
             aria-label="Add trade"
           >
-            <AddTradeIcon className="h-[30px] w-[30px]" />
+            <AddTradeIcon className="h-[22px] w-[22px]" />
           </button>
 
           {/* Analytics */}
@@ -229,7 +229,7 @@ export function BottomNav() {
               "relative flex h-11 items-center rounded-full px-3",
               tabTransitionClasses,
               isAnalyticsActive
-                ? activeTabClasses
+                ? 'gap-2 w-[135px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100'
                 : inactiveTabClasses
             )}>
               <AnalyticsIcon 
@@ -239,7 +239,7 @@ export function BottomNav() {
                 )} 
               />
               <span className={cn(
-                'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
                 'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
                 isAnalyticsActive ? 'max-w-[72px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
               )}>Analytics</span>
@@ -265,7 +265,7 @@ export function BottomNav() {
                     strokeWidth={1.8}
                   />
                   <span className={cn(
-                    'text-sm font-semibold whitespace-nowrap overflow-hidden',
+                    'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
                     'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
                     isMoreTabActive ? 'max-w-[44px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
                   )}>More</span>
@@ -285,8 +285,8 @@ export function BottomNav() {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
                   style={{ backgroundColor: location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
-                  <User className={cn('h-5 w-5', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.5} />
-                  <span className={cn('text-sm', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')}>Profile</span>
+                  <Settings className={cn('h-5 w-5', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.8} />
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')}>Settings</span>
                 </NavLink>
                 <NavLink 
                   to="/news" 
@@ -295,7 +295,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/news' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <NewsIcon className={cn('h-5 w-5', location.pathname === '/news' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/news' ? 'text-foreground' : 'text-muted-foreground')}>News</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/news' ? 'text-foreground' : 'text-muted-foreground')}>News</span>
                 </NavLink>
                 
                 {/* Divider */}
@@ -308,7 +308,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/coach' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <AIIcon className={cn('h-5 w-5', location.pathname === '/coach' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/coach' ? 'text-foreground' : 'text-muted-foreground')}>AI Coach</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/coach' ? 'text-foreground' : 'text-muted-foreground')}>AI Coach</span>
                 </NavLink>
                 <NavLink 
                   to="/backtesting" 
@@ -317,7 +317,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/backtesting' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <BacktestIcon className={cn('h-5 w-5', location.pathname === '/backtesting' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/backtesting' ? 'text-foreground' : 'text-muted-foreground')}>Backtesting</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/backtesting' ? 'text-foreground' : 'text-muted-foreground')}>Backtesting</span>
                 </NavLink>
                 <NavLink 
                   to="/playbook" 
@@ -326,7 +326,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/playbook' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <PlaybookIcon className={cn('h-5 w-5', location.pathname === '/playbook' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/playbook' ? 'text-foreground' : 'text-muted-foreground')}>Playbook</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/playbook' ? 'text-foreground' : 'text-muted-foreground')}>Playbook</span>
                 </NavLink>
                 
                 {/* Divider */}
@@ -340,7 +340,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/settings/rules' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <TradingRulesIcon className={cn('h-5 w-5', location.pathname === '/settings/rules' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/settings/rules' ? 'text-foreground' : 'text-muted-foreground')}>Trading Rules</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/settings/rules' ? 'text-foreground' : 'text-muted-foreground')}>Trading Rules</span>
                 </NavLink>
                 <NavLink 
                   to="/settings/goals" 
@@ -349,7 +349,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/settings/goals' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <GoalsIcon className={cn('h-5 w-5', location.pathname === '/settings/goals' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/settings/goals' ? 'text-foreground' : 'text-muted-foreground')}>P&L Goals</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/settings/goals' ? 'text-foreground' : 'text-muted-foreground')}>P&L Goals</span>
                 </NavLink>
                 <NavLink 
                   to="/settings/timeframes" 
@@ -358,7 +358,7 @@ export function BottomNav() {
                   style={{ backgroundColor: location.pathname === '/settings/timeframes' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
                 >
                   <TimeframesIcon className={cn('h-5 w-5', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')}>Timeframes</span>
+                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/settings/timeframes' ? 'text-foreground' : 'text-muted-foreground')}>Timeframes</span>
                 </NavLink>
                 
                 {/* Divider */}
