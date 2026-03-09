@@ -1,13 +1,14 @@
 // Service Worker for MyTradeLog PWA
-const CACHE_NAME = 'mytradelog-v1';
-const RUNTIME_CACHE = 'runtime-cache';
+const CACHE_NAME = 'mytradelog-v3';
+const RUNTIME_CACHE = 'runtime-cache-v3';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/app-icon.svg',
+  '/favicon.png',
+  '/app-icon.png',
   '/app-icon.png'
 ];
 
