@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Plus, User, Menu, Sun, Moon, Monitor } from 'lucide-react';
+import { User, Menu, Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
+import { AccountSelectionDialog } from '@/components/account/AccountSelectionDialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useState, useEffect } from 'react';
 
@@ -106,12 +107,21 @@ const TimeframesIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Custom add icon - layered plus for mobile compose action
+const AddTradeIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M12 6.5V17.5M6.5 12H17.5" stroke="currentColor" strokeWidth="2.9" strokeLinecap="round" />
+    <path d="M12 7.6V16.4M7.6 12H16.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
+  </svg>
+);
+
 export function BottomNav() {
   const location = useLocation();
   const scrollDirection = useScrollDirection();
   const { preferences, setTheme } = usePreferences();
   const [moreOpen, setMoreOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
   
   const isMoreActive = ['/settings', '/news', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
 
@@ -202,14 +212,13 @@ export function BottomNav() {
           </NavLink>
 
           {/* Add */}
-          <NavLink 
-            to="/add" 
-            className="relative z-10"
+          <button 
+            onClick={() => setShowAccountDialog(true)}
+            className="relative z-10 h-11 w-11 flex items-center justify-center rounded-full text-[#9b8cff] active:scale-95 transition-transform duration-200"
+            aria-label="Add trade"
           >
-            <div className="relative flex h-11 w-11 items-center justify-center rounded-[15px] bg-gradient-to-br from-[#a89dff] to-[#8b7ae0] shadow-[0_4px_16px_rgba(139,122,224,0.3)] transition-all duration-200 active:scale-95">
-              <Plus className="h-5 w-5 text-white" strokeWidth={2.6} />
-            </div>
-          </NavLink>
+            <AddTradeIcon className="h-[30px] w-[30px]" />
+          </button>
 
           {/* Analytics */}
           <NavLink 
@@ -415,6 +424,9 @@ export function BottomNav() {
           </Popover>
         </div>
       </div>
+      
+      {/* Account Selection Dialog */}
+      <AccountSelectionDialog open={showAccountDialog} onOpenChange={setShowAccountDialog} />
     </nav>
   );
 }

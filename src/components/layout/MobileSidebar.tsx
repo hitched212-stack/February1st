@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePreferences } from '@/hooks/usePreferences';
 import { BugReportDialog } from '@/components/layout/BugReportDialog';
 import { ComingSoonDialog } from '@/components/layout/ComingSoonDialog';
+import { AccountSelectionDialog } from '@/components/account/AccountSelectionDialog';
 
 // Use Lucide Bot icon for AI Coach
 const AIIcon = Bot;
@@ -89,6 +90,7 @@ export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
   const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [comingSoonFeature, setComingSoonFeature] = useState<string>("");
   const { preferences, setTheme } = usePreferences();
   return <div className="md:hidden">
@@ -121,14 +123,16 @@ export function MobileSidebar() {
 
               {/* Add Trade Button */}
               <div className="px-3 py-3">
-                <NavLink
-                  to="/add"
-                  onClick={() => setIsOpen(false)}
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    setShowAccountDialog(true);
+                  }}
                   className="flex items-center justify-center gap-2.5 rounded-2xl bg-violet-600 text-white py-3 w-full transition-all duration-200 hover:bg-violet-500 active:scale-[0.98]"
                 >
                   <Plus className="h-5 w-5" />
-                  <span className="font-semibold tracking-wide">Add Trade</span>
-                </NavLink>
+                  <span className="font-bold font-display tracking-wide">Add Trade</span>
+                </button>
               </div>
 
               {/* Navigation */}
@@ -225,5 +229,8 @@ export function MobileSidebar() {
       
       {/* Coming Soon Dialog */}
       <ComingSoonDialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen} featureName={comingSoonFeature} />
+      
+      {/* Account Selection Dialog */}
+      <AccountSelectionDialog open={showAccountDialog} onOpenChange={setShowAccountDialog} />
     </div>;
 }

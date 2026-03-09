@@ -25,57 +25,69 @@ export function ThemeSwitch({ value, onChange }: ThemeSwitchProps) {
             key={theme.value}
             onClick={() => onChange(theme.value)}
             className={cn(
-              "relative rounded-2xl border-2 overflow-hidden transition-all duration-200 group",
+              "group relative rounded-3xl border overflow-hidden text-left transform-gpu transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10",
               isActive
-                ? "border-foreground"
+                ? "border-violet-400/50 shadow-[0_0_0_1px_rgba(155,140,255,0.35)]"
                 : "border-border/50 hover:border-border"
             )}
           >
             {/* Preview Window */}
             <div className={cn(
-              "h-24 relative flex flex-col",
-              theme.value === 'light' ? 'bg-white' : theme.value === 'dark' ? 'bg-[#1a1a1a]' : 'bg-gradient-to-b from-white to-[#1a1a1a]'
+              "h-28 relative flex flex-col",
+              theme.value === 'light'
+                ? 'bg-[#f7f7f8]'
+                : theme.value === 'dark'
+                  ? 'bg-[#17181c]'
+                  : 'bg-gradient-to-b from-[#ececef] via-[#b2b3b7] to-[#0f1014]'
             )}>
               {/* Window Header */}
               <div className={cn(
-                "flex items-center gap-1.5 px-3 py-2 border-b",
-                theme.value === 'light' ? 'bg-[#f5f5f5] border-[#e0e0e0]' : theme.value === 'dark' ? 'bg-[#2a2a2a] border-[#3a3a3a]' : 'bg-[#f5f5f5] border-[#e0e0e0]'
+                "flex items-center gap-2 px-4 py-3 border-b",
+                theme.value === 'light'
+                  ? 'bg-[#efeff1] border-[#d9d9dd]'
+                  : theme.value === 'dark'
+                    ? 'bg-[#222329] border-[#32333a]'
+                    : 'bg-[#d9d9db]/60 border-[#c8c8cc]/70'
               )}>
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  theme.value === 'light' ? 'bg-[#ff5f57]' : theme.value === 'dark' ? 'bg-[#ff5f57]' : 'bg-[#ff5f57]'
-                )} />
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  theme.value === 'light' ? 'bg-[#ffbd2e]' : theme.value === 'dark' ? 'bg-[#ffbd2e]' : 'bg-[#ffbd2e]'
-                )} />
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  theme.value === 'light' ? 'bg-[#28c940]' : theme.value === 'dark' ? 'bg-[#28c940]' : 'bg-[#28c940]'
-                )} />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#ff5f57]" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#28c940]" />
               </div>
 
               {/* Content Lines */}
-              <div className="flex-1 flex flex-col justify-center px-3 py-2 gap-1.5">
+              <div className="flex-1 flex flex-col justify-center px-5 py-3 gap-2.5">
                 <div className={cn(
-                  "h-1.5 rounded",
-                  theme.value === 'light' ? 'bg-[#d0d0d0]' : theme.value === 'dark' ? 'bg-[#404040]' : 'bg-[#d0d0d0]'
+                  "h-2.5 rounded-full",
+                  theme.value === 'light'
+                    ? 'bg-[#c9c9cc]'
+                    : theme.value === 'dark'
+                      ? 'bg-[#3f4048]'
+                      : 'bg-[#c9c9cc]/85'
                 )} />
                 <div className={cn(
-                  "h-1.5 rounded w-3/4",
-                  theme.value === 'light' ? 'bg-[#d0d0d0]' : theme.value === 'dark' ? 'bg-[#404040]' : 'bg-[#d0d0d0]'
+                  "h-2.5 rounded-full w-3/4",
+                  theme.value === 'light'
+                    ? 'bg-[#c9c9cc]'
+                    : theme.value === 'dark'
+                      ? 'bg-[#3f4048]'
+                      : 'bg-[#c9c9cc]/85'
                 )} />
               </div>
             </div>
 
             {/* Label */}
-            <div className="px-3 py-2.5 bg-card/50 text-center">
-              <p className="text-sm font-medium text-foreground">{theme.label}</p>
+            <div className="px-4 py-3 bg-card/50 border-t border-border/40 flex items-center justify-center gap-2.5">
+              <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
+              <p className="text-sm font-semibold text-foreground">{theme.label}</p>
             </div>
 
             {/* Active Indicator */}
             {isActive && (
-              <div className="absolute inset-0 rounded-2xl ring-2 ring-foreground pointer-events-none" />
+              <>
+                <div className="absolute inset-0 rounded-3xl ring-2 ring-violet-300/80 pointer-events-none" />
+                <div className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-violet-300 shadow-[0_0_0_4px_rgba(155,140,255,0.2)]" />
+              </>
             )}
           </button>
         );

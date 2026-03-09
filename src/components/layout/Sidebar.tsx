@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { BugReportDialog } from "@/components/layout/BugReportDialog";
 import { ComingSoonDialog } from "@/components/layout/ComingSoonDialog";
+import { AccountSelectionDialog } from "@/components/account/AccountSelectionDialog";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { motion } from "framer-motion";
@@ -207,6 +208,7 @@ export function Sidebar({
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
   const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [comingSoonFeature, setComingSoonFeature] = useState<string>("");
 
   // Track active path for indicator
@@ -332,10 +334,10 @@ export function Sidebar({
 
       {/* Add Trade Button */}
       <div className="px-3 mb-4">
-        <NavLink
-          to="/add"
+        <button
+          onClick={() => setShowAccountDialog(true)}
           className={cn(
-            "flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white py-2.5 transition-all duration-200 hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98] font-semibold text-sm",
+            "flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white py-2.5 transition-all duration-200 hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-sm",
             isCollapsed ? "w-10 h-10 mx-auto p-0" : "w-full px-3",
           )}
         >
@@ -343,7 +345,7 @@ export function Sidebar({
           {!isCollapsed && (
             <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">Add Trade</span>
           )}
-        </NavLink>
+        </button>
       </div>
 
       {/* Navigation */}
@@ -746,6 +748,9 @@ export function Sidebar({
       
       {/* Coming Soon Dialog */}
       <ComingSoonDialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen} featureName={comingSoonFeature} />
+      
+      {/* Account Selection Dialog */}
+      <AccountSelectionDialog open={showAccountDialog} onOpenChange={setShowAccountDialog} />
     </motion.aside>
   );
 }

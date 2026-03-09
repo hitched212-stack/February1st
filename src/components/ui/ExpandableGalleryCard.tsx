@@ -65,7 +65,7 @@ export function ExpandableGalleryCard({
     <>
       <Card
         className={cn(
-          'rounded-3xl border overflow-hidden transition-all duration-300 group relative',
+          'rounded-xl border overflow-hidden transition-all duration-300 group relative',
           'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
           isGlassEnabled
             ? 'border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl'
@@ -106,7 +106,7 @@ export function ExpandableGalleryCard({
               {displayStats.map((stat, index) => (
                 <div
                   key={index}
-                  className="rounded-full bg-background/85 text-foreground text-[11px] px-2.5 py-1 border border-border/50 shadow-sm"
+                  className="rounded-lg bg-background/85 text-foreground text-[11px] px-2.5 py-1 border border-border/50 shadow-sm"
                 >
                   <span className="text-muted-foreground mr-1">{stat.label}:</span>
                   <span className="font-medium">{stat.value}</span>
@@ -131,7 +131,7 @@ export function ExpandableGalleryCard({
           <div className="flex items-center justify-between gap-2 px-4 py-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {subtitle && (
-                <span className="text-[10px] text-muted-foreground bg-background/50 border border-border/50 rounded-full px-2 py-0.5 truncate">
+                <span className="text-[10px] text-muted-foreground bg-background/50 border border-border/50 rounded-md px-2 py-0.5 truncate">
                   {subtitle}
                 </span>
               )}

@@ -439,7 +439,7 @@ export default function SettingsPage() {
 
         {/* Tab Navigation */}
         <div className="w-full overflow-x-auto md:overflow-x-visible [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
-          <div className="inline-flex items-center gap-1.5 rounded-xl bg-background border border-border/40 p-1">
+          <div className="inline-flex items-center gap-1.5 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/50 p-1.5 shadow-sm">
             {tabs.map((tab) => {
               const TabIcon = tab.icon;
               return (
@@ -447,13 +447,19 @@ export default function SettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-2 px-4 md:px-5 py-2.5 text-sm font-semibold transition-all duration-200 ease-out whitespace-nowrap rounded-lg flex-shrink-0",
+                    "flex items-center justify-center gap-2.5 min-w-[132px] px-4 md:px-6 py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap rounded-xl flex-shrink-0 transform-gpu",
                     activeTab === tab.id
-                      ? "bg-foreground text-background shadow-md"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                      ? "bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/45"
                   )}
                 >
-                  <TabIcon className="h-4 w-4" strokeWidth={2} />
+                  <TabIcon
+                    className={cn(
+                      "h-4 w-4 transition-colors duration-300",
+                      activeTab === tab.id ? "text-white" : "text-muted-foreground"
+                    )}
+                    strokeWidth={2}
+                  />
                   {tab.label}
                 </button>
               );
@@ -479,24 +485,38 @@ export default function SettingsPage() {
                   : "border-border/40 bg-card"
               )}>
                 <Collapsible open={showUsernameChange} onOpenChange={setShowUsernameChange}>
-                  <CollapsibleTrigger className="w-full flex items-center justify-between gap-4 p-6 hover:bg-muted/20 transition-colors text-left group">
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      <div className="space-y-2">
+                  <CollapsibleTrigger className="w-full p-5 sm:p-6 hover:bg-muted/15 transition-colors text-left group">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-xl bg-[#9b8cff]/10 border border-[#9b8cff]/25 flex items-center justify-center shrink-0">
+                          <User className="h-4 w-4 text-[#9b8cff]" strokeWidth={2} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-base font-semibold text-foreground">Profile Details</p>
+                          <p className="text-sm text-muted-foreground">Username, email, and member information</p>
+                        </div>
+                      </div>
+                      <div className="h-9 w-9 rounded-lg border border-border/50 bg-background/40 flex items-center justify-center shrink-0 group-hover:border-border transition-colors">
+                        <MoreVertical className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={2} />
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="rounded-xl border border-border/50 bg-background/40 px-4 py-3.5">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">User Name</Label>
-                        <p className="text-base font-semibold text-foreground">{settings.username || 'H1tched'}</p>
+                        <p className="mt-1 text-lg font-semibold text-foreground truncate">{settings.username || 'H1tched'}</p>
                       </div>
-                      <div className="space-y-2">
+                      <div className="rounded-xl border border-border/50 bg-background/40 px-4 py-3.5">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Email</Label>
-                        <p className="text-base font-medium text-foreground">{user?.email}</p>
+                        <p className="mt-1 text-base font-medium text-foreground truncate">{user?.email}</p>
                       </div>
-                      <div className="space-y-2">
+                      <div className="rounded-xl border border-border/50 bg-background/40 px-4 py-3.5">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Member Since</Label>
-                        <p className="text-base font-medium text-foreground">
+                        <p className="mt-1 text-base font-medium text-foreground">
                           {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '02/02/2026'}
                         </p>
                       </div>
                     </div>
-                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={2} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="border-t border-border/60">
                     <div className="p-6 space-y-5 bg-muted/20">
@@ -749,12 +769,12 @@ export default function SettingsPage() {
             {/* Danger Actions */}
             <div className="space-y-4">
               {/* Erase All Data */}
-              <div className="group relative rounded-xl border border-border/60 bg-card hover:border-destructive/30 transition-all duration-200 overflow-hidden">
-                <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              <div className="group relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm transition-all duration-300 overflow-hidden hover:border-destructive/30">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-destructive/40" />
                 <div className="relative p-6">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex items-start gap-4 flex-1">
-                      <div className="h-11 w-11 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0 group-hover:bg-destructive/15 transition-colors">
+                      <div className="h-11 w-11 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center justify-center flex-shrink-0">
                         <Trash2 className="h-5 w-5 text-destructive" strokeWidth={2} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -798,12 +818,12 @@ export default function SettingsPage() {
               </div>
 
               {/* Delete Account */}
-              <div className="group relative rounded-xl border-2 border-destructive/40 bg-card hover:border-destructive/60 transition-all duration-200 overflow-hidden">
-                <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              <div className="group relative rounded-2xl border border-destructive/55 bg-card/70 backdrop-blur-sm hover:border-destructive/70 transition-all duration-300 overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-destructive" />
                 <div className="relative p-6">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex items-start gap-4 flex-1">
-                      <div className="h-11 w-11 rounded-xl bg-destructive/15 flex items-center justify-center flex-shrink-0 group-hover:bg-destructive/20 transition-colors">
+                      <div className="h-11 w-11 rounded-xl bg-destructive/15 border border-destructive/35 flex items-center justify-center flex-shrink-0">
                         <AlertTriangle className="h-5 w-5 text-destructive" strokeWidth={2} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -852,7 +872,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSignOut}
                 variant="outline"
-                className="w-full h-11 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                className="w-full h-11 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out

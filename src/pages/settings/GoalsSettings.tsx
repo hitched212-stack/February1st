@@ -62,10 +62,13 @@ export default function GoalsSettings() {
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
-        <div className="mb-2">
-          <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">P&L Goals</h1>
-          <p className="text-sm text-muted-foreground">Set your trading targets</p>
+      <header className="px-4 pt-6 pb-5 md:px-6 lg:px-8">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 h-5 w-1 rounded-full bg-[#9b8cff]" aria-hidden="true" />
+          <div>
+            <h1 className="text-[11px] font-bold uppercase tracking-widest text-foreground">P&L Goals</h1>
+            <p className="text-xs text-muted-foreground">Set and refine your trading targets</p>
+          </div>
         </div>
       </header>
 
@@ -74,16 +77,16 @@ export default function GoalsSettings() {
         {goalPeriods.map(({ key, label }) => (
           <div 
             key={key} 
-            className="flex items-center gap-3 p-3 rounded-[1.75rem] bg-card/85 border border-white/10 backdrop-blur-2xl transition-colors relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            className="flex items-center gap-3 p-4 rounded-xl border border-border/60 bg-card/90 transition-colors relative"
           >
             {/* Label */}
             <div className="relative flex-1">
-              <span className="text-sm font-medium text-foreground">{label}</span>
+              <span className="text-[11px] font-bold font-display uppercase tracking-widest text-foreground">{label}</span>
             </div>
 
             {/* Value with Border */}
-            <div className="relative flex items-center gap-2 flex-shrink-0 px-4 py-2 rounded-xl border border-white/10 bg-black/20 backdrop-blur-sm">
-              <span className="text-sm text-muted-foreground font-medium">{currencySymbol}</span>
+            <div className="relative flex items-center gap-2 flex-shrink-0 min-w-[136px] px-3 py-2.5 rounded-lg border border-border/60 bg-background/70">
+              <span className="text-sm text-muted-foreground font-display font-bold">{currencySymbol}</span>
               <input
                 type="number"
                 value={goals[key]}
@@ -91,7 +94,7 @@ export default function GoalsSettings() {
                   ...prev,
                   [key]: e.target.value
                 }))}
-                className="w-20 px-0 py-0 h-auto font-display font-bold tabular-nums bg-transparent border-0 focus:ring-0 text-sm text-right text-foreground"
+                className="w-20 px-0 py-0 h-auto font-display font-bold tabular-nums bg-transparent border-0 focus:ring-0 text-base text-right text-foreground"
                 placeholder="0"
                 step="0.01"
               />
@@ -103,7 +106,7 @@ export default function GoalsSettings() {
         <div className="sticky bottom-20 md:bottom-6 pt-6">
           <Button
             onClick={handleSave}
-            className="w-full h-12 bg-white text-black hover:bg-white/90 rounded-2xl shadow-lg font-semibold"
+            className="w-full h-12 bg-white text-black hover:bg-white/90 rounded-2xl shadow-lg font-display font-bold tracking-wide"
           >
             Save Goals
           </Button>

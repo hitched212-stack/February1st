@@ -618,7 +618,7 @@ export default function Playbook() {
         ) : (
           <div className="space-y-4">
             {/* Folder Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-2">
               {filteredFolders.map((folder) => {
                 const count = getSetupCount(folder.id);
                 const isActive = folder.id === activeFolder?.id;
@@ -627,10 +627,10 @@ export default function Playbook() {
                     <button
                       onClick={() => setActiveFolderId(folder.id)}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 text-sm font-medium border transition-colors whitespace-nowrap",
+                        "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border transition-all duration-200 whitespace-nowrap",
                         isActive
-                          ? "bg-white text-black border-black/10 dark:bg-black dark:text-white dark:border-white/10"
-                          : "bg-muted/50 text-foreground border-border/50 hover:bg-muted"
+                          ? "bg-card text-foreground border-border shadow-sm"
+                          : "bg-muted/35 text-muted-foreground border-border/50 hover:bg-muted/55 hover:text-foreground"
                       )}
                     >
                       <span
@@ -640,8 +640,8 @@ export default function Playbook() {
                       <span>{folder.name}</span>
                       <span
                         className={cn(
-                          "min-w-[1.5rem] h-5 rounded-full text-xs flex items-center justify-center px-1",
-                          isActive ? "bg-black/5 text-black dark:bg-white/10 dark:text-white" : "bg-foreground/10 text-foreground"
+                          "min-w-[1.5rem] h-5 rounded-md text-xs flex items-center justify-center px-1 font-bold tabular-nums",
+                          isActive ? "bg-muted text-foreground" : "bg-foreground/10 text-foreground/85"
                         )}
                       >
                         {count}
@@ -650,7 +650,7 @@ export default function Playbook() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <span
-                              className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/5 text-black hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                              className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-md bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
                               onClick={(event) => event.stopPropagation()}
                               role="button"
                             >
@@ -686,51 +686,47 @@ export default function Playbook() {
 
             {/* Active Folder Header with Metrics */}
             {activeFolder && (
-              <div className="flex items-center justify-between rounded-2xl border border-border/50 bg-card/60 p-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <span
-                    className="h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: activeFolder.color || '#8b5cf6' }}
-                  />
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{activeFolder.name}</div>
-                    <div className="text-xs text-muted-foreground">{activeFolderCount} setups</div>
+              <div className="rounded-xl border border-border/60 bg-card/70 p-3 md:p-3.5 space-y-3 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: activeFolder.color || '#8b5cf6' }}
+                    />
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold font-display uppercase tracking-widest text-foreground truncate">{activeFolder.name}</div>
+                      <div className="text-xs text-muted-foreground">{activeFolderCount} setups</div>
+                    </div>
                   </div>
-                </div>
-                
-                {/* Metrics */}
-                <div className="hidden lg:flex items-center gap-4 px-4 border-l border-border/50">
-                  <div className="text-center">
-                    <div className="text-xs font-medium text-muted-foreground">Top Session</div>
-                    <div className="text-sm font-semibold text-foreground">{topSessionLabel}</div>
-                  </div>
-                  <div className="w-px h-6 bg-border/50" />
-                  <div className="text-center">
-                    <div className="text-xs font-medium text-muted-foreground">Top Strategy</div>
-                    <div className="text-sm font-semibold text-foreground">{topStrategyLabel}</div>
-                  </div>
-                  <div className="w-px h-6 bg-border/50" />
-                  <div className="text-center">
-                    <div className="text-xs font-medium text-muted-foreground">Avg Entry Time</div>
-                    <div className="text-sm font-semibold text-foreground">{avgEntryTime}</div>
-                  </div>
-                  <div className="w-px h-6 bg-border/50" />
-                  <div className="text-center">
-                    <div className="text-xs font-medium text-muted-foreground">Most Common Day</div>
-                    <div className="text-sm font-semibold text-foreground">{mostCommonDay}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 ml-4">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-xl"
+                    className="rounded-lg h-9 px-3.5"
                     onClick={() => openCreateInFolder(activeFolder.id)}
                   >
-                    <Plus className="h-3 w-3 mr-1.5" />
+                    <Plus className="h-3.5 w-3.5 mr-1.5" />
                     Add Setup
                   </Button>
+                </div>
+
+                {/* Metrics */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="rounded-lg border border-border/60 bg-background/60 p-2.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Top Session</div>
+                    <div className="text-sm font-semibold text-foreground mt-0.5">{topSessionLabel}</div>
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-background/60 p-2.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Top Strategy</div>
+                    <div className="text-sm font-semibold text-foreground mt-0.5">{topStrategyLabel}</div>
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-background/60 p-2.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Avg Entry Time</div>
+                    <div className="text-sm font-semibold text-foreground mt-0.5 tabular-nums">{avgEntryTime}</div>
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-background/60 p-2.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Most Common Day</div>
+                    <div className="text-sm font-semibold text-foreground mt-0.5">{mostCommonDay}</div>
+                  </div>
                 </div>
               </div>
             )}

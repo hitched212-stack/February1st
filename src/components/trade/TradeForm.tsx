@@ -786,7 +786,7 @@ export function TradeForm({
           className="sticky top-0 z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4 border-b border-border/30 bg-gradient-to-b from-muted/60 to-muted/40 backdrop-blur-sm relative"
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-lg font-bold font-display text-foreground tracking-tight">
               {editTrade ? 'Edit Trade' : 'Add Trade'}
             </h2>
             <Button type="button" variant="ghost" size="icon" onClick={() => {
@@ -801,19 +801,19 @@ export function TradeForm({
           <div className="flex justify-center">
             <div className="w-full max-w-3xl rounded-2xl border border-border/50 bg-background/70 p-1.5 backdrop-blur-sm shadow-sm overflow-x-auto scrollbar-hide">
               <div className="grid min-w-max grid-cols-5 gap-1">
-                <button type="button" onClick={() => setActiveTab('general')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'general' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                <button type="button" onClick={() => setActiveTab('general')} className={cn("h-10 px-4 rounded-xl text-sm font-bold font-display transition-all duration-200 whitespace-nowrap", activeTab === 'general' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
                   Overview
                 </button>
-                <button type="button" onClick={() => setActiveTab('chart-analysis')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'chart-analysis' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                <button type="button" onClick={() => setActiveTab('chart-analysis')} className={cn("h-10 px-4 rounded-xl text-sm font-bold font-display transition-all duration-200 whitespace-nowrap", activeTab === 'chart-analysis' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
                   Chart
                 </button>
-                <button type="button" onClick={() => setActiveTab('pre-market-forecast')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'pre-market-forecast' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                <button type="button" onClick={() => setActiveTab('pre-market-forecast')} className={cn("h-10 px-4 rounded-xl text-sm font-bold font-display transition-all duration-200 whitespace-nowrap", activeTab === 'pre-market-forecast' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
                   Plan
                 </button>
-                <button type="button" onClick={() => setActiveTab('post-market-forecast')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'post-market-forecast' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                <button type="button" onClick={() => setActiveTab('post-market-forecast')} className={cn("h-10 px-4 rounded-xl text-sm font-bold font-display transition-all duration-200 whitespace-nowrap", activeTab === 'post-market-forecast' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
                   Review
                 </button>
-                <button type="button" onClick={() => setActiveTab('emotions')} className={cn("h-10 px-4 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === 'emotions' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
+                <button type="button" onClick={() => setActiveTab('emotions')} className={cn("h-10 px-4 rounded-xl text-sm font-bold font-display transition-all duration-200 whitespace-nowrap", activeTab === 'emotions' ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60")}>
                   Mindset
                 </button>
               </div>
@@ -823,7 +823,7 @@ export function TradeForm({
 
         {/* Scrollable Content */}
         <div 
-          className="flex-1 overflow-y-auto px-4 md:px-6 py-6 pb-24 md:py-8 md:pb-8 overscroll-y-contain touch-pan-y min-h-0 relative z-10"
+          className="flex-1 overflow-y-auto px-4 md:px-6 py-6 pb-8 md:py-8 md:pb-8 overscroll-y-contain touch-pan-y min-h-0 relative z-10"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <div className="w-full max-w-7xl mx-auto">
@@ -832,7 +832,7 @@ export function TradeForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-10 px-6 rounded-xl font-semibold text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
+              className="h-10 px-6 rounded-xl font-bold font-display text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
             >
               {isSubmitting ? <>
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -845,7 +845,7 @@ export function TradeForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-10 px-6 rounded-xl font-semibold text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
+              className="h-10 px-6 rounded-xl font-bold font-display text-white border-0 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-900/30 transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
             >
               {isSubmitting ? <>
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -861,7 +861,7 @@ export function TradeForm({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {/* Trade Type */}
                 <div className="space-y-1">
-                  <span className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Trade Type</span>
+                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Trade Type</span>
                   <TradeTypeSwitch
                     isPaperTrade={formData.isPaperTrade}
                     noTradeTaken={formData.noTradeTaken}
@@ -873,7 +873,7 @@ export function TradeForm({
 
                 {/* Status */}
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Status</Label>
+                  <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Status</Label>
                   <TradeStatusSwitch
                     isOpen={formData.status === 'open'}
                     onChange={(isOpen) => setFormData(p => ({ ...p, status: isOpen ? 'open' : 'closed' }))}
@@ -882,7 +882,7 @@ export function TradeForm({
 
                 {/* Direction */}
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Direction</Label>
+                  <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Direction</Label>
                   <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
                     {/* Sliding background */}
                     <div
@@ -930,7 +930,7 @@ export function TradeForm({
 
                 {/* Date & Time */}
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide">Date & Time</Label>
+                  <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Date & Time</Label>
                   <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
                     <div className="flex gap-0 w-full relative z-10">
                       <input 
@@ -961,28 +961,28 @@ export function TradeForm({
               <div className="space-y-2">
                 {/* Row 1: Symbol, Entry, SL, TP, Lot Size */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide w-20 flex-shrink-0">Trade Entry</span>
+                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest w-20 flex-shrink-0">Trade Entry</span>
                   <div className="h-px flex-1 bg-border/40" />
                 </div>
                 <div className="grid grid-cols-5 gap-2">
                   <div className="space-y-1">
-                    <Label htmlFor="symbol" className="text-[10px] font-semibold text-foreground/60">Symbol *</Label>
+                    <Label htmlFor="symbol" className="text-[10px] font-bold font-display text-foreground/60">Symbol *</Label>
                     <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({ ...p, symbol: e.target.value.toUpperCase() }))} placeholder="AAPL" className="h-7 bg-background/90 border border-border/60 rounded-xl text-xs font-medium text-foreground placeholder:text-muted-foreground/60 uppercase focus:border-ring transition-colors" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="entryPrice" className="text-[10px] font-semibold text-foreground/60">Entry</Label>
+                    <Label htmlFor="entryPrice" className="text-[10px] font-bold font-display text-foreground/60">Entry</Label>
                     <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="stopLoss" className="text-[10px] font-semibold text-foreground/60">SL</Label>
+                    <Label htmlFor="stopLoss" className="text-[10px] font-bold font-display text-foreground/60">SL</Label>
                     <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="takeProfit" className="text-[10px] font-semibold text-foreground/60">TP</Label>
+                    <Label htmlFor="takeProfit" className="text-[10px] font-bold font-display text-foreground/60">TP</Label>
                     <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="lotSize" className="text-[10px] font-semibold text-foreground/60">Lot Size</Label>
+                    <Label htmlFor="lotSize" className="text-[10px] font-bold font-display text-foreground/60">Lot Size</Label>
                     <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                 </div>
@@ -994,24 +994,24 @@ export function TradeForm({
             <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-foreground/60 uppercase tracking-wide w-20 flex-shrink-0">Risk & Loss</span>
+                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest w-20 flex-shrink-0">Risk & Loss</span>
                   <div className="h-px flex-1 bg-border/40" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                   <div className="space-y-1">
-                    <Label htmlFor="pnlAmount" className="text-[10px] font-semibold text-foreground/60">Gross P&L ({currencySymbol})</Label>
+                    <Label htmlFor="pnlAmount" className="text-[10px] font-bold font-display text-foreground/60">Gross P&L ({currencySymbol})</Label>
                     <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="stopLossPips" className="text-[10px] font-semibold text-foreground/60">SL Pips</Label>
+                    <Label htmlFor="stopLossPips" className="text-[10px] font-bold font-display text-foreground/60">SL Pips</Label>
                     <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="15" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="holdingTime" className="text-[10px] font-semibold text-foreground/60">Hold Time</Label>
+                    <Label htmlFor="holdingTime" className="text-[10px] font-bold font-display text-foreground/60">Hold Time</Label>
                     <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="2h 30m" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs focus:border-ring transition-colors" />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="riskRewardRatio" className="text-[10px] font-semibold text-foreground/60">R:R</Label>
+                    <Label htmlFor="riskRewardRatio" className="text-[10px] font-bold font-display text-foreground/60">R:R</Label>
                     <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="1:2" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs focus:border-ring transition-colors" />
                   </div>
                 </div>
@@ -1064,7 +1064,7 @@ export function TradeForm({
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                       <ClipboardList className="h-3.5 w-3.5 text-foreground/60" strokeWidth={1.5} />
-                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Followed Rules</Label>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Followed Rules</Label>
                     </div>
                     <span className="text-[10px] text-muted-foreground">
                       {formData.followedRules ? `${formData.followedRulesList.length} selected` : `${formData.brokenRules.length} selected`}
@@ -1200,7 +1200,7 @@ export function TradeForm({
                   <div className="space-y-2">
                     {/* Performance Grade */}
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Performance Grade</Label>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Performance Grade</Label>
                       <div className="grid grid-cols-3 gap-1">
                         {[1, 2, 3].map(grade => {
                           const isSelected = parseInt(formData.performanceGrade) === grade;
@@ -1229,7 +1229,7 @@ export function TradeForm({
 
                     {/* Category */}
                     <div className="space-y-1">
-                      <Label className="text-[10px] text-foreground/60">Category</Label>
+                      <Label className="text-[10px] font-bold font-display text-foreground/60">Category</Label>
                       <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
                         <SelectTrigger className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground text-xs font-medium transition-colors [&>svg]:hidden">
                           <SelectValue placeholder="Select category" />
@@ -1242,7 +1242,7 @@ export function TradeForm({
 
                     {/* Strategy */}
                     <div className="space-y-1">
-                      <Label htmlFor="strategy" className="text-[10px] text-foreground/60">Strategy</Label>
+                      <Label htmlFor="strategy" className="text-[10px] font-bold font-display text-foreground/60">Strategy</Label>
                       <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors" />
                     </div>
                   </div>
@@ -1256,7 +1256,7 @@ export function TradeForm({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <XIcon className="h-3.5 w-3.5 text-red-500/70" strokeWidth={2} />
-                    <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Identify Mistakes</Label>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Identify Mistakes</Label>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
                     {formData.mistakeTags?.length || 0} tagged
@@ -1400,7 +1400,7 @@ export function TradeForm({
             {/* Notes */}
             <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-semibold uppercase tracking-wide text-foreground/60">Notes</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Notes</Label>
                 <RichTextEditor value={formData.notes} onChange={(text) => handleChange({ target: { name: 'notes', value: text } } as any)} placeholder="Add any additional notes about this trade..." />
               </div>
             </div>
@@ -1616,7 +1616,7 @@ export function TradeForm({
           {activeTab === 'emotions' && <div className="space-y-6">
               {/* Emotional State Rating - Redesigned */}
               <div className="space-y-4 p-4 md:p-5 rounded-xl border border-border/60 bg-card">
-                <Label className="text-sm font-semibold text-foreground">How are you feeling?</Label>
+                <Label className="text-sm font-bold font-display text-foreground">How are you feeling?</Label>
                 
               {/* Emotion Selector Pills */}
                 <div className="grid grid-cols-3 gap-2">

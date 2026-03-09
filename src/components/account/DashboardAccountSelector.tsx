@@ -70,7 +70,7 @@ export function DashboardAccountSelector() {
 
       <DropdownMenuContent 
         align="center" 
-        className="w-52 md:w-64 bg-card/95 backdrop-blur-xl border-border rounded-xl p-1.5"
+        className="w-56 md:w-72 bg-card/95 backdrop-blur-xl border-border/70 rounded-2xl p-2"
         sideOffset={8}
       >
         <div className="space-y-0.5">
@@ -83,32 +83,35 @@ export function DashboardAccountSelector() {
                 key={account.id}
                 onClick={() => setActiveAccount(account)}
                 className={cn(
-                  'flex items-center gap-3 cursor-pointer rounded-lg px-3 py-2.5 transition-all',
+                  'flex items-center gap-3 cursor-pointer rounded-xl px-3 py-3 transition-all duration-200',
                   isActive 
-                    ? 'bg-foreground/10' 
-                    : 'hover:bg-foreground/5'
+                    ? 'bg-gradient-to-r from-[#9b8cff]/18 to-violet-500/8 border border-[#9b8cff]/35' 
+                    : 'hover:bg-foreground/5 border border-transparent'
                 )}
               >
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground/5">
-                  <User className="h-4 w-4 text-foreground" strokeWidth={1.5} />
+                <div className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0',
+                  isActive ? 'bg-[#9b8cff]/18 border border-[#9b8cff]/30' : 'bg-foreground/5 border border-border/40'
+                )}>
+                  <User className={cn('h-4 w-4', isActive ? 'text-[#9b8cff]' : 'text-foreground')} strokeWidth={1.7} />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-sm font-semibold text-foreground truncate font-display">
                     {account.name}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-muted-foreground truncate font-display">
                     {accConfig.label}
                     {account.broker_name && ` · ${account.broker_name}`}
                   </p>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground font-display font-semibold tabular-nums">
                     {formatBalance(getAccountBalance(account), account.currency)}
                   </span>
                   {isActive && (
-                    <Check className="h-4 w-4 text-pnl-positive" strokeWidth={2} />
+                    <Check className="h-4 w-4 text-[#9b8cff]" strokeWidth={2.5} />
                   )}
                 </div>
               </DropdownMenuItem>
@@ -120,12 +123,12 @@ export function DashboardAccountSelector() {
         
         <DropdownMenuItem
           onClick={() => navigate('/settings/accounts')}
-          className="flex items-center gap-3 cursor-pointer rounded-lg px-3 py-2.5 text-muted-foreground hover:text-foreground"
+          className="flex items-center gap-3 cursor-pointer rounded-xl px-3 py-3 text-muted-foreground hover:text-foreground hover:bg-foreground/5 border border-transparent"
         >
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-dashed border-border">
-            <Settings className="h-4 w-4" strokeWidth={1.5} />
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-dashed border-border/70 bg-background/40">
+            <Settings className="h-4 w-4" strokeWidth={1.7} />
           </div>
-          <span className="text-sm">Manage Accounts</span>
+          <span className="text-sm font-medium">Manage Accounts</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

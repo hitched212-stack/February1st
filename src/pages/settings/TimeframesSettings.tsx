@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useTradingPreferences } from '@/hooks/useTradingPreferences';
 import { Loader2, Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { usePreferences } from '@/hooks/usePreferences';
 
 export default function TimeframesSettings() {
-  const navigate = useNavigate();
   const {
     selectedTimeframes,
     isLoading,
@@ -72,18 +70,18 @@ export default function TimeframesSettings() {
   return (
     <div className="min-h-screen pb-32">
       <header className="px-4 pt-6 pb-6 md:px-6 lg:px-8">
-        <button
-          onClick={() => navigate('/settings')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-        />
-        <div>
-          <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Chart Timeframes</h1>
-          <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
-            <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground">
-              These timeframes will appear as options when logging trades, helping you track which charts you analyzed for each trade.
-            </p>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 h-5 w-1 rounded-full bg-[#9b8cff]" aria-hidden="true" />
+          <div>
+            <h1 className="text-[11px] font-bold uppercase tracking-widest text-foreground">Chart Timeframes</h1>
+            <p className="text-xs text-muted-foreground">Choose and refine your chart timeframe options</p>
           </div>
+        </div>
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
+          <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            These timeframes will appear as options when logging trades, helping you track which charts you analyzed for each trade.
+          </p>
         </div>
       </header>
 

@@ -133,6 +133,15 @@ export default function CalendarPage() {
     return trades.filter(trade => trade.accountId === activeAccount.id);
   }, [trades, activeAccount?.id]);
 
+  const firstTradeDate = useMemo(() => {
+    const sortedTradeDates = accountTrades
+      .filter(trade => !trade.isPaperTrade && !trade.noTradeTaken)
+      .map(trade => startOfDay(new Date(trade.date)))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    return sortedTradeDates[0];
+  }, [accountTrades]);
+
   const hasDateRangeFilter = Boolean(dateRange.from || dateRange.to);
 
   // Filter trades by date range
@@ -508,12 +517,18 @@ export default function CalendarPage() {
       dailyPnlMap.set(dayKey, (dailyPnlMap.get(dayKey) || 0) + (trade.pnlAmount || 0));
     });
 
+    const fromKey = format(fromDate, 'yyyy-MM-dd');
+    const toKey = format(toDate, 'yyyy-MM-dd');
+
+    const tradingDays = Array.from(dailyPnlMap.keys())
+      .filter(dayKey => dayKey >= fromKey && dayKey <= toKey)
+      .sort((a, b) => a.localeCompare(b));
+
     let cumulativePnl = 0;
-    const data = eachDayOfInterval({ start: fromDate, end: toDate }).map(day => {
-      const dayKey = format(day, 'yyyy-MM-dd');
+    const data = tradingDays.map(dayKey => {
       cumulativePnl += dailyPnlMap.get(dayKey) || 0;
       return {
-        date: format(day, 'MMM d'),
+        date: format(new Date(`${dayKey}T00:00:00`), 'MMM d'),
         pnl: Number(cumulativePnl.toFixed(2))
       };
     });
@@ -528,7 +543,7 @@ export default function CalendarPage() {
       peak,
       trough,
       current,
-      sessions: new Set(relevantTrades.map(trade => format(new Date(trade.date), 'yyyy-MM-dd'))).size
+      sessions: tradingDays.length
     };
   }, [monthlyTrades, hasDateRangeFilter, dateRange.from, dateRange.to, currentMonth]);
 
@@ -1025,6 +1040,7 @@ export default function CalendarPage() {
                                 const today = new Date();
                                 setDateRange({ from: today, to: today });
                                 setCurrentMonth(today);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -1043,6 +1059,7 @@ export default function CalendarPage() {
                                 const yesterday = subDays(new Date(), 1);
                                 setDateRange({ from: yesterday, to: yesterday });
                                 setCurrentMonth(yesterday);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -1062,6 +1079,7 @@ export default function CalendarPage() {
                                 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
                                 setDateRange({ from: weekStart, to: today });
                                 setCurrentMonth(today);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -1081,6 +1099,7 @@ export default function CalendarPage() {
                                 const sevenDaysAgo = subDays(today, 6);
                                 setDateRange({ from: sevenDaysAgo, to: today });
                                 setCurrentMonth(today);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -1100,6 +1119,7 @@ export default function CalendarPage() {
                                 const thirtyDaysAgo = subDays(today, 29);
                                 setDateRange({ from: thirtyDaysAgo, to: today });
                                 setCurrentMonth(today);
+                                setAllTimeMode(false);
                               }}
                               className={cn(
                                 "justify-start hover:bg-muted",
@@ -1155,8 +1175,9 @@ export default function CalendarPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setDateRange({ from: undefined, to: undefined });
-                                setCurrentMonth(new Date());
+                                const today = new Date();
+                                setDateRange({ from: firstTradeDate ?? today, to: today });
+                                setCurrentMonth(today);
                                 setAllTimeMode(true);
                               }}
                               className={cn(
@@ -1230,7 +1251,7 @@ export default function CalendarPage() {
                             </button>
                           </UiTooltipTrigger>
                           <UiTooltipContent>
-                            <p>Current account balance based on starting balance and cumulative P&L.</p>
+                            <p className="font-display font-medium">Current account balance based on starting balance and cumulative P&L.</p>
                           </UiTooltipContent>
                         </UiTooltip>
                       </div>
@@ -1279,7 +1300,7 @@ export default function CalendarPage() {
                             </button>
                           </UiTooltipTrigger>
                           <UiTooltipContent>
-                            <p>Total net profit or loss for the selected period.</p>
+                            <p className="font-display font-medium">Total net profit or loss for the selected period.</p>
                           </UiTooltipContent>
                         </UiTooltip>
                       </div>
@@ -1322,7 +1343,7 @@ export default function CalendarPage() {
                             </button>
                           </UiTooltipTrigger>
                           <UiTooltipContent>
-                            <p>Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
+                            <p className="font-display font-medium">Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
                           </UiTooltipContent>
                         </UiTooltip>
                       </div>
@@ -1379,7 +1400,7 @@ export default function CalendarPage() {
                             </button>
                           </UiTooltipTrigger>
                           <UiTooltipContent>
-                            <p>Average P&amp;L per trade over the selected period.</p>
+                            <p className="font-display font-medium">Average P&amp;L per trade over the selected period.</p>
                           </UiTooltipContent>
                         </UiTooltip>
                       </div>
@@ -1412,7 +1433,7 @@ export default function CalendarPage() {
                             </button>
                           </UiTooltipTrigger>
                           <UiTooltipContent>
-                            <p>Expected return per trade based on historical outcomes.</p>
+                            <p className="font-display font-medium">Expected return per trade based on historical outcomes.</p>
                           </UiTooltipContent>
                         </UiTooltip>
                       </div>
@@ -2068,11 +2089,11 @@ export default function CalendarPage() {
               {/* Center - Stats */}
               {viewMode === 'month' && (
                 <div className="hidden sm:flex items-center gap-4 absolute left-1/2 -translate-x-1/2 text-center justify-center">
-                  <span className="text-xs text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-xs text-foreground font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
+                  <span className="text-sm text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-sm text-foreground font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
                     const tradeDate = new Date(t.date);
                     return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                   }).length}</span></span>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-xs font-display font-semibold tabular-nums" style={{
+                  <span className="text-sm text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-sm font-display font-semibold tabular-nums" style={{
                     color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
                   }}>{formatPnlWithK(displayedMonthlyPnl)}</span></span>
                 </div>
