@@ -855,13 +855,13 @@ export function TradeForm({
           </div>
           
           {/* GENERAL TAB */}
-          {activeTab === 'general' && <div className="space-y-3">
-            {/* Compact Header Section */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {activeTab === 'general' && <div className="space-y-5">
+            {/* Header Section - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Trade Type */}
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Trade Type</span>
+                <div className="space-y-2.5">
+                  <span className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Trade Type</span>
                   <TradeTypeSwitch
                     isPaperTrade={formData.isPaperTrade}
                     noTradeTaken={formData.noTradeTaken}
@@ -872,8 +872,8 @@ export function TradeForm({
                 </div>
 
                 {/* Status */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Status</Label>
+                <div className="space-y-2.5">
+                  <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Status</Label>
                   <TradeStatusSwitch
                     isOpen={formData.status === 'open'}
                     onChange={(isOpen) => setFormData(p => ({ ...p, status: isOpen ? 'open' : 'closed' }))}
@@ -881,16 +881,16 @@ export function TradeForm({
                 </div>
 
                 {/* Direction */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Direction</Label>
-                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
+                <div className="space-y-2.5">
+                  <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Direction</Label>
+                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-muted/40 p-1">
                     {/* Sliding background */}
                     <div
                       className={cn(
-                        "absolute top-1 bottom-1 rounded-lg pointer-events-none shadow-sm transition-all duration-500",
+                        "absolute top-1 bottom-1 rounded-lg pointer-events-none shadow-md transition-all duration-500",
                         formData.direction === 'long' 
-                          ? "border border-pnl-positive/30 bg-pnl-positive/10" 
-                          : "border border-pnl-negative/30 bg-pnl-negative/10"
+                          ? "border border-pnl-positive/30 bg-gradient-to-br from-pnl-positive/15 to-pnl-positive/5" 
+                          : "border border-pnl-negative/30 bg-gradient-to-br from-pnl-negative/15 to-pnl-negative/5"
                       )}
                       style={{
                         width: "calc(50% - 0.5rem)",
@@ -904,7 +904,7 @@ export function TradeForm({
                         type="button" 
                         onClick={() => setFormData(p => ({ ...p, direction: 'long' }))} 
                         className={cn(
-                          "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium transition-colors duration-500 rounded-lg",
+                          "flex-1 flex items-center justify-center h-8 px-2 text-xs font-semibold transition-colors duration-500 rounded-lg",
                           formData.direction === 'long' 
                             ? "text-pnl-positive" 
                             : "text-muted-foreground hover:text-foreground/80"
@@ -916,7 +916,7 @@ export function TradeForm({
                         type="button" 
                         onClick={() => setFormData(p => ({ ...p, direction: 'short' }))} 
                         className={cn(
-                          "flex-1 flex items-center justify-center h-7 px-2 text-xs font-medium transition-colors duration-500 rounded-lg",
+                          "flex-1 flex items-center justify-center h-8 px-2 text-xs font-semibold transition-colors duration-500 rounded-lg",
                           formData.direction === 'short' 
                             ? "text-pnl-negative" 
                             : "text-muted-foreground hover:text-foreground/80"
@@ -929,9 +929,9 @@ export function TradeForm({
                 </div>
 
                 {/* Date & Time */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Date & Time</Label>
-                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/60 bg-background/90 p-1">
+                <div className="space-y-2.5">
+                  <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Date & Time</Label>
+                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-background/90 p-1.5">
                     <div className="flex gap-0 w-full relative z-10">
                       <input 
                         id="date" 
@@ -939,16 +939,16 @@ export function TradeForm({
                         type="date" 
                         value={formData.date} 
                         onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} 
-                        className="flex-1 h-7 bg-transparent text-xs px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-50 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                        className="flex-1 h-7 bg-transparent text-xs font-medium px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
                       />
-                      <div className="w-px bg-border/40 my-1" />
+                      <div className="w-px bg-border/50 my-1" />
                       <input 
                         id="entryTime" 
                         name="entryTime" 
                         type="time" 
                         value={formData.entryTime} 
                         onChange={e => setFormData(p => ({ ...p, entryTime: e.target.value }))} 
-                        className="flex-1 h-7 bg-transparent text-xs px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-50 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                        className="flex-1 h-7 bg-transparent text-xs font-medium px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
                       />
                     </div>
                   </div>
@@ -956,143 +956,145 @@ export function TradeForm({
               </div>
             </div>
 
-            {/* Core Trade Entry */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
-              <div className="space-y-2">
-                {/* Row 1: Symbol, Entry, SL, TP, Lot Size */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest w-20 flex-shrink-0">Trade Entry</span>
-                  <div className="h-px flex-1 bg-border/40" />
+            {/* Core Trade Entry - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="space-y-4">
+                {/* Section Header */}
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Trade Entry</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent" />
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="symbol" className="text-[10px] font-bold font-display text-foreground/60">Symbol *</Label>
-                    <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({ ...p, symbol: e.target.value.toUpperCase() }))} placeholder="AAPL" className="h-7 bg-background/90 border border-border/60 rounded-xl text-xs font-medium text-foreground placeholder:text-muted-foreground/60 uppercase focus:border-ring transition-colors" />
+                
+                <div className="grid grid-cols-5 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="symbol" className="text-[11px] font-bold font-display text-foreground/70">Symbol *</Label>
+                    <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({ ...p, symbol: e.target.value.toUpperCase() }))} placeholder="AAPL" className="h-9 bg-background/90 border border-border/50 rounded-xl text-sm font-semibold text-foreground placeholder:text-muted-foreground/50 uppercase focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="entryPrice" className="text-[10px] font-bold font-display text-foreground/60">Entry</Label>
-                    <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  <div className="space-y-2">
+                    <Label htmlFor="entryPrice" className="text-[11px] font-bold font-display text-foreground/70">Entry</Label>
+                    <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="stopLoss" className="text-[10px] font-bold font-display text-foreground/60">SL</Label>
-                    <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  <div className="space-y-2">
+                    <Label htmlFor="stopLoss" className="text-[11px] font-bold font-display text-foreground/70">SL</Label>
+                    <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="takeProfit" className="text-[10px] font-bold font-display text-foreground/60">TP</Label>
-                    <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  <div className="space-y-2">
+                    <Label htmlFor="takeProfit" className="text-[11px] font-bold font-display text-foreground/70">TP</Label>
+                    <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="lotSize" className="text-[10px] font-bold font-display text-foreground/60">Lot Size</Label>
-                    <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  <div className="space-y-2">
+                    <Label htmlFor="lotSize" className="text-[11px] font-bold font-display text-foreground/70">Lot Size</Label>
+                    <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
                 </div>
 
               </div>
             </div>
 
-            {/* Risk & Loss - Always Visible */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest w-20 flex-shrink-0">Risk & Loss</span>
-                  <div className="h-px flex-1 bg-border/40" />
+            {/* Risk & Loss - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="space-y-4">
+                {/* Section Header */}
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Risk & Loss</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="pnlAmount" className="text-[10px] font-bold font-display text-foreground/60">Gross P&L ({currencySymbol})</Label>
-                    <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="pnlAmount" className="text-[11px] font-bold font-display text-foreground/70">Gross P&L ({currencySymbol})</Label>
+                    <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="stopLossPips" className="text-[10px] font-bold font-display text-foreground/60">SL Pips</Label>
-                    <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="15" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 tabular-nums text-xs font-medium focus:border-ring transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  <div className="space-y-2">
+                    <Label htmlFor="stopLossPips" className="text-[11px] font-bold font-display text-foreground/70">SL Pips</Label>
+                    <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="15" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="holdingTime" className="text-[10px] font-bold font-display text-foreground/60">Hold Time</Label>
-                    <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="2h 30m" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs focus:border-ring transition-colors" />
+                  <div className="space-y-2">
+                    <Label htmlFor="holdingTime" className="text-[11px] font-bold font-display text-foreground/70">Hold Time</Label>
+                    <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="2h 30m" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="riskRewardRatio" className="text-[10px] font-bold font-display text-foreground/60">R:R</Label>
-                    <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="1:2" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs focus:border-ring transition-colors" />
+                  <div className="space-y-2">
+                    <Label htmlFor="riskRewardRatio" className="text-[11px] font-bold font-display text-foreground/70">R:R</Label>
+                    <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="1:2" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Advanced Details Toggle - Redesigned */}
             <button
               type="button"
               onClick={() => setShowAdvancedOverview(prev => !prev)}
-              className="group w-full min-h-12 px-3 py-2 rounded-xl border border-border/50 bg-background/40 dark:bg-black/10 text-foreground flex items-center justify-between gap-3 transition-all duration-300 hover:bg-muted/30 hover:border-border"
+              className="group w-full min-h-14 px-5 py-3 rounded-2xl border border-border/40 bg-gradient-to-br from-muted/30 to-muted/10 hover:from-muted/40 hover:to-muted/20 text-foreground flex items-center justify-between gap-4 transition-all duration-300 hover:border-border/60 shadow-sm hover:shadow-md"
             >
               <div className="text-left">
-                <p className="text-sm font-medium leading-tight">Advanced details</p>
-                <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                <p className="text-sm font-bold font-display">Advanced details</p>
+                <p className="text-[11px] text-muted-foreground/80 leading-tight mt-1">
                   {showAdvancedOverview
-                    ? 'Showing: Rules, grade, category, strategy, mistakes, news, notes'
-                    : 'Hidden: Rules, grade, category, strategy, mistakes, news, notes'}
+                    ? 'Showing rules, performance, strategy, mistakes & notes'
+                    : 'Hidden: rules, performance, strategy, mistakes & notes'}
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-xs font-medium">{showAdvancedOverview ? 'Hide' : 'Show'}</span>
-                <ChevronDown
-                  className={cn(
-                    'h-4 w-4 transition-transform duration-300 ease-out',
-                    showAdvancedOverview ? 'rotate-180' : 'rotate-0'
-                  )}
-                />
+              <div className="flex items-center gap-2.5 text-muted-foreground group-hover:text-foreground transition-colors">
+                <span className="text-xs font-semibold uppercase tracking-wide">{showAdvancedOverview ? 'Hide' : 'Show'}</span>
+                <div className="h-8 w-8 rounded-lg bg-background/60 flex items-center justify-center border border-border/40 group-hover:border-border/60 transition-all">
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform duration-300 ease-out',
+                      showAdvancedOverview ? 'rotate-180' : 'rotate-0'
+                    )}
+                  />
+                </div>
               </div>
             </button>
 
             <div
               className={cn(
                 'grid transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                showAdvancedOverview ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'
+                showAdvancedOverview ? 'grid-rows-[1fr] opacity-100 mt-5' : 'grid-rows-[0fr] opacity-0 mt-0'
               )}
               aria-hidden={!showAdvancedOverview}
             >
               <div
                 className={cn(
-                  'overflow-hidden space-y-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                  'overflow-hidden space-y-5 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
                   showAdvancedOverview ? 'translate-y-0' : '-translate-y-2 pointer-events-none'
                 )}
               >
 
-            {/* Followed Rules & Performance Assessment Combined */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Followed Rules & Performance Assessment Combined - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Followed Rules - Left Column */}
-                <div className="space-y-2 rounded-xl border border-border/50 bg-transparent p-2.5">
+                <div className="space-y-3 rounded-xl border border-border/40 bg-background/30 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <ClipboardList className="h-3.5 w-3.5 text-foreground/60" strokeWidth={1.5} />
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Followed Rules</Label>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground">
-                      {formData.followedRules ? `${formData.followedRulesList.length} selected` : `${formData.brokenRules.length} selected`}
+                    <Label className="text-[11px] font-bold font-display uppercase tracking-wider text-foreground/70">Followed Rules</Label>
+                    <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 bg-muted/50 rounded-md">
+                      {formData.followedRules ? `${formData.followedRulesList.length} selected` : `${formData.brokenRules.length} broken`}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1 rounded-lg border border-border/60 bg-transparent p-1">
+                  <div className="grid grid-cols-2 gap-2 rounded-xl border border-border/50 bg-muted/40 p-1.5">
                     <button type="button" onClick={() => setFormData(p => ({
                       ...p,
                       followedRules: true
-                    }))} className={cn("h-7 rounded-md text-xs transition-all duration-200 border flex items-center justify-center gap-1 font-medium", formData.followedRules ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/40" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground")}>
-                      <Check className="h-3 w-3" strokeWidth={2.5} />
+                    }))} className={cn("h-8 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-1.5 font-semibold shadow-sm", formData.followedRules ? "bg-gradient-to-br from-pnl-positive/20 to-pnl-positive/10 text-pnl-positive border-pnl-positive/50" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-background hover:text-foreground")}>
+                      <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                       Yes
                     </button>
                     <button type="button" onClick={() => setFormData(p => ({
                       ...p,
                       followedRules: false
-                    }))} className={cn("h-7 rounded-md text-xs transition-all duration-200 border flex items-center justify-center gap-1 font-medium", !formData.followedRules ? "bg-pnl-negative/15 text-pnl-negative border-pnl-negative/40" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground")}>
-                      <XIcon className="h-3 w-3" strokeWidth={2.5} />
+                    }))} className={cn("h-8 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-1.5 font-semibold shadow-sm", !formData.followedRules ? "bg-gradient-to-br from-pnl-negative/20 to-pnl-negative/10 text-pnl-negative border-pnl-negative/50" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-background hover:text-foreground")}>
+                      <XIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
                       No
                     </button>
                   </div>
 
                   {formData.followedRules && (
-                    <div className="space-y-1.5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                      <Label className="text-[10px] text-muted-foreground">Which rules did you follow?</Label>
+                    <div className="space-y-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                      <Label className="text-[10px] font-medium text-muted-foreground">Which rules did you follow?</Label>
                       {tradingRules.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {tradingRules.map((rule, index) => {
                             const isSelected = formData.followedRulesList.includes(rule);
                             return (
@@ -1108,10 +1110,10 @@ export function TradeForm({
                                   }));
                                 }}
                                 className={cn(
-                                  "h-8 px-2 rounded-lg text-xs transition-all duration-200 border flex items-center gap-1.5 text-left",
+                                  "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center gap-2 text-left font-medium shadow-sm",
                                   isSelected
                                     ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40"
-                                    : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
+                                    : "bg-background/60 text-foreground border-border/60 hover:bg-background"
                                 )}
                               >
                                 <div className={cn(
@@ -1126,7 +1128,7 @@ export function TradeForm({
                           })}
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground italic">
+                        <p className="text-xs text-muted-foreground/70 italic px-2">
                           No rules configured. Add rules in Settings → Trading Rules.
                         </p>
                       )}
@@ -1134,14 +1136,14 @@ export function TradeForm({
                   )}
 
                   {!formData.followedRules && (
-                    <div className="space-y-1.5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                      <Label className="text-[10px] text-muted-foreground">Which rules did you break?</Label>
+                    <div className="space-y-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                      <Label className="text-[10px] font-medium text-muted-foreground">Which rules did you break?</Label>
                       {(() => {
                         const availableRules = tradingRules.filter(rule => !formData.followedRulesList.includes(rule));
 
                         if (tradingRules.length === 0) {
                           return (
-                            <p className="text-xs text-muted-foreground italic">
+                            <p className="text-xs text-muted-foreground/70 italic px-2">
                               No rules configured. Add rules in Settings → Trading Rules.
                             </p>
                           );
@@ -1149,14 +1151,14 @@ export function TradeForm({
 
                         if (availableRules.length === 0) {
                           return (
-                            <p className="text-xs text-muted-foreground italic">
+                            <p className="text-xs text-muted-foreground/70 italic px-2">
                               All rules were followed. Switch to "Yes" to modify followed rules.
                             </p>
                           );
                         }
 
                         return (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {availableRules.map((rule, index) => {
                               const isSelected = formData.brokenRules.includes(rule);
                               return (
@@ -1172,10 +1174,10 @@ export function TradeForm({
                                     }));
                                   }}
                                   className={cn(
-                                    "h-8 px-2 rounded-lg text-xs transition-all duration-200 border flex items-center gap-1.5 text-left",
+                                    "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center gap-2 text-left font-medium shadow-sm",
                                     isSelected
                                       ? "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/40"
-                                      : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
+                                      : "bg-background/60 text-foreground border-border/60 hover:bg-background"
                                   )}
                                 >
                                   <div className={cn(
@@ -1195,76 +1197,76 @@ export function TradeForm({
                   )}
                 </div>
 
-                {/* Performance Grade, Category & Strategy - Right Column */}
-                <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+                {/* Performance Grade, Category & Strategy - Right Column - Redesigned */}
+                <div className="space-y-3 rounded-xl border border-border/40 bg-background/30 p-4">
+                  {/* Performance Grade */}
+                  <div className="space-y-2.5">
+                    <Label className="text-[11px] font-bold font-display uppercase tracking-wider text-foreground/70">Performance Grade</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[1, 2, 3].map(grade => {
+                        const isSelected = parseInt(formData.performanceGrade) === grade;
+                        const gradeColors: Record<number, { selected: string; selectedBorder: string; text: string; }> = {
+                          1: { selected: 'bg-gradient-to-br from-red-500/20 to-red-500/10', selectedBorder: 'border-red-500/50', text: 'text-red-500' },
+                          2: { selected: 'bg-gradient-to-br from-amber-500/20 to-amber-500/10', selectedBorder: 'border-amber-500/50', text: 'text-amber-500' },
+                          3: { selected: 'bg-gradient-to-br from-pnl-positive/20 to-pnl-positive/10', selectedBorder: 'border-pnl-positive/50', text: 'text-pnl-positive' }
+                        };
+                        const colors = gradeColors[grade];
+                        return (
+                          <button 
+                            key={grade} 
+                            type="button" 
+                            onClick={() => setFormData(p => ({ ...p, performanceGrade: grade.toString() }))} 
+                            className={cn(
+                              "h-10 rounded-lg text-sm font-bold transition-all duration-200 border shadow-sm", 
+                              isSelected ? `${colors.selected} ${colors.selectedBorder} ${colors.text}` : "bg-background/60 text-muted-foreground border-border/60 hover:bg-background hover:text-foreground"
+                            )}
+                          >
+                            {grade}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Category */}
                   <div className="space-y-2">
-                    {/* Performance Grade */}
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Performance Grade</Label>
-                      <div className="grid grid-cols-3 gap-1">
-                        {[1, 2, 3].map(grade => {
-                          const isSelected = parseInt(formData.performanceGrade) === grade;
-                          const gradeColors: Record<number, { selected: string; text: string; }> = {
-                            1: { selected: 'bg-red-500/15 border-red-500/30', text: 'text-red-500' },
-                            2: { selected: 'bg-amber-500/15 border-amber-500/30', text: 'text-amber-500' },
-                            3: { selected: 'bg-pnl-positive/15 border-pnl-positive/30', text: 'text-pnl-positive' }
-                          };
-                          const colors = gradeColors[grade];
-                          return (
-                            <button 
-                              key={grade} 
-                              type="button" 
-                              onClick={() => setFormData(p => ({ ...p, performanceGrade: grade.toString() }))} 
-                              className={cn(
-                                "h-7 rounded text-xs font-semibold transition-all duration-200 border", 
-                                isSelected ? `${colors.selected} ${colors.text}` : "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-                              )}
-                            >
-                              {grade}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    <Label className="text-[11px] font-bold font-display text-foreground/70">Category</Label>
+                    <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
+                      <SelectTrigger className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground text-sm font-semibold transition-all shadow-sm [&>svg]:hidden">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    {/* Category */}
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-bold font-display text-foreground/60">Category</Label>
-                      <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
-                        <SelectTrigger className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground text-xs font-medium transition-colors [&>svg]:hidden">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TRADE_CATEGORIES.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Strategy */}
-                    <div className="space-y-1">
-                      <Label htmlFor="strategy" className="text-[10px] font-bold font-display text-foreground/60">Strategy</Label>
-                      <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors" />
-                    </div>
+                  {/* Strategy */}
+                  <div className="space-y-2">
+                    <Label htmlFor="strategy" className="text-[11px] font-bold font-display text-foreground/70">Strategy</Label>
+                    <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Mistake Tagging */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <XIcon className="h-3.5 w-3.5 text-red-500/70" strokeWidth={2} />
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Identify Mistakes</Label>
+            {/* Mistake Tagging - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-red-500/15 to-red-500/5 border border-red-500/30 flex items-center justify-center">
+                      <XIcon className="h-4 w-4 text-red-500" strokeWidth={2.5} />
+                    </div>
+                    <Label className="text-sm font-bold font-display uppercase tracking-wide text-foreground">Identify Mistakes</Label>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[10px] font-semibold text-muted-foreground px-2.5 py-1 bg-muted/50 rounded-md">
                     {formData.mistakeTags?.length || 0} tagged
                   </span>
                 </div>
                 
                 {/* Common Mistake Tags */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
                     'Poor Entry',
                     'Ignored Setup',
@@ -1291,17 +1293,17 @@ export function TradeForm({
                           }));
                         }}
                         className={cn(
-                          "h-8 px-2.5 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-1.5 font-medium",
+                          "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-2 font-semibold shadow-sm",
                           isSelected
                             ? "bg-red-500/15 text-red-500 border-red-500/40"
-                            : "bg-muted/50 text-foreground border-border/60 hover:bg-muted"
+                            : "bg-background/60 text-foreground border-border/60 hover:bg-background"
                         )}
                       >
                         <div className={cn(
-                          "h-3 w-3 rounded border flex items-center justify-center flex-shrink-0",
+                          "h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0",
                           isSelected ? "bg-red-500 border-red-500" : "border-muted-foreground"
                         )}>
-                          {isSelected && <Check className="h-2 w-2 text-white" />}
+                          {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
                         </div>
                         <span className="truncate">{mistake}</span>
                       </button>
@@ -1310,7 +1312,7 @@ export function TradeForm({
                 </div>
 
                 {/* Custom Mistake Input */}
-                <div className="space-y-1.5 pt-1">
+                <div className="space-y-2 pt-1">
                   <Input
                     type="text"
                     placeholder="Add custom mistake tag..."
@@ -1327,7 +1329,7 @@ export function TradeForm({
                         }));
                       }
                     }}
-                    className="h-7 bg-background/90 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/60 text-xs font-medium focus:border-ring transition-colors"
+                    className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-medium focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm"
                   />
                 </div>
 
@@ -1363,8 +1365,8 @@ export function TradeForm({
               </div>
             </div>
 
-            {/* News Section */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
+            {/* News Section - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
               <NewsEventSelector
                 date={formData.date || null}
                 hasNews={formData.hasNews}
@@ -1397,10 +1399,10 @@ export function TradeForm({
               />
             </div>
 
-            {/* Notes */}
-            <div className="p-3 rounded-2xl border border-border/50 bg-card/95 dark:bg-card/80 backdrop-blur-xl shadow-sm">
-              <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Notes</Label>
+            {/* Notes - Redesigned */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="space-y-3">
+                <Label className="text-sm font-bold font-display uppercase tracking-wide text-foreground">Notes</Label>
                 <RichTextEditor value={formData.notes} onChange={(text) => handleChange({ target: { name: 'notes', value: text } } as any)} placeholder="Add any additional notes about this trade..." />
               </div>
             </div>
