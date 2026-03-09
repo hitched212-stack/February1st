@@ -139,7 +139,9 @@ export default function Auth() {
         toast.error(error.message);
       }
     } else {
-      toast.success('Welcome back!');
+      toast.success('Welcome back!', {
+        className: '!border-[#9b8cff]/45 !bg-[#9b8cff]/14 !text-foreground',
+      });
       navigate('/dashboard?returning=true');
     }
   };

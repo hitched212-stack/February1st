@@ -1609,18 +1609,18 @@ export default function Analytics() {
                 {/* Why Indicator - Only show if there are violations */}
                 {ruleComplianceData.violatedSessions > 0 && (
                   <div className="space-y-2 pt-3 border-t border-border/50">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Insights</p>
+                    <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Insights</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-muted/30 rounded-lg p-2.5">
-                        <p className="text-[10px] text-muted-foreground">Avg. rules broken</p>
+                        <p className="text-[10px] font-display text-muted-foreground">Avg. rules broken</p>
                         <p className="text-sm font-display font-bold tabular-nums" style={{ color: lossColor }}>
                           {ruleComplianceData.avgBrokenPerViolation.toFixed(1)}
                         </p>
                       </div>
                       {ruleComplianceData.mostCommonViolation && (
                         <div className="bg-muted/30 rounded-lg p-2.5">
-                          <p className="text-[10px] text-muted-foreground">Most common</p>
-                          <p className="text-xs font-medium text-foreground truncate" title={ruleComplianceData.mostCommonViolation[0]}>
+                          <p className="text-[10px] font-display text-muted-foreground">Most common</p>
+                          <p className="text-xs font-display font-medium text-foreground truncate" title={ruleComplianceData.mostCommonViolation[0]}>
                             {ruleComplianceData.mostCommonViolation[0]}
                           </p>
                         </div>
@@ -1632,11 +1632,11 @@ export default function Analytics() {
                 {/* Rule Violations Breakdown - Only show if there are broken rules */}
                 {ruleComplianceData.topBroken.length > 0 && (
                   <div className="space-y-2 pt-3 border-t border-border/50">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rule Violations</p>
+                    <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Rule Violations</h3>
                     <div className="space-y-1.5">
                       {ruleComplianceData.topBroken.slice(0, 4).map(([rule, count]) => (
                         <div key={rule} className="flex items-center justify-between">
-                          <span className="text-xs text-foreground truncate flex-1 mr-2">{rule}</span>
+                          <span className="text-xs font-display text-foreground truncate flex-1 mr-2">{rule}</span>
                           <span className="text-xs font-display font-medium tabular-nums" style={{ color: lossColor }}>
                             {count}x
                           </span>
@@ -1658,7 +1658,7 @@ export default function Analytics() {
               <div className="flex items-center gap-2.5">
                 <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                     Win Rate
                   </h3>
                   <Tooltip>
@@ -1752,7 +1752,7 @@ export default function Analytics() {
               <div className="flex items-center gap-2.5">
                 <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                     Direction Performance
                   </h3>
                   <Tooltip>
@@ -1928,7 +1928,7 @@ export default function Analytics() {
               <div className="space-y-3 pt-4 border-t border-border/30">
                 <div className="flex items-center gap-2.5">
                   <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Insight</p>
+                  <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Insight</h3>
                 </div>
                 <div className="bg-muted/30 rounded-lg p-3">
                   <p className="text-xs text-foreground">
@@ -1954,7 +1954,7 @@ export default function Analytics() {
               <div className="flex items-center gap-2.5">
                 <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                     Avg. Holding Time
                   </h3>
                   <Tooltip>
@@ -2042,7 +2042,7 @@ export default function Analytics() {
               <div className="flex items-center gap-2.5">
                 <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                  <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                     Entry Time Range
                   </h3>
                   <Tooltip>
@@ -2138,7 +2138,7 @@ export default function Analytics() {
             <div className="flex items-center gap-2.5">
               <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
               <div className="flex items-center gap-1.5">
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                   Most Profitable Strategies
                 </h3>
                 <Tooltip>
@@ -2292,7 +2292,7 @@ export default function Analytics() {
             <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-border/30">
               <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
               <div className="flex items-center gap-1.5">
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                   Top Assets
                 </h3>
                 <Tooltip>
@@ -2328,7 +2328,7 @@ export default function Analytics() {
             <div className="flex items-center gap-2.5 mb-3">
               <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
               <div className="flex items-center gap-1.5">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                   Trade Performance
                 </h3>
                 <Tooltip>
@@ -2353,7 +2353,7 @@ export default function Analytics() {
             <div className="flex items-center gap-2.5 mb-3">
               <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
               <div className="flex items-center gap-1.5">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                   Best & Worst
                 </h3>
                 <Tooltip>
@@ -2379,7 +2379,7 @@ export default function Analytics() {
             <div className="flex items-center gap-2.5 mb-3">
               <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
               <div className="flex items-center gap-1.5">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                   Streaks
                 </h3>
                 <Tooltip>
@@ -2404,7 +2404,7 @@ export default function Analytics() {
             <div className="flex items-center gap-2.5 mb-3">
               <div className="w-1 h-3.5 bg-[#9b8cff] rounded-full" />
               <div className="flex items-center gap-1.5">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                   Frequency
                 </h3>
                 <Tooltip>
@@ -2489,7 +2489,7 @@ function GlassCardWrapper({
           <rect width="100%" height="100%" fill={`url(#${patternId})`} />
         </svg>
       )}
-      <div className="relative overflow-visible">{children}</div>
+      <div className="relative overflow-visible font-display">{children}</div>
     </div>
   );
 }
@@ -2526,11 +2526,11 @@ function MetricCard({
           <rect width="100%" height="100%" fill={`url(#metric-${label.replace(/\s/g, '-')})`} />
         </svg>
       )}
-      <div className="relative">
+      <div className="relative font-display">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">{label}</span>
+            <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">{label}</h3>
             {tooltip && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -2565,7 +2565,7 @@ function StatItem({
   icon?: React.ReactNode;
 }) {
   return <div className="space-y-1">
-      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+      <p className="text-xs font-display text-muted-foreground flex items-center gap-1.5">
         {icon}
         {label}
       </p>
@@ -2586,7 +2586,7 @@ function StatItemCompact({
   color?: 'positive' | 'negative';
 }) {
   return <div className="flex items-center justify-between">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="text-xs font-display font-medium text-muted-foreground">{label}</p>
       <p className={cn('text-sm font-display font-bold tabular-nums text-foreground', color === 'positive' && 'text-pnl-positive', color === 'negative' && 'text-pnl-negative')}>
         {value}
       </p>

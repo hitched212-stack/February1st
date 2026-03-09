@@ -1472,7 +1472,7 @@ export default function CalendarPage() {
                               </button>
                             </UiTooltipTrigger>
                             <UiTooltipContent>
-                              <p>Cumulative P&amp;L growth throughout the month by day.</p>
+                              <p className="font-display font-medium">Cumulative P&amp;L growth throughout the month by day.</p>
                             </UiTooltipContent>
                           </UiTooltip>
                         </div>
@@ -1503,7 +1503,7 @@ export default function CalendarPage() {
                             </div>
                           </div>
 
-                          <div className="flex-1 min-h-0">
+                          <div className="h-56 min-h-[14rem]">
                             <ResponsiveContainer width="100%" height="100%">
                               <AreaChart data={cumulativePnlChart.data} margin={{ top: 8, right: 8, left: -8, bottom: 6 }}>
                                 <defs>
@@ -1664,7 +1664,7 @@ export default function CalendarPage() {
                               </button>
                             </UiTooltipTrigger>
                             <UiTooltipContent>
-                              <p>Your performance for each day of the week.</p>
+                              <p className="font-display font-medium">Your performance for each day of the week.</p>
                             </UiTooltipContent>
                           </UiTooltip>
                         </div>
@@ -1773,7 +1773,7 @@ export default function CalendarPage() {
                               </button>
                             </UiTooltipTrigger>
                             <UiTooltipContent>
-                              <p>Your 5 most recent trades</p>
+                              <p className="font-display font-medium">Your 5 most recent trades</p>
                             </UiTooltipContent>
                           </UiTooltip>
                         </div>
@@ -1877,7 +1877,7 @@ export default function CalendarPage() {
                         </button>
                       </UiTooltipTrigger>
                       <UiTooltipContent>
-                        <p>Track your progress toward your {goalPeriod === 'D' ? 'daily' : goalPeriod === 'W' ? 'weekly' : goalPeriod === 'M' ? 'monthly' : 'yearly'} P&L goal.</p>
+                        <p className="font-display font-medium">Track your progress toward your {goalPeriod === 'D' ? 'daily' : goalPeriod === 'W' ? 'weekly' : goalPeriod === 'M' ? 'monthly' : 'yearly'} P&L goal.</p>
                       </UiTooltipContent>
                     </UiTooltip>
                   </div>
@@ -2067,24 +2067,7 @@ export default function CalendarPage() {
                 </button>
               </div>
 
-              {/* Mobile inline stats - same row, compact to prevent overlap */}
-              {viewMode === 'month' && (
-                <div className="sm:hidden flex-1 min-w-0 px-2 text-center">
-                  <span className="inline-flex items-center gap-2.5 text-[12px] text-muted-foreground font-display font-semibold tabular-nums whitespace-nowrap truncate">
-                    <span>
-                      Trades: <span className="text-foreground">{filteredTrades.filter(t => {
-                        const tradeDate = new Date(t.date);
-                        return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
-                      }).length}</span>
-                    </span>
-                    <span>
-                      P&amp;L: <span style={{
-                        color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
-                      }}>{formatPnlWithK(displayedMonthlyPnl)}</span>
-                    </span>
-                  </span>
-                </div>
-              )}
+              {/* Mobile inline stats removed from nav row to avoid truncation */}
               
               {/* Center - Stats */}
               {viewMode === 'month' && (
@@ -2100,28 +2083,31 @@ export default function CalendarPage() {
               )}
               
               <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-                {/* Mobile View Mode Toggle - Minimal M/Y switch */}
-                <div className="sm:hidden flex items-center">
+                {/* Mobile View Mode Toggle */}
+                <div className="sm:hidden flex items-center rounded-xl border border-border/60 bg-background/70 p-1 shadow-sm">
                   <button
-                    onClick={() => setViewMode(viewMode === 'month' ? 'year' : 'month')}
-                    className="flex items-center h-7 rounded-full bg-muted/50 border border-border/50 p-0.5"
+                    onClick={() => setViewMode('month')}
+                    className={cn(
+                      'min-w-[58px] px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-[background-color,color,box-shadow,transform] duration-300 ease-out',
+                      viewMode === 'month'
+                        ? 'bg-foreground text-background shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                    aria-label="Switch to month view"
                   >
-                    <span 
-                      className={cn(
-                        'px-2 py-0.5 rounded-full text-[10px] font-medium transition-all',
-                        viewMode === 'month' ? 'bg-foreground text-background' : 'text-muted-foreground'
-                      )}
-                    >
-                      M
-                    </span>
-                    <span 
-                      className={cn(
-                        'px-2 py-0.5 rounded-full text-[10px] font-medium transition-all',
-                        viewMode === 'year' ? 'bg-foreground text-background' : 'text-muted-foreground'
-                      )}
-                    >
-                      Y
-                    </span>
+                    Month
+                  </button>
+                  <button
+                    onClick={() => setViewMode('year')}
+                    className={cn(
+                      'min-w-[58px] px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-[background-color,color,box-shadow,transform] duration-300 ease-out',
+                      viewMode === 'year'
+                        ? 'bg-foreground text-background shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                    aria-label="Switch to year view"
+                  >
+                    Year
                   </button>
                 </div>
                 {/* Desktop View Mode Toggle */}
@@ -2151,6 +2137,26 @@ export default function CalendarPage() {
                 </div>
               </div>
             </div>
+
+            {/* Mobile month stats row */}
+            {viewMode === 'month' && (
+              <div className="sm:hidden mt-1 mb-2 px-1">
+                <div className="w-full text-center text-sm text-muted-foreground font-display font-semibold tabular-nums whitespace-nowrap">
+                  <span>
+                    Trades: <span className="text-foreground">{filteredTrades.filter(t => {
+                      const tradeDate = new Date(t.date);
+                      return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
+                    }).length}</span>
+                  </span>
+                  <span className="mx-3" />
+                  <span>
+                    P&amp;L: <span style={{
+                      color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
+                    }}>{formatPnlWithK(displayedMonthlyPnl)}</span>
+                  </span>
+                </div>
+              </div>
+            )}
 
             {viewMode === 'year' ? (
               /* Year View - 12 Month Grid */
@@ -2444,7 +2450,7 @@ export default function CalendarPage() {
                                       {formatPnlWithK(dayPnl)}
                                     </div>
                                     <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
-                                      {tradeCount}t
+                                      {tradeCount} {tradeCount === 1 ? 'trade' : 'trades'}
                                     </div>
                                   </div>
                                 )}

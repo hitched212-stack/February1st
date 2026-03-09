@@ -366,7 +366,7 @@ export function Sidebar({
                   isCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden self-center">
                   {isCollapsed ? (
                     <>
                       <Icon className="h-[18px] w-[18px] stroke-[1.5px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
@@ -377,7 +377,7 @@ export function Sidebar({
                   )}
                 </div>
                 {!isCollapsed && (
-                  <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
+                  <span className="relative h-[18px] overflow-hidden whitespace-nowrap transition-opacity duration-200 flex items-center">
                     <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                       {label}
                     </span>
@@ -422,7 +422,7 @@ export function Sidebar({
                   isCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden self-center">
                   {isCollapsed ? (
                     <>
                       <Icon className="h-[18px] w-[18px] stroke-[1.5px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
@@ -434,7 +434,7 @@ export function Sidebar({
                 </div>
                 {!isCollapsed && (
                   <>
-                    <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
+                    <span className="relative h-[18px] overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200 flex items-center">
                       <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                         {label}
                       </span>
@@ -477,7 +477,7 @@ export function Sidebar({
                   isCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden self-center">
                   {isCollapsed ? (
                     <>
                       <Icon className="h-[18px] w-[18px] stroke-[1.5px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
@@ -488,7 +488,7 @@ export function Sidebar({
                   )}
                 </div>
                 {!isCollapsed && (
-                  <span className="relative h-5 overflow-hidden whitespace-nowrap transition-opacity duration-200">
+                  <span className="relative h-[18px] overflow-hidden whitespace-nowrap transition-opacity duration-200 flex items-center">
                     <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                       {label}
                     </span>
@@ -565,7 +565,7 @@ export function Sidebar({
               isCollapsed ? "justify-center" : "",
             )}
           >
-            <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+            <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0 relative overflow-hidden self-center">
               {isCollapsed ? (
                 <>
                   <SettingsIcon className="h-[18px] w-[18px] block transition-all duration-500 group-hover:translate-y-[-100%]" />
@@ -577,7 +577,7 @@ export function Sidebar({
             </div>
             {!isCollapsed && (
               <>
-                <span className="relative h-5 overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200">
+                <span className="relative h-[18px] overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200 flex items-center">
                   <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
                     {"Settings"}
                   </span>

@@ -1,6 +1,6 @@
 import { useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Plus, MoreHorizontal, Pencil, Archive, Trash2, CheckCircle2, Wallet } from 'lucide-react';
+import { X, Plus, MoreHorizontal, Pencil, Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAccount, Account, AccountType, AccountStatus } from '@/hooks/useAccount';
 import { useSettings } from '@/hooks/useSettings';
@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -41,15 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-// Account icon component using wallet icon
-const AccountIcon = memo(({ className }: { className?: string }) => {
-  return (
-    <Wallet className={cn('text-foreground', className)} strokeWidth={1.5} />
-  );
-});
-
-AccountIcon.displayName = 'AccountIcon';
 
 const accountTypeConfig: Record<AccountType, { label: string }> = {
   prop_firm: { label: 'Prop Firm' },
@@ -88,118 +78,6 @@ interface AccountCardProps {
   onDelete: () => void;
   canDelete: boolean;
 }
-
-const AccountCard = memo(({ 
-  account, 
-  isActive, 
-  balance, 
-  onSelect, 
-  onEdit, 
-  onArchive, 
-  onDelete,
-  canDelete 
-}: AccountCardProps) => {
-  const config = accountTypeConfig[account.type] || accountTypeConfig.personal;
-  const isArchived = account.status === 'archived';
-
-  return (
-    <div
-      onClick={() => !isArchived && onSelect()}
-      className={cn(
-        'group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer',
-        isActive
-          ? 'border-foreground/30 bg-card shadow-lg'
-          : 'border-border/60 bg-card/70 hover:border-border/80 hover:bg-card',
-        isArchived && 'opacity-50 cursor-default'
-      )}
-    >
-      <div className="relative p-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Left side - Icon and info */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={cn(
-              'flex items-center justify-center w-11 h-11 rounded-xl transition-colors overflow-hidden',
-              isActive ? 'bg-foreground/10' : 'bg-foreground/5 group-hover:bg-foreground/10'
-            )}>
-              <AccountIcon className="h-5 w-5" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-medium text-foreground truncate">
-                  {account.name}
-                </h3>
-                {isActive && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-pnl-positive/10 text-pnl-positive text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Active
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-foreground/5">
-                  {config.label}
-                </span>
-                {account.broker_name && (
-                  <>
-                    <span>·</span>
-                    <span className="truncate">{account.broker_name}</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right side - Balance and actions */}
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Balance</span>
-              <div className="text-sm font-semibold text-foreground font-outfit tabular-nums">
-                {formatBalance(balance, account.currency)}
-              </div>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 opacity-100 transition-opacity hover:bg-foreground/5 active:bg-foreground/10"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44 bg-card border-border">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
-                  <Archive className="h-4 w-4 mr-2" />
-                  {isArchived ? 'Restore' : 'Archive'}
-                </DropdownMenuItem>
-                {canDelete && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                      className="text-pnl-negative focus:text-pnl-negative"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-AccountCard.displayName = 'AccountCard';
 
 // Isolated form component to prevent parent re-renders
 interface AccountFormProps {
@@ -338,6 +216,7 @@ export default function AccountsSettings() {
 
   const activeAccounts = accounts.filter(a => a.status === 'active');
   const archivedAccounts = accounts.filter(a => a.status === 'archived');
+  const orderedAccounts = [...activeAccounts, ...archivedAccounts];
 
   const handleCreate = useCallback(async (formData: AccountFormData) => {
     if (!formData.name.trim()) {
@@ -457,17 +336,18 @@ export default function AccountsSettings() {
   }, [setActiveAccount]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 left-1/2 h-64 w-[44rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl opacity-25" />
+      </div>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 h-16">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-foreground/5 border border-border/60 flex items-center justify-center">
-              <AccountIcon className="h-5 w-5" />
-            </div>
+            <div className="w-1 h-5 bg-[#9b8cff] rounded-full" />
             <div>
-              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">Trading Accounts</h1>
-              <p className="text-xs text-muted-foreground">Manage your portfolios</p>
+              <h1 className="text-[11px] font-bold font-display uppercase tracking-widest text-foreground">Trading Accounts</h1>
+              <p className="text-xs text-muted-foreground font-display font-medium">Manage your portfolios</p>
             </div>
           </div>
           <button
@@ -479,90 +359,119 @@ export default function AccountsSettings() {
         </div>
       </header>
 
-      <div className="p-4 md:p-6 lg:p-8 space-y-6">
-        {/* Top Row: Stats + Add Button */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
-            <div className="px-4 py-3 rounded-2xl bg-card/70 border border-border/60 text-center min-w-[96px]">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{accounts.length}</p>
+      <div className="relative p-4 md:p-6 lg:p-8 space-y-6">
+        {/* Accounts Table */}
+        {accounts.length > 0 && (
+          <div className="rounded-2xl border border-border/60 bg-card/55 backdrop-blur-xl overflow-hidden">
+            <div className="px-4 md:px-5 py-3.5 border-b border-border/50 flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground font-medium">
+                Using {activeAccounts.length} of {Math.max(accounts.length, 5)} available accounts
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => toast.info('Coming soon')}
+                  className="h-9 min-w-[150px] justify-center bg-background text-foreground border border-border/60 hover:bg-muted rounded-lg text-xs font-display font-semibold px-4 shadow-sm"
+                >
+                  Add Broker
+                </Button>
+                <Button
+                  onClick={() => setIsCreateOpen(true)}
+                  className="h-9 min-w-[150px] justify-center bg-foreground text-background hover:opacity-90 rounded-lg text-xs font-display font-semibold px-4 shadow-sm"
+                >
+                  Add Account
+                </Button>
+              </div>
             </div>
-            <div className="px-4 py-3 rounded-2xl bg-card/70 border border-border/60 text-center min-w-[96px]">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Active</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{activeAccounts.length}</p>
-            </div>
-            <div className="px-4 py-3 rounded-2xl bg-card/70 border border-border/60 text-center min-w-[96px]">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Archived</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{archivedAccounts.length}</p>
-            </div>
-          </div>
-
-          {/* Create Button */}
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button
-                className="h-11 bg-foreground text-background hover:opacity-90 rounded-xl text-sm font-semibold px-6 shadow-sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Account
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-sm rounded-2xl">
-              <DialogHeader>
-                <DialogTitle>Add Account</DialogTitle>
-              </DialogHeader>
-              <AccountForm
-                key="create"
-                initialData={getDefaultFormData()}
-                onSubmit={handleCreate}
-                submitLabel="Add Account"
-                isSubmitting={isSubmitting}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Account Cards Grid */}
-        {activeAccounts.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-sm font-medium text-muted-foreground px-1">Active Accounts</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {activeAccounts.map((account) => (
-                <AccountCard
-                  key={account.id}
-                  account={account}
-                  isActive={activeAccount?.id === account.id}
-                  balance={getAccountBalance(account)}
-                  onSelect={() => handleSetActive(account)}
-                  onEdit={() => setEditingAccount(account)}
-                  onArchive={() => handleArchive(account)}
-                  onDelete={() => setDeleteAccountState(account)}
-                  canDelete={account.role === 'owner' && accounts.length > 1}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Archived Accounts */}
-        {archivedAccounts.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-sm font-medium text-muted-foreground px-1">Archived</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {archivedAccounts.map((account) => (
-                <AccountCard
-                  key={account.id}
-                  account={account}
-                  isActive={activeAccount?.id === account.id}
-                  balance={getAccountBalance(account)}
-                  onSelect={() => handleSetActive(account)}
-                  onEdit={() => setEditingAccount(account)}
-                  onArchive={() => handleArchive(account)}
-                  onDelete={() => setDeleteAccountState(account)}
-                  canDelete={account.role === 'owner' && accounts.length > 1}
-                />
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px]">
+                <thead>
+                  <tr className="text-left border-b border-border/50">
+                    <th className="px-4 md:px-5 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold">Name</th>
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold">Type</th>
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold">Broker</th>
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold">Balance</th>
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold">Status</th>
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold">Created</th>
+                    <th className="px-4 md:px-5 py-3 text-[11px] uppercase tracking-widest text-muted-foreground font-display font-bold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderedAccounts.map((account) => {
+                    const isActiveRow = activeAccount?.id === account.id;
+                    const isArchived = account.status === 'archived';
+                    const canDelete = account.role === 'owner' && accounts.length > 1;
+                    return (
+                      <tr
+                        key={account.id}
+                        onClick={() => !isArchived && handleSetActive(account)}
+                        className={cn(
+                          'border-b border-border/40 transition-colors',
+                          !isArchived && 'cursor-pointer hover:bg-background/40',
+                          isActiveRow && 'bg-primary/5',
+                          isArchived && 'opacity-60'
+                        )}
+                      >
+                        <td className="px-4 md:px-5 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-display font-bold text-foreground uppercase tracking-wide">{account.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-foreground/90 font-display font-medium">{accountTypeConfig[account.type]?.label || 'Personal'}</td>
+                        <td className="px-4 py-3.5 text-foreground/90 font-display font-medium">{account.broker_name || '—'}</td>
+                        <td className="px-4 py-3.5 font-display font-semibold tabular-nums text-foreground">{formatBalance(getAccountBalance(account), account.currency)}</td>
+                        <td className="px-4 py-3.5">
+                          <span className={cn(
+                            'inline-flex rounded-full px-2 py-0.5 text-[10px] font-display font-semibold uppercase tracking-widest',
+                            account.status === 'active'
+                              ? 'bg-pnl-positive/10 text-pnl-positive'
+                              : 'bg-muted text-muted-foreground'
+                          )}>
+                            {account.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-muted-foreground font-display font-medium tabular-nums">
+                          {new Date(account.created_at).toLocaleDateString('en-GB')}
+                        </td>
+                        <td className="px-4 md:px-5 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 hover:bg-foreground/5 active:bg-foreground/10"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44 bg-card border-border">
+                              <DropdownMenuItem onClick={() => setEditingAccount(account)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleArchive(account)}>
+                                <Archive className="h-4 w-4 mr-2" />
+                                {isArchived ? 'Restore' : 'Archive'}
+                              </DropdownMenuItem>
+                              {canDelete && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteAccountState(account)}
+                                    className="text-pnl-negative focus:text-pnl-negative"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -580,6 +489,22 @@ export default function AccountsSettings() {
           </div>
         )}
       </div>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Add Account</DialogTitle>
+          </DialogHeader>
+          <AccountForm
+            key="create"
+            initialData={getDefaultFormData()}
+            onSubmit={handleCreate}
+            submitLabel="Add Account"
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingAccount} onOpenChange={(open) => !open && setEditingAccount(null)}>
