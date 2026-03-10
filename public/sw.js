@@ -7,8 +7,7 @@ const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/app-icon.svg',
-  '/app-icon.png'
+  '/images/mytradelog-icon.png'
 ];
 
 // Install event - precache essential assets

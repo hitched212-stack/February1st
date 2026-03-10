@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "favicon.png", "app-icon.svg", "app-icon.png"],
+      includeAssets: ["images/mytradelog-icon.png"],
       manifest: {
         name: "Trade Log",
         short_name: "TradeLog",
@@ -28,17 +28,12 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         icons: [
           {
-            src: "/app-icon.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/app-icon.png",
+            src: "/images/mytradelog-icon.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/app-icon.png",
+            src: "/images/mytradelog-icon.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
