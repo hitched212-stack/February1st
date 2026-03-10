@@ -12,19 +12,19 @@
   "categories": ["finance", "productivity", "business"],
   "icons": [
     {
-      "src": "/images/mytradelog-icon.png",
+      "src": "/images/landing-page-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/images/mytradelog-icon.png",
+      "src": "/images/landing-page-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/mytradelog-icon.png",
+      "src": "/images/landing-page-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"

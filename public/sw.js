@@ -1,15 +1,13 @@
 // Service Worker for MyTradeLog PWA
-const CACHE_NAME = 'mytradelog-v5';
-const RUNTIME_CACHE = 'runtime-cache-v5';
+const CACHE_NAME = 'mytradelog-v6';
+const RUNTIME_CACHE = 'runtime-cache-v6';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/favicon-new.png',
-  '/app-icon.png',
-  '/app-icon.png'
+  '/images/landing-page-logo.png'
 ];
 
 // Install event - precache essential assets
