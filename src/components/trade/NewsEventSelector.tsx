@@ -1,15 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Check, X, Loader2, AlertCircle, Filter, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, X, Plus, Copy } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
 import { NEWS_IMPACTS, NewsImpact } from '@/types/trade';
-
-// Popular currencies to show first
-const POPULAR_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD'];
 
 // Custom news/globe icon - matches navigation
 const NewsIcon = ({ className }: { className?: string }) => (
@@ -29,11 +25,10 @@ const NewsIcon = ({ className }: { className?: string }) => (
 );
 
 interface NewsEvent {
-  id: string;
   title: string;
-  currency: string;
-  time: string;
-  impact: 'high' | 'medium' | 'low';
+  impact: NewsImpact | '';
+  currency?: string;
+  time?: string;
 }
 
 interface SelectedNewsEvent {
@@ -55,6 +50,14 @@ interface NewsEventSelectorProps {
   onMultiNewsSelect?: (events: SelectedNewsEvent[]) => void;
 }
 
+const QUICK_EVENT_TEMPLATES: Array<{ title: string; impact: NewsImpact; currency: string }> = [
+  { title: 'Non-Farm Payrolls', impact: 'high', currency: 'USD' },
+  { title: 'CPI', impact: 'high', currency: 'USD' },
+  { title: 'FOMC Rate Decision', impact: 'high', currency: 'USD' },
+  { title: 'GDP', impact: 'medium', currency: 'USD' },
+  { title: 'Unemployment Rate', impact: 'medium', currency: 'USD' },
+];
+
 export function NewsEventSelector({
   date,
   hasNews,
@@ -65,15 +68,13 @@ export function NewsEventSelector({
   onNewsSelect,
   onMultiNewsSelect,
 }: NewsEventSelectorProps) {
-  const [newsEvents, setNewsEvents] = useState<NewsEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Filter states
-  const [impactFilter, setImpactFilter] = useState<string>('all');
-  const [currencyFilter, setCurrencyFilter] = useState<string>('all');
+  const createEmptyEvent = (): NewsEvent => ({
+    title: '',
+    impact: '',
+    currency: '',
+    time: '',
+  });
 
-  // Multi-select state - use selectedEvents prop or fall back to legacy single select
   const [localSelectedEvents, setLocalSelectedEvents] = useState<SelectedNewsEvent[]>(() => {
     if (selectedEvents.length > 0) return selectedEvents;
     if (selectedNewsTitle && newsImpact) return [{ title: selectedNewsTitle, impact: newsImpact }];
@@ -90,188 +91,119 @@ export function NewsEventSelector({
       setLocalSelectedEvents([]);
     }
   }, [selectedEvents, selectedNewsTitle, newsImpact, hasNews]);
-
-  // Fetch news events when date changes and has_news is true
-  useEffect(() => {
-    if (!hasNews || !date) {
-      setNewsEvents([]);
-      return;
-    }
-
-    const fetchNews = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const selectedDate = new Date(date);
-        
-        const { data, error: fetchError } = await supabase.functions.invoke('economic-calendar', {
-          body: {
-            date: selectedDate.toISOString(),
-            range: 'day',
-          },
-        });
-
-        if (fetchError) throw fetchError;
-
-        // The edge function returns { success, data: events[], lastUpdated }
-        const events = data?.data || [];
-        const dateStr = format(selectedDate, 'yyyy-MM-dd');
-        const dayEvents = events.filter((event: any) => event.date === dateStr);
-        
-        setNewsEvents(dayEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          currency: event.currency,
-          time: event.time,
-          impact: event.impact,
-        })));
-      } catch (err) {
-        console.error('Failed to fetch news:', err);
-        setError('Failed to load news events');
-        setNewsEvents([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNews();
-  }, [hasNews, date]);
-
-  // Get unique currencies from events, sorted with popular ones first
-  const availableCurrencies = useMemo(() => {
-    const currencies = [...new Set(newsEvents.map(e => e.currency))];
-    
-    // Sort: popular currencies first, then alphabetically
-    return currencies.sort((a, b) => {
-      const aPopular = POPULAR_CURRENCIES.indexOf(a);
-      const bPopular = POPULAR_CURRENCIES.indexOf(b);
-      
-      // Both are popular - sort by their order in POPULAR_CURRENCIES
-      if (aPopular !== -1 && bPopular !== -1) {
-        return aPopular - bPopular;
-      }
-      // Only a is popular
-      if (aPopular !== -1) return -1;
-      // Only b is popular
-      if (bPopular !== -1) return 1;
-      // Neither is popular - sort alphabetically
-      return a.localeCompare(b);
-    });
-  }, [newsEvents]);
-
-  // Filter events based on selected filters
-  const filteredEvents = useMemo(() => {
-    return newsEvents.filter(event => {
-      const matchesImpact = impactFilter === 'all' || event.impact === impactFilter;
-      const matchesCurrency = currencyFilter === 'all' || event.currency === currencyFilter;
-      return matchesImpact && matchesCurrency;
-    });
-  }, [newsEvents, impactFilter, currencyFilter]);
-
-  // Group filtered events by impact
-  const groupedEvents = useMemo(() => {
-    const high = filteredEvents.filter(e => e.impact === 'high');
-    const medium = filteredEvents.filter(e => e.impact === 'medium');
-    const low = filteredEvents.filter(e => e.impact === 'low');
-    return { high, medium, low };
-  }, [filteredEvents]);
-
-  const handleNewsSelect = (eventTitle: string) => {
-    const event = newsEvents.find(e => e.title === eventTitle);
-    if (event) {
-      const newEvent: SelectedNewsEvent = {
-        title: event.title,
-        impact: event.impact,
-        currency: event.currency,
-        time: event.time,
-      };
-      
-      // Check if already selected
-      const isAlreadySelected = localSelectedEvents.some(e => e.title === event.title);
-      
-      if (isAlreadySelected) {
-        // Remove it
-        const updated = localSelectedEvents.filter(e => e.title !== event.title);
-        setLocalSelectedEvents(updated);
-        if (onMultiNewsSelect) {
-          onMultiNewsSelect(updated);
-        }
-        // For legacy support, call onNewsSelect with first remaining event or empty
-        if (updated.length > 0) {
-          onNewsSelect(updated[0].title, updated[0].impact);
-        } else {
-          onNewsSelect('', '');
-        }
-      } else {
-        // Add it
-        const updated = [...localSelectedEvents, newEvent];
-        setLocalSelectedEvents(updated);
-        if (onMultiNewsSelect) {
-          onMultiNewsSelect(updated);
-        }
-        // For legacy support
-        onNewsSelect(newEvent.title, newEvent.impact);
-      }
-    }
-  };
-
-  const removeSelectedEvent = (title: string) => {
-    const updated = localSelectedEvents.filter(e => e.title !== title);
+  const syncEvents = (updated: SelectedNewsEvent[]) => {
     setLocalSelectedEvents(updated);
     if (onMultiNewsSelect) {
       onMultiNewsSelect(updated);
     }
     if (updated.length > 0) {
-      onNewsSelect(updated[0].title, updated[0].impact);
+      const first = updated[0];
+      if ((first.title || '').trim() || (first.impact || '').trim()) {
+        onNewsSelect(first.title, first.impact);
+      }
     } else {
       onNewsSelect('', '');
     }
   };
 
-  const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'high': return 'text-red-500';
-      case 'medium': return 'text-orange-500';
-      case 'low': return 'text-yellow-500';
-      default: return 'text-muted-foreground';
-    }
+  const buildNextEvent = (): SelectedNewsEvent => {
+    const lastWithImpact = [...localSelectedEvents].reverse().find((e) => (e.impact || '').trim());
+    const lastWithCurrency = [...localSelectedEvents].reverse().find((e) => (e.currency || '').trim());
+
+    return {
+      title: '',
+      impact: lastWithImpact?.impact || '',
+      currency: lastWithCurrency?.currency || '',
+      time: '',
+    };
   };
 
-  const getImpactBgColor = (impact: string) => {
-    switch (impact) {
-      case 'high': return 'bg-red-500/10 border-red-500/30';
-      case 'medium': return 'bg-orange-500/10 border-orange-500/30';
-      case 'low': return 'bg-yellow-500/10 border-yellow-500/30';
-      default: return 'bg-muted/50 border-border';
+  const addManualEvent = (afterIndex?: number) => {
+    const next = buildNextEvent();
+    if (typeof afterIndex === 'number') {
+      const updated = [...localSelectedEvents];
+      updated.splice(afterIndex + 1, 0, next);
+      syncEvents(updated);
+      return;
     }
+    syncEvents([...localSelectedEvents, next]);
   };
 
-  // Reset filters when date changes
+  const addTemplateEvent = (template: { title: string; impact: NewsImpact; currency: string }) => {
+    syncEvents([
+      ...localSelectedEvents,
+      {
+        title: template.title,
+        impact: template.impact,
+        currency: template.currency,
+        time: '',
+      },
+    ]);
+  };
+
+  const updateManualEvent = (index: number, field: keyof SelectedNewsEvent, value: string) => {
+    const updated = localSelectedEvents.map((event, idx) => {
+      if (idx !== index) return event;
+      if (field === 'currency') {
+        return { ...event, [field]: value.toUpperCase().slice(0, 6) };
+      }
+      return { ...event, [field]: value };
+    });
+    syncEvents(updated);
+  };
+
+  const removeManualEvent = (index: number) => {
+    const updated = localSelectedEvents.filter((_, idx) => idx !== index);
+    syncEvents(updated);
+  };
+
+  const duplicateManualEvent = (index: number) => {
+    const source = localSelectedEvents[index];
+    if (!source) return;
+
+    const updated = [...localSelectedEvents];
+    updated.splice(index + 1, 0, {
+      ...source,
+      title: source.title,
+    });
+    syncEvents(updated);
+  };
+
   useEffect(() => {
-    setImpactFilter('all');
-    setCurrencyFilter('all');
-  }, [date]);
+    if (hasNews && localSelectedEvents.length === 0) {
+      const starter = [createEmptyEvent()];
+      setLocalSelectedEvents(starter);
+      if (onMultiNewsSelect) onMultiNewsSelect(starter);
+    }
+  }, [hasNews]);
 
   return (
-    <div className="space-y-3 p-4 rounded-xl border border-border bg-muted/20">
-      <div className="flex items-center gap-2">
-        <NewsIcon className="h-4 w-4 text-muted-foreground" />
-        <Label className="text-sm font-medium text-foreground">Economic News</Label>
+    <div className="space-y-3 p-3 sm:p-3.5 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg border border-border/60 bg-background/30 flex items-center justify-center">
+            <NewsIcon className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <Label className="text-xs sm:text-sm font-semibold font-display text-foreground">Economic News</Label>
+        </div>
+        <span className="text-[10px] sm:text-xs px-2 py-1 rounded-md border border-border/60 bg-background/30 text-muted-foreground">
+          Optional
+        </span>
       </div>
       
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex justify-center">
+        <div className="w-full max-w-md grid grid-cols-2 gap-1.5 rounded-xl border border-border/60 bg-background/25 p-1">
         <button 
           type="button" 
           onClick={() => onHasNewsChange(true)} 
           className={cn(
-            "h-10 rounded-lg text-sm font-medium transition-all border flex items-center justify-center gap-2", 
+            "h-8.5 sm:h-9 rounded-lg text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
             hasNews 
-              ? "bg-pnl-positive/15 text-pnl-positive border-pnl-positive/30" 
-              : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+              ? "bg-[#9b8cff] text-white shadow-sm" 
+              : "text-muted-foreground hover:bg-muted/55 hover:text-foreground"
           )}
         >
-          <Check className="h-4 w-4" />
+          <Check className="h-3.5 w-3.5" />
           Yes
         </button>
         <button 
@@ -283,207 +215,143 @@ export function NewsEventSelector({
             if (onMultiNewsSelect) onMultiNewsSelect([]);
           }} 
           className={cn(
-            "h-10 rounded-lg text-sm font-medium transition-all border flex items-center justify-center gap-2", 
+            "h-8.5 sm:h-9 rounded-lg text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
             !hasNews 
-              ? "bg-primary/10 text-primary border-primary/20" 
-              : "bg-secondary text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+              ? "bg-[#9b8cff] text-white shadow-sm" 
+              : "text-muted-foreground hover:bg-muted/55 hover:text-foreground"
           )}
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
           No
         </button>
+        </div>
       </div>
 
       {hasNews && (
-        <div className="space-y-3 pt-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-          {!date ? (
-            <p className="text-sm text-muted-foreground">Please select a date first</p>
-          ) : isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading news events...
-            </div>
-          ) : error ? (
-            <div className="flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              {error}
-            </div>
-          ) : newsEvents.length === 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">No news events found for this date</p>
-              {/* Fallback to manual impact selection */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Impact Level</Label>
-                <Select 
-                  value={newsImpact || ''} 
-                  onValueChange={(value) => onNewsSelect('', value)}
-                >
-                  <SelectTrigger className="h-9 bg-background/50 border-border/50 text-sm">
-                    <SelectValue placeholder="Select impact" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {NEWS_IMPACTS.map(impact => (
-                      <SelectItem key={impact.value} value={impact.value}>
-                        <span className={cn("font-medium", impact.color)}>{impact.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div className="space-y-4 pt-1 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+          <div className="flex flex-wrap gap-2">
+            {QUICK_EVENT_TEMPLATES.map((template) => (
+              <button
+                key={`${template.title}-${template.currency}`}
+                type="button"
+                onClick={() => addTemplateEvent(template)}
+                className="h-8 px-2.5 rounded-lg border border-border/60 bg-background/25 hover:bg-muted/50 text-xs text-foreground/90"
+              >
+                {template.title}
+                <span className="ml-1.5 text-muted-foreground">• {template.currency}</span>
+              </button>
+            ))}
+          </div>
+
+          {localSelectedEvents.length === 0 ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addManualEvent}
+              className="h-10 rounded-xl border-border/60 bg-background/30 hover:bg-muted/45"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add First News Event
+            </Button>
           ) : (
             <div className="space-y-3">
-              {/* Selected Events Display */}
-              {localSelectedEvents.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Selected Events ({localSelectedEvents.length})</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {localSelectedEvents.map((event, idx) => (
-                      <div 
-                        key={idx}
-                        className={cn(
-                          "flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs",
-                          getImpactBgColor(event.impact)
-                        )}
+              {localSelectedEvents.map((event, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-border/60 bg-background/35 p-3 space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Event {idx + 1}
+                    </Label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => duplicateManualEvent(idx)}
+                        className="h-7 w-7 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center"
+                        title="Duplicate event"
                       >
-                        <span className={cn("font-medium", getImpactColor(event.impact))}>
-                          {event.title}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeSelectedEvent(event.title)}
-                          className="p-0.5 hover:bg-foreground/10 rounded"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeManualEvent(idx)}
+                        className="h-7 w-7 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center"
+                        title="Remove event"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2.5 md:grid-cols-6">
+                    <div className="md:col-span-3 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">News Event</Label>
+                      <Input
+                        value={event.title || ''}
+                        onChange={(e) => updateManualEvent(idx, 'title', e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addManualEvent(idx);
+                          }
+                        }}
+                        placeholder="e.g. Non-Farm Payrolls"
+                        className="h-9 bg-background/70 border-border/60 text-sm"
+                      />
+                    </div>
+
+                    <div className="md:col-span-1 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Impact</Label>
+                      <Select
+                        value={event.impact || ''}
+                        onValueChange={(value) => updateManualEvent(idx, 'impact', value)}
+                      >
+                        <SelectTrigger className="h-9 bg-background/70 border-border/60 text-sm">
+                          <SelectValue placeholder="Select impact" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-border">
+                          {NEWS_IMPACTS.map((impact) => (
+                            <SelectItem key={impact.value} value={impact.value}>
+                              <span className={cn('font-medium', impact.color)}>{impact.label}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="md:col-span-1 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Time</Label>
+                      <Input
+                        type="time"
+                        value={event.time || ''}
+                        onChange={(e) => updateManualEvent(idx, 'time', e.target.value)}
+                        className="h-9 bg-background/70 border-border/60 text-sm"
+                      />
+                    </div>
+
+                    <div className="md:col-span-1 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Currency</Label>
+                      <Input
+                        value={event.currency || ''}
+                        onChange={(e) => updateManualEvent(idx, 'currency', e.target.value)}
+                        placeholder="e.g. USD"
+                        className="h-9 bg-background/70 border-border/60 uppercase text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
-              )}
+              ))}
 
-              {/* Filters */}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Filter className="h-3 w-3" />
-                <span>Filter by:</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Select value={impactFilter} onValueChange={setImpactFilter}>
-                  <SelectTrigger className="h-8 bg-background/50 border-border/50 text-xs">
-                    <SelectValue placeholder="Impact" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="all">All Impacts</SelectItem>
-                    <SelectItem value="high">
-                      <span className="text-red-500 font-medium">High</span>
-                    </SelectItem>
-                    <SelectItem value="medium">
-                      <span className="text-orange-500 font-medium">Medium</span>
-                    </SelectItem>
-                    <SelectItem value="low">
-                      <span className="text-yellow-500 font-medium">Low</span>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-                  <SelectTrigger className="h-8 bg-background/50 border-border/50 text-xs">
-                    <SelectValue placeholder="Currency" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border max-h-[200px]">
-                    <SelectItem value="all">All Currencies</SelectItem>
-                    {availableCurrencies.map((currency, idx) => (
-                      <SelectItem key={currency} value={currency}>
-                        <span className={idx < POPULAR_CURRENCIES.filter(c => availableCurrencies.includes(c)).length ? 'font-medium' : ''}>
-                          {currency}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* News Event Selector */}
-              <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">
-                  Add News Event
-                  {filteredEvents.length !== newsEvents.length && (
-                    <span className="text-xs ml-1">({filteredEvents.length} of {newsEvents.length})</span>
-                  )}
-                </Label>
-                <Select 
-                  value=""
-                  onValueChange={handleNewsSelect}
-                >
-                  <SelectTrigger className="h-9 bg-background/50 border-border/50 text-sm">
-                    <SelectValue placeholder="Select news event to add" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border max-h-[300px]">
-                    {filteredEvents.length === 0 ? (
-                      <div className="px-2 py-3 text-sm text-muted-foreground text-center">
-                        No events match filters
-                      </div>
-                    ) : (
-                      <>
-                        {groupedEvents.high.length > 0 && (
-                          <>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-red-500 uppercase">High Impact</div>
-                            {groupedEvents.high.map(event => {
-                              const isSelected = localSelectedEvents.some(e => e.title === event.title);
-                              return (
-                                <SelectItem key={event.id} value={event.title} className={isSelected ? 'bg-primary/10' : ''}>
-                                  <div className="flex items-center gap-2">
-                                    {isSelected && <Check className="h-3 w-3 text-primary" />}
-                                    <span className="text-red-500 text-xs">{event.time}</span>
-                                    <span className="font-medium">{event.title}</span>
-                                    <span className="text-muted-foreground text-xs">({event.currency})</span>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                          </>
-                        )}
-                        {groupedEvents.medium.length > 0 && (
-                          <>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-orange-500 uppercase mt-1">Medium Impact</div>
-                            {groupedEvents.medium.map(event => {
-                              const isSelected = localSelectedEvents.some(e => e.title === event.title);
-                              return (
-                                <SelectItem key={event.id} value={event.title} className={isSelected ? 'bg-primary/10' : ''}>
-                                  <div className="flex items-center gap-2">
-                                    {isSelected && <Check className="h-3 w-3 text-primary" />}
-                                    <span className="text-orange-500 text-xs">{event.time}</span>
-                                    <span className="font-medium">{event.title}</span>
-                                    <span className="text-muted-foreground text-xs">({event.currency})</span>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                          </>
-                        )}
-                        {groupedEvents.low.length > 0 && (
-                          <>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-yellow-500 uppercase mt-1">Low Impact</div>
-                            {groupedEvents.low.map(event => {
-                              const isSelected = localSelectedEvents.some(e => e.title === event.title);
-                              return (
-                                <SelectItem key={event.id} value={event.title} className={isSelected ? 'bg-primary/10' : ''}>
-                                  <div className="flex items-center gap-2">
-                                    {isSelected && <Check className="h-3 w-3 text-primary" />}
-                                    <span className="text-yellow-500 text-xs">{event.time}</span>
-                                    <span className="font-medium">{event.title}</span>
-                                    <span className="text-muted-foreground text-xs">({event.currency})</span>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addManualEvent}
+                className="h-10 rounded-xl border-border/60 bg-background/30 hover:bg-muted/45"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Another Event
+              </Button>
             </div>
           )}
         </div>

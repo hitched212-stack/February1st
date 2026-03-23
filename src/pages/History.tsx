@@ -1478,7 +1478,7 @@ export default function History() {
         }}
       >
         <DialogContent 
-          className="max-w-4xl sm:max-h-[90vh] p-0 gap-0 sm:overflow-hidden"
+          className="max-w-6xl xl:max-w-[76rem] sm:max-h-[90vh] p-0 gap-0 sm:overflow-hidden"
           hideCloseButton
           fullScreenOnMobile
         >

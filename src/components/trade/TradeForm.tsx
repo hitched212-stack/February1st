@@ -17,13 +17,11 @@ import { format } from 'date-fns';
 import { ImageUpload } from './ImageUpload';
 import { NewsEventSelector } from './NewsEventSelector';
 import { cn } from '@/lib/utils';
-import { Calendar, Loader2, X, Plus, Meh, Frown, Smile, Check, XIcon, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, X, Plus, Meh, Frown, Smile, Check, XIcon, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { z } from 'zod';
 import { ALL_TIMEFRAMES, getFilteredTimeframes, getTimeframeLabel } from '@/lib/timeframes';
-import { TradeTypeSwitch } from '@/components/ui/TradeTypeSwitch';
-import { TradeStatusSwitch } from '@/components/ui/TradeStatusSwitch';
 type TabType = 'general' | 'chart-analysis' | 'pre-market-forecast' | 'post-market-forecast' | 'emotions';
 
 // Validation schema for trade form
@@ -577,6 +575,14 @@ export function TradeForm({
       [name]: value
     }));
   };
+  const fillCurrentDateTime = () => {
+    const now = new Date();
+    setFormData(prev => ({
+      ...prev,
+      date: format(now, 'yyyy-MM-dd'),
+      entryTime: format(now, 'HH:mm')
+    }));
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.symbol.trim()) {
@@ -856,182 +862,212 @@ export function TradeForm({
           
           {/* GENERAL TAB */}
           {activeTab === 'general' && <div className="space-y-5">
-            {/* Header Section - Redesigned */}
-            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {/* Trade Type */}
-                <div className="space-y-2.5">
-                  <span className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Trade Type</span>
-                  <TradeTypeSwitch
-                    isPaperTrade={formData.isPaperTrade}
-                    noTradeTaken={formData.noTradeTaken}
-                    onChange={(isPaperTrade, noTradeTaken) => 
-                      setFormData(p => ({ ...p, isPaperTrade, noTradeTaken }))
-                    }
-                  />
-                </div>
-
-                {/* Status */}
-                <div className="space-y-2.5">
-                  <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Status</Label>
-                  <TradeStatusSwitch
-                    isOpen={formData.status === 'open'}
-                    onChange={(isOpen) => setFormData(p => ({ ...p, status: isOpen ? 'open' : 'closed' }))}
-                  />
-                </div>
-
-                {/* Direction */}
-                <div className="space-y-2.5">
-                  <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Direction</Label>
-                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-muted/40 p-1">
-                    {/* Sliding background */}
-                    <div
-                      className={cn(
-                        "absolute top-1 bottom-1 rounded-lg pointer-events-none shadow-md transition-all duration-500",
-                        formData.direction === 'long' 
-                          ? "border border-pnl-positive/30 bg-gradient-to-br from-pnl-positive/15 to-pnl-positive/5" 
-                          : "border border-pnl-negative/30 bg-gradient-to-br from-pnl-negative/15 to-pnl-negative/5"
-                      )}
-                      style={{
-                        width: "calc(50% - 0.5rem)",
-                        left: formData.direction === 'long' ? "0.25rem" : "calc(50% + 0.25rem)",
-                      }}
-                    />
-                    
-                    {/* Buttons */}
-                    <div className="flex gap-0 w-full relative z-10">
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData(p => ({ ...p, direction: 'long' }))} 
-                        className={cn(
-                          "flex-1 flex items-center justify-center h-8 px-2 text-xs font-semibold transition-colors duration-500 rounded-lg",
-                          formData.direction === 'long' 
-                            ? "text-pnl-positive" 
-                            : "text-muted-foreground hover:text-foreground/80"
-                        )}
-                      >
-                        Buy
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData(p => ({ ...p, direction: 'short' }))} 
-                        className={cn(
-                          "flex-1 flex items-center justify-center h-8 px-2 text-xs font-semibold transition-colors duration-500 rounded-lg",
-                          formData.direction === 'short' 
-                            ? "text-pnl-negative" 
-                            : "text-muted-foreground hover:text-foreground/80"
-                        )}
-                      >
-                        Sell
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Date & Time */}
-                <div className="space-y-2.5">
-                  <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Date & Time</Label>
-                  <div className="relative flex gap-0 rounded-xl overflow-hidden border border-border/50 bg-background/90 p-1.5">
-                    <div className="flex gap-0 w-full relative z-10">
-                      <input 
-                        id="date" 
-                        name="date" 
-                        type="date" 
-                        value={formData.date} 
-                        onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} 
-                        className="flex-1 h-7 bg-transparent text-xs font-medium px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
-                      />
-                      <div className="w-px bg-border/50 my-1" />
-                      <input 
-                        id="entryTime" 
-                        name="entryTime" 
-                        type="time" 
-                        value={formData.entryTime} 
-                        onChange={e => setFormData(p => ({ ...p, entryTime: e.target.value }))} 
-                        className="flex-1 h-7 bg-transparent text-xs font-medium px-2 text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Core Trade Entry - Redesigned */}
+            {/* Essential Quick Log */}
             <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
               <div className="space-y-4">
-                {/* Section Header */}
                 <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Trade Entry</h3>
+                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Quick Log</h3>
                   <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent" />
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Essential only</span>
                 </div>
-                
-                <div className="grid grid-cols-5 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="symbol" className="text-[11px] font-bold font-display text-foreground/70">Symbol *</Label>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-rows-[1.25rem_2.25rem] gap-2">
+                    <div className="h-5 flex items-center">
+                      <Label htmlFor="symbol" className="text-[11px] leading-none font-bold font-display text-foreground/70">Symbol *</Label>
+                    </div>
                     <Input id="symbol" name="symbol" value={formData.symbol} onChange={e => setFormData(p => ({ ...p, symbol: e.target.value.toUpperCase() }))} placeholder="AAPL" className="h-9 bg-background/90 border border-border/50 rounded-xl text-sm font-semibold text-foreground placeholder:text-muted-foreground/50 uppercase focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="entryPrice" className="text-[11px] font-bold font-display text-foreground/70">Entry</Label>
-                    <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stopLoss" className="text-[11px] font-bold font-display text-foreground/70">SL</Label>
-                    <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="takeProfit" className="text-[11px] font-bold font-display text-foreground/70">TP</Label>
-                    <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lotSize" className="text-[11px] font-bold font-display text-foreground/70">Lot Size</Label>
-                    <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                  </div>
-                </div>
 
-              </div>
-            </div>
-
-            {/* Risk & Loss - Redesigned */}
-            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
-              <div className="space-y-4">
-                {/* Section Header */}
-                <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Risk & Loss</h3>
-                  <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="pnlAmount" className="text-[11px] font-bold font-display text-foreground/70">Gross P&L ({currencySymbol})</Label>
+                  <div className="grid grid-rows-[1.25rem_2.25rem] gap-2">
+                    <div className="h-5 flex items-center">
+                      <Label htmlFor="pnlAmount" className="text-[11px] leading-none font-bold font-display text-foreground/70">Gross P&L ({currencySymbol})</Label>
+                    </div>
                     <Input id="pnlAmount" name="pnlAmount" type="number" step="0.01" value={formData.pnlAmount} onChange={handleChange} placeholder="+500" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stopLossPips" className="text-[11px] font-bold font-display text-foreground/70">SL Pips</Label>
-                    <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="15" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+
+                  <div className="grid grid-rows-[1.25rem_2.25rem] gap-2">
+                    <div className="flex items-center justify-between h-5">
+                      <Label className="text-[11px] font-bold font-display text-foreground/70 leading-none">Date & Time</Label>
+                      <button
+                        type="button"
+                        onClick={fillCurrentDateTime}
+                        className="text-[11px] leading-none font-semibold text-violet-400 hover:text-violet-300 transition-colors"
+                      >
+                        Auto-fill
+                      </button>
+                    </div>
+                    <div className="relative flex h-9 rounded-xl border border-border/50 bg-background/90 overflow-hidden shadow-sm">
+                      <div className="pointer-events-none absolute left-1/2 top-1 bottom-1 w-px bg-border/40 -translate-x-1/2" />
+
+                      <div className="flex-1 flex items-center px-3">
+                        <input
+                          id="date"
+                          name="date"
+                          type="date"
+                          value={formData.date}
+                          onChange={e => setFormData(p => ({ ...p, date: e.target.value }))}
+                          className="w-full h-7 bg-transparent text-[12px] font-semibold text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="flex-1 flex items-center px-3">
+                        <input
+                          id="entryTime"
+                          name="entryTime"
+                          type="time"
+                          value={formData.entryTime}
+                          onChange={e => setFormData(p => ({ ...p, entryTime: e.target.value }))}
+                          className="w-full h-7 bg-transparent text-[12px] font-semibold text-foreground focus:outline-none rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 dark:[&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="holdingTime" className="text-[11px] font-bold font-display text-foreground/70">Hold Time</Label>
-                    <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="2h 30m" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-2.5 md:col-span-1">
+                    <span className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Trade Taken</span>
+                    <div className="relative flex gap-0 rounded-2xl overflow-hidden border border-border/50 bg-muted/35 p-1 h-12">
+                      <div
+                        className={cn(
+                          'absolute top-1 bottom-1 rounded-xl pointer-events-none shadow-sm transition-all duration-300',
+                          formData.noTradeTaken
+                            ? 'border border-amber-500/40 bg-amber-500/15'
+                            : 'border border-sky-500/40 bg-sky-500/15'
+                        )}
+                        style={{
+                          width: 'calc(50% - 0.5rem)',
+                          left: formData.noTradeTaken ? 'calc(50% + 0.25rem)' : '0.25rem',
+                        }}
+                      />
+                      <div className="relative z-10 flex w-full gap-0">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(p => ({ ...p, isPaperTrade: false, noTradeTaken: false }))}
+                          className={cn(
+                            'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                            !formData.noTradeTaken ? 'text-sky-400' : 'text-muted-foreground hover:text-foreground/80'
+                          )}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(p => ({ ...p, isPaperTrade: false, noTradeTaken: true }))}
+                          className={cn(
+                            'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                            formData.noTradeTaken ? 'text-amber-400' : 'text-muted-foreground hover:text-foreground/80'
+                          )}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="riskRewardRatio" className="text-[11px] font-bold font-display text-foreground/70">R:R</Label>
-                    <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="1:2" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
+
+                  <div className="space-y-2.5 md:col-span-1">
+                    <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Status</Label>
+                    <div className="relative flex gap-0 rounded-2xl overflow-hidden border border-border/50 bg-muted/35 p-1 h-12">
+                      <div
+                        className={cn(
+                          'absolute top-1 bottom-1 rounded-xl pointer-events-none shadow-sm transition-all duration-300',
+                          formData.status === 'open'
+                            ? 'border border-emerald-500/40 bg-emerald-500/15'
+                            : 'border border-zinc-400/40 bg-zinc-400/10'
+                        )}
+                        style={{
+                          width: 'calc(50% - 0.5rem)',
+                          left: formData.status === 'open' ? '0.25rem' : 'calc(50% + 0.25rem)',
+                        }}
+                      />
+                      <div className="relative z-10 flex w-full gap-0">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(p => ({ ...p, status: 'open' }))}
+                          className={cn(
+                            'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                            formData.status === 'open' ? 'text-emerald-400' : 'text-muted-foreground hover:text-foreground/80'
+                          )}
+                        >
+                          Open
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(p => ({ ...p, status: 'closed' }))}
+                          className={cn(
+                            'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                            formData.status === 'closed' ? 'text-zinc-300' : 'text-muted-foreground hover:text-foreground/80'
+                          )}
+                        >
+                          Closed
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="space-y-2.5 md:col-span-1">
+                    <Label className="text-[11px] font-bold font-display text-foreground/70 uppercase tracking-wider">Direction</Label>
+                    <div className="relative flex gap-0 rounded-2xl overflow-hidden border border-border/50 bg-muted/35 p-1 h-12">
+                      <div
+                        className={cn(
+                          'absolute top-1 bottom-1 rounded-xl pointer-events-none shadow-sm transition-all duration-300',
+                          formData.direction === 'long'
+                            ? 'border border-pnl-positive/40 bg-pnl-positive/15'
+                            : 'border border-pnl-negative/40 bg-pnl-negative/15',
+                          formData.direction === 'long'
+                            ? 'left-[0.25rem]'
+                            : 'left-[calc(50%+0.25rem)]'
+                        )}
+                        style={{
+                          width: 'calc(50% - 0.5rem)',
+                        }}
+                      />
+                      <div className="flex gap-0 w-full relative z-10">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(p => ({ ...p, direction: 'long' }))}
+                          className={cn(
+                            'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                            formData.direction === 'long'
+                              ? 'text-pnl-positive'
+                              : 'text-muted-foreground hover:text-foreground/80'
+                          )}
+                        >
+                          Buy
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(p => ({ ...p, direction: 'short' }))}
+                          className={cn(
+                            'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                            formData.direction === 'short'
+                              ? 'text-pnl-negative'
+                              : 'text-muted-foreground hover:text-foreground/80'
+                          )}
+                        >
+                          Sell
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
 
-            {/* Advanced Details Toggle - Redesigned */}
+            {/* Optional Details Toggle */}
             <button
               type="button"
               onClick={() => setShowAdvancedOverview(prev => !prev)}
               className="group w-full min-h-14 px-5 py-3 rounded-2xl border border-border/40 bg-gradient-to-br from-muted/30 to-muted/10 hover:from-muted/40 hover:to-muted/20 text-foreground flex items-center justify-between gap-4 transition-all duration-300 hover:border-border/60 shadow-sm hover:shadow-md"
             >
               <div className="text-left">
-                <p className="text-sm font-bold font-display">Advanced details</p>
+                <p className="text-sm font-bold font-display">Optional details</p>
                 <p className="text-[11px] text-muted-foreground/80 leading-tight mt-1">
                   {showAdvancedOverview
-                    ? 'Showing rules, performance, strategy, mistakes & notes'
-                    : 'Hidden: rules, performance, strategy, mistakes & notes'}
+                    ? 'Showing trade setup, risk metrics, rules, strategy, mistakes & notes'
+                    : 'Hidden by default to reduce friction'}
                 </p>
               </div>
               <div className="flex items-center gap-2.5 text-muted-foreground group-hover:text-foreground transition-colors">
@@ -1061,38 +1097,117 @@ export function TradeForm({
                 )}
               >
 
+            {/* Trade Setup - Optional */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Trade Setup (Optional)</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="entryPrice" className="text-[11px] font-bold font-display text-foreground/70">Entry</Label>
+                    <Input id="entryPrice" name="entryPrice" type="number" step="0.01" value={formData.entryPrice} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stopLoss" className="text-[11px] font-bold font-display text-foreground/70">SL</Label>
+                    <Input id="stopLoss" name="stopLoss" type="number" step="0.01" value={formData.stopLoss} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="takeProfit" className="text-[11px] font-bold font-display text-foreground/70">TP</Label>
+                    <Input id="takeProfit" name="takeProfit" type="number" step="0.01" value={formData.takeProfit} onChange={handleChange} placeholder="0.00" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lotSize" className="text-[11px] font-bold font-display text-foreground/70">Lot Size</Label>
+                    <Input id="lotSize" name="lotSize" type="number" step="0.01" value={formData.lotSize} onChange={handleChange} placeholder="0" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Risk Metrics - Optional */}
+            <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold font-display text-foreground uppercase tracking-wide">Risk Metrics (Optional)</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="stopLossPips" className="text-[11px] font-bold font-display text-foreground/70">SL Pips</Label>
+                    <Input id="stopLossPips" name="stopLossPips" type="number" step="0.1" value={formData.stopLossPips} onChange={handleChange} placeholder="15" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 tabular-nums text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="holdingTime" className="text-[11px] font-bold font-display text-foreground/70">Hold Time</Label>
+                    <Input id="holdingTime" name="holdingTime" value={formData.holdingTime} onChange={handleChange} placeholder="2h 30m" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="riskRewardRatio" className="text-[11px] font-bold font-display text-foreground/70">R:R</Label>
+                    <Input id="riskRewardRatio" name="riskRewardRatio" value={formData.riskRewardRatio} onChange={handleChange} placeholder="1:2" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Followed Rules & Performance Assessment Combined - Redesigned */}
             <div className="p-5 rounded-2xl border border-border/40 bg-gradient-to-br from-card/95 to-card/70 dark:from-card/90 dark:to-card/60 backdrop-blur-xl shadow-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Followed Rules - Left Column */}
-                <div className="space-y-3 rounded-xl border border-border/40 bg-background/30 p-4">
+                <div className="space-y-3.5 rounded-2xl border border-border/45 bg-background/25 p-4 md:p-5">
                   <div className="flex items-center justify-between gap-2">
-                    <Label className="text-[11px] font-bold font-display uppercase tracking-wider text-foreground/70">Followed Rules</Label>
-                    <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 bg-muted/50 rounded-md">
+                    <Label className="text-[11px] font-bold font-display uppercase tracking-[0.16em] text-foreground/75">Followed Rules</Label>
+                    <span className="text-[10px] font-semibold text-muted-foreground px-2.5 py-1 bg-muted/50 rounded-lg border border-border/50 tabular-nums">
                       {formData.followedRules ? `${formData.followedRulesList.length} selected` : `${formData.brokenRules.length} broken`}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 rounded-xl border border-border/50 bg-muted/40 p-1.5">
-                    <button type="button" onClick={() => setFormData(p => ({
-                      ...p,
-                      followedRules: true
-                    }))} className={cn("h-8 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-1.5 font-semibold shadow-sm", formData.followedRules ? "bg-gradient-to-br from-pnl-positive/20 to-pnl-positive/10 text-pnl-positive border-pnl-positive/50" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-background hover:text-foreground")}>
-                      <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                      Yes
-                    </button>
-                    <button type="button" onClick={() => setFormData(p => ({
-                      ...p,
-                      followedRules: false
-                    }))} className={cn("h-8 rounded-lg text-xs transition-all duration-200 border flex items-center justify-center gap-1.5 font-semibold shadow-sm", !formData.followedRules ? "bg-gradient-to-br from-pnl-negative/20 to-pnl-negative/10 text-pnl-negative border-pnl-negative/50" : "bg-background/80 text-muted-foreground border-border/60 hover:bg-background hover:text-foreground")}>
-                      <XIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
-                      No
-                    </button>
+                  <div className="relative flex gap-0 rounded-2xl overflow-hidden border border-border/50 bg-muted/35 p-1 h-12">
+                    <div
+                      className={cn(
+                        'absolute top-1 bottom-1 rounded-xl pointer-events-none shadow-sm transition-all duration-300',
+                        formData.followedRules
+                          ? 'border border-sky-500/40 bg-sky-500/15'
+                          : 'border border-zinc-400/40 bg-zinc-400/10'
+                      )}
+                      style={{
+                        width: 'calc(50% - 0.5rem)',
+                        left: formData.followedRules ? '0.25rem' : 'calc(50% + 0.25rem)',
+                      }}
+                    />
+                    <div className="relative z-10 flex w-full gap-0">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(p => ({
+                          ...p,
+                          followedRules: true
+                        }))}
+                        className={cn(
+                          'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                          formData.followedRules ? 'text-sky-400' : 'text-muted-foreground hover:text-foreground/80'
+                        )}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(p => ({
+                          ...p,
+                          followedRules: false
+                        }))}
+                        className={cn(
+                          'flex-1 flex items-center justify-center h-10 px-2 text-sm font-semibold rounded-xl transition-colors duration-300',
+                          !formData.followedRules ? 'text-zinc-300' : 'text-muted-foreground hover:text-foreground/80'
+                        )}
+                      >
+                        No
+                      </button>
+                    </div>
                   </div>
 
                   {formData.followedRules && (
-                    <div className="space-y-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                      <Label className="text-[10px] font-medium text-muted-foreground">Which rules did you follow?</Label>
+                    <div className="space-y-2.5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/90">Which rules did you follow?</Label>
                       {tradingRules.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {tradingRules.map((rule, index) => {
@@ -1110,10 +1225,10 @@ export function TradeForm({
                                   }));
                                 }}
                                 className={cn(
-                                  "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center gap-2 text-left font-medium shadow-sm",
+                                  "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center gap-2 text-left font-medium",
                                   isSelected
-                                    ? "bg-pnl-positive/10 text-pnl-positive border-pnl-positive/40"
-                                    : "bg-background/60 text-foreground border-border/60 hover:bg-background"
+                                    ? "bg-pnl-positive/12 text-pnl-positive border-pnl-positive/45 shadow-sm"
+                                    : "bg-background/60 text-foreground border-border/60 hover:bg-background hover:border-border"
                                 )}
                               >
                                 <div className={cn(
@@ -1136,8 +1251,8 @@ export function TradeForm({
                   )}
 
                   {!formData.followedRules && (
-                    <div className="space-y-2 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                      <Label className="text-[10px] font-medium text-muted-foreground">Which rules did you break?</Label>
+                    <div className="space-y-2.5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/90">Which rules did you break?</Label>
                       {(() => {
                         const availableRules = tradingRules.filter(rule => !formData.followedRulesList.includes(rule));
 
@@ -1174,10 +1289,10 @@ export function TradeForm({
                                     }));
                                   }}
                                   className={cn(
-                                    "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center gap-2 text-left font-medium shadow-sm",
+                                    "h-9 px-3 rounded-lg text-xs transition-all duration-200 border flex items-center gap-2 text-left font-medium",
                                     isSelected
-                                      ? "bg-pnl-negative/10 text-pnl-negative border-pnl-negative/40"
-                                      : "bg-background/60 text-foreground border-border/60 hover:bg-background"
+                                      ? "bg-pnl-negative/12 text-pnl-negative border-pnl-negative/45 shadow-sm"
+                                      : "bg-background/60 text-foreground border-border/60 hover:bg-background hover:border-border"
                                   )}
                                 >
                                   <div className={cn(
@@ -1198,10 +1313,10 @@ export function TradeForm({
                 </div>
 
                 {/* Performance Grade, Category & Strategy - Right Column - Redesigned */}
-                <div className="space-y-3 rounded-xl border border-border/40 bg-background/30 p-4">
+                <div className="space-y-3.5 rounded-2xl border border-border/45 bg-background/25 p-4 md:p-5">
                   {/* Performance Grade */}
                   <div className="space-y-2.5">
-                    <Label className="text-[11px] font-bold font-display uppercase tracking-wider text-foreground/70">Performance Grade</Label>
+                    <Label className="text-[11px] font-bold font-display uppercase tracking-[0.16em] text-foreground/75">Performance Grade</Label>
                     <div className="grid grid-cols-3 gap-2">
                       {[1, 2, 3].map(grade => {
                         const isSelected = parseInt(formData.performanceGrade) === grade;
@@ -1217,7 +1332,7 @@ export function TradeForm({
                             type="button" 
                             onClick={() => setFormData(p => ({ ...p, performanceGrade: grade.toString() }))} 
                             className={cn(
-                              "h-10 rounded-lg text-sm font-bold transition-all duration-200 border shadow-sm", 
+                              "h-11 rounded-xl text-sm font-bold transition-all duration-200 border", 
                               isSelected ? `${colors.selected} ${colors.selectedBorder} ${colors.text}` : "bg-background/60 text-muted-foreground border-border/60 hover:bg-background hover:text-foreground"
                             )}
                           >
@@ -1230,9 +1345,9 @@ export function TradeForm({
 
                   {/* Category */}
                   <div className="space-y-2">
-                    <Label className="text-[11px] font-bold font-display text-foreground/70">Category</Label>
+                    <Label className="text-[11px] font-bold font-display text-foreground/75">Category</Label>
                     <Select value={formData.category} onValueChange={(value: TradeCategory) => setFormData(p => ({ ...p, category: value }))}>
-                      <SelectTrigger className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground text-sm font-semibold transition-all shadow-sm [&>svg]:hidden">
+                      <SelectTrigger className="h-10 bg-background/85 border border-border/55 rounded-xl text-foreground text-sm font-semibold transition-all shadow-sm [&>svg]:hidden">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1243,8 +1358,8 @@ export function TradeForm({
 
                   {/* Strategy */}
                   <div className="space-y-2">
-                    <Label htmlFor="strategy" className="text-[11px] font-bold font-display text-foreground/70">Strategy</Label>
-                    <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-9 bg-background/90 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
+                    <Label htmlFor="strategy" className="text-[11px] font-bold font-display text-foreground/75">Strategy</Label>
+                    <Input id="strategy" name="strategy" value={formData.strategy} onChange={handleChange} placeholder="e.g., Breakout" className="h-10 bg-background/85 border border-border/55 rounded-xl text-foreground placeholder:text-muted-foreground/50 text-sm font-semibold focus:border-ring/60 focus:ring-2 focus:ring-ring/20 transition-all shadow-sm" />
                   </div>
                 </div>
               </div>
@@ -1381,11 +1496,7 @@ export function TradeForm({
                   hasNews,
                   newsEvents: hasNews ? p.newsEvents : [{ id: crypto.randomUUID(), type: '', impact: '' as NewsImpact | '', time: '', currency: '' }]
                 }))}
-                onNewsSelect={(title, impact) => {
-                  if (!title && !impact) {
-                    setFormData(p => ({ ...p, newsEvents: [] }));
-                  }
-                }}
+                onNewsSelect={() => {}}
                 onMultiNewsSelect={(events) => setFormData(p => ({
                   ...p,
                   newsEvents: events.map((e, idx) => ({
@@ -1415,7 +1526,12 @@ export function TradeForm({
               {/* Chart Before Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                  <span className="text-sm font-semibold text-foreground">Chart Before ({beforeCharts.length})</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-sm font-semibold text-foreground">Chart Before</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50 tabular-nums">
+                      {beforeCharts.length}
+                    </span>
+                  </div>
                   <Button type="button" variant="ghost" size="sm" onClick={addBeforeChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                     <Plus className="h-3.5 w-3.5" />
                     Add Chart
@@ -1469,7 +1585,12 @@ export function TradeForm({
               {/* Chart After Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                  <span className="text-sm font-semibold text-foreground">Chart After ({afterCharts.length})</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-sm font-semibold text-foreground">Chart After</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50 tabular-nums">
+                      {afterCharts.length}
+                    </span>
+                  </div>
                   <Button type="button" variant="ghost" size="sm" onClick={addAfterChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                     <Plus className="h-3.5 w-3.5" />
                     Add Chart
@@ -1517,7 +1638,12 @@ export function TradeForm({
           {/* PRE MARKET FORECAST TAB */}
           {activeTab === 'pre-market-forecast' && <div className="space-y-6">
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                <span className="text-sm font-semibold text-foreground">Pre Market Forecast ({preMarketCharts.length})</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm font-semibold text-foreground">Pre Market Forecast</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50 tabular-nums">
+                    {preMarketCharts.length}
+                  </span>
+                </div>
                 <Button type="button" variant="ghost" size="sm" onClick={addPreMarketChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                   <Plus className="h-3.5 w-3.5" />
                   Add Chart
@@ -1567,7 +1693,12 @@ export function TradeForm({
           {/* POST MARKET FORECAST TAB */}
           {activeTab === 'post-market-forecast' && <div className="space-y-6">
               <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40">
-                <span className="text-sm font-semibold text-foreground">Post Market Review ({postMarketCharts.length})</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm font-semibold text-foreground">Post Market Review</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50 tabular-nums">
+                    {postMarketCharts.length}
+                  </span>
+                </div>
                 <Button type="button" variant="ghost" size="sm" onClick={addPostMarketChart} className="h-8 text-xs gap-1.5 text-foreground hover:bg-background/80 transition-all">
                   <Plus className="h-3.5 w-3.5" />
                   Add Chart

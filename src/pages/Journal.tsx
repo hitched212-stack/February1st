@@ -821,7 +821,7 @@ export default function Journal() {
 
       {/* Trade View Dialog */}
       <Dialog open={!!viewingTrade} onOpenChange={open => !open && setViewingTrade(null)}>
-        <DialogContent fullScreenOnMobile hideCloseButton className="max-w-6xl sm:max-h-[90vh] p-0 sm:overflow-hidden">
+        <DialogContent fullScreenOnMobile hideCloseButton className="max-w-6xl xl:max-w-[76rem] sm:max-h-[90vh] p-0 sm:overflow-hidden">
           {viewingTrade && <TradeViewDialogContent trade={viewingTrade} forecasts={forecasts} currencySymbol={currencySymbol} formatPnl={formatPnl} onClose={() => setViewingTrade(null)} onEdit={tab => {
           setViewingTrade(null);
           navigate(`/edit/${viewingTrade.id}${tab ? `?tab=${tab}` : ''}`);

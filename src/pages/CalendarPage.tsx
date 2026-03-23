@@ -2707,7 +2707,7 @@ export default function CalendarPage() {
 
       {/* Trade View Dialog */}
       <Dialog open={tradeViewOpen} onOpenChange={setTradeViewOpen}>
-        <DialogContent fullScreenOnMobile hideCloseButton className="max-w-4xl sm:max-h-[90vh] p-0 gap-0 sm:overflow-hidden">
+        <DialogContent fullScreenOnMobile hideCloseButton className="max-w-6xl xl:max-w-[76rem] sm:max-h-[90vh] p-0 gap-0 sm:overflow-hidden">
           {selectedTrade && <TradeViewDialogContent trade={selectedTrade} forecasts={{}} currencySymbol={currencySymbol} formatPnl={amount => `${amount >= 0 ? '+' : ''}${currencySymbol}${Math.abs(amount).toLocaleString()}`} onClose={() => setTradeViewOpen(false)} onEdit={tab => {
           setTradeViewOpen(false);
           navigate(`/edit/${selectedTrade.id}${tab ? `?tab=${tab}` : ''}`);

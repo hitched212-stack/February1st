@@ -446,7 +446,7 @@ export function RichTextEditor({
   };
 
   return (
-    <div className="relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm overflow-hidden">
+    <div className="relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm overflow-visible">
       {/* Toolbar */}
       <div className="flex items-center gap-1.5 p-3 bg-muted/35 border-b border-border/60 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible [&>*]:shrink-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden z-10">
         <button

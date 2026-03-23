@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, XCircle, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -284,52 +284,77 @@ export default function BillingSettings({ embedded = false }: BillingSettingsPro
 
         {/* Cancel Subscription - only show if not already cancelling */}
         {isActive && !subscription.cancel_at_period_end && (
-          <div>
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-              Cancel Subscription
-            </h2>
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
-              <div className="p-4">
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                    <XCircle className="h-5 w-5 text-destructive" strokeWidth={1.5} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground">Cancel your subscription</p>
-                    <p className="text-sm text-muted-foreground">
-                      You'll lose access to Pro features at the end of your billing period. Your data will be preserved.
-                    </p>
-                  </div>
-                </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+          <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-4 sm:p-5">
+
+            <div className="relative">
+              <h3 className="text-xl sm:text-2xl font-bold font-display tracking-tight text-foreground">Cancel your subscription</h3>
+              <p className="mt-1 text-sm font-display text-muted-foreground max-w-3xl">
+                You can cancel anytime. Access remains active until the end of your current billing cycle, and all trading data stays safely stored.
+              </p>
+            </div>
+
+            <div className="relative mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-border/50 bg-background/30 p-3.5 sm:p-4">
+                <p className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">What happens next</p>
+                <ul className="mt-2.5 space-y-2 text-sm font-display text-foreground/90">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive/80" />
+                    Pro features stay unlocked until your period ends.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive/80" />
+                    Billing stops automatically afterward.
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive/80" />
+                    Your data and history remain preserved.
+                  </li>
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-border/50 bg-background/30 p-3.5 sm:p-4">
+                <p className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">Access timeline</p>
+                <p className="mt-2 text-xl sm:text-2xl font-bold font-display tracking-tight text-foreground">{renewalDate}</p>
+                <p className="mt-1.5 text-sm font-display text-muted-foreground">
+                  Your subscription will stop on this date.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                <AlertCircle className="h-4 w-4 text-destructive/80 flex-shrink-0" strokeWidth={1.8} />
+                This action can be reversed by resubscribing anytime.
+              </div>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-11 sm:min-w-[240px] rounded-xl border-destructive/45 text-destructive text-sm sm:text-base font-semibold font-display hover:bg-destructive/10 hover:border-destructive/60"
+                  >
+                    Cancel Subscription
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will retain access to Pro features until {renewalDate}.
+                      After that, your subscription will stop. Your data will be preserved.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleCancelSubscription}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Cancel Subscription
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will retain access to Pro features until {renewalDate}.
-                        After that, your account will be downgraded to the free plan. Your data will be preserved.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleCancelSubscription}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Cancel Subscription
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         )}

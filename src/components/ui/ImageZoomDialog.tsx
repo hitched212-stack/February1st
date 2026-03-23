@@ -264,38 +264,40 @@ export function ImageZoomDialog({
   // Desktop view
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent hideCloseButton className="max-w-5xl max-h-[90vh] w-full p-0 bg-background border-border overflow-hidden rounded-xl">
+      <DialogContent hideCloseButton className="w-[92vw] xl:w-full xl:max-w-[84rem] max-h-[92vh] p-0 bg-background/95 border border-border/60 overflow-hidden rounded-2xl shadow-2xl backdrop-blur-xl">
         <div className="relative w-full h-full flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur-sm">
-            <div className="text-sm text-muted-foreground font-medium">
+          <div className="flex items-center justify-between px-4 md:px-5 py-3 border-b border-border/60 bg-gradient-to-b from-background to-background/90">
+            <div className="inline-flex items-center px-2.5 py-1 rounded-md border border-border/60 bg-muted/30 text-sm text-foreground/90 font-medium tabular-nums">
               {currentIndex + 1} / {images.length}
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="h-8 w-8"
+              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Image Container */}
-          <div className="flex-1 overflow-auto flex items-center justify-center bg-muted/30 p-4">
-            <img
-              src={images[currentIndex]}
-              alt={`Image ${currentIndex + 1}`}
-              className="max-w-full max-h-[85vh] object-contain select-none"
-              style={{ 
-                imageRendering: 'auto',
-                WebkitBackfaceVisibility: 'hidden',
-                backfaceVisibility: 'hidden',
-              }}
-              loading="eager"
-              decoding="sync"
-              draggable={false}
-            />
+          <div className="flex-1 overflow-hidden bg-black/35 p-3 md:p-4">
+            <div className="w-full h-full rounded-xl border border-border/60 bg-black/25 backdrop-blur-sm p-2 md:p-3 flex items-center justify-center">
+              <img
+                src={images[currentIndex]}
+                alt={`Image ${currentIndex + 1}`}
+                className="max-w-full max-h-[78vh] object-contain select-none"
+                style={{ 
+                  imageRendering: 'auto',
+                  WebkitBackfaceVisibility: 'hidden',
+                  backfaceVisibility: 'hidden',
+                }}
+                loading="eager"
+                decoding="sync"
+                draggable={false}
+              />
+            </div>
           </div>
 
           {/* Navigation Arrows */}
@@ -305,34 +307,34 @@ export function ImageZoomDialog({
                 variant="ghost"
                 size="icon"
                 onClick={handlePrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-background/80 hover:bg-background shadow-lg border border-border"
+                className="absolute left-5 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/65 hover:bg-black/80 text-white shadow-xl border border-white/15 backdrop-blur-sm"
               >
-                <ChevronLeft className="h-6 w-6" />
+                <ChevronLeft className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-background/80 hover:bg-background shadow-lg border border-border"
+                className="absolute right-5 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/65 hover:bg-black/80 text-white shadow-xl border border-white/15 backdrop-blur-sm"
               >
-                <ChevronRight className="h-6 w-6" />
+                <ChevronRight className="h-5 w-5" />
               </Button>
             </>
           )}
 
           {/* Thumbnail Navigation */}
           {images.length > 1 && (
-            <div className="p-3 border-t border-border bg-background/95 backdrop-blur-sm">
+            <div className="px-4 py-3 border-t border-border/60 bg-gradient-to-t from-background to-background/90">
               <div className="flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentIndex(idx)}
                     className={cn(
-                      'w-16 h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0',
+                      'w-14 h-10 rounded-lg overflow-hidden border transition-all flex-shrink-0 bg-muted/20',
                       currentIndex === idx
-                        ? 'border-primary ring-2 ring-primary/30 scale-105'
-                        : 'border-border hover:border-muted-foreground/50 opacity-70 hover:opacity-100'
+                        ? 'border-primary ring-2 ring-primary/30 scale-105 opacity-100'
+                        : 'border-border/70 hover:border-muted-foreground/60 opacity-65 hover:opacity-100'
                     )}
                   >
                     <img

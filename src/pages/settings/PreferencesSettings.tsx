@@ -34,15 +34,15 @@ interface ColorRowProps {
 
 function ColorRow({ label, description, value, onChange }: ColorRowProps) {
   return (
-    <div className="group flex items-center justify-between py-4 border-b border-border/40 last:border-0">
+    <div className="group flex items-center justify-between py-3.5 border-b border-border/40 last:border-0">
       <div className="flex-1">
-        <span className="text-sm font-semibold text-foreground">{label}</span>
+        <span className="text-sm font-semibold font-display text-foreground">{label}</span>
         {description && (
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs font-display text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-[11px] px-2.5 py-1 rounded-md border border-border/60 bg-background/60 text-muted-foreground font-mono uppercase tracking-wide">
+        <span className="text-[11px] px-2.5 py-1 rounded-lg border border-border/60 bg-background/60 text-muted-foreground font-mono uppercase tracking-wide">
           {value}
         </span>
         <div className="relative">
@@ -50,10 +50,10 @@ function ColorRow({ label, description, value, onChange }: ColorRowProps) {
             type="color"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 opacity-0 cursor-pointer w-10 h-10"
+            className="absolute inset-0 opacity-0 cursor-pointer w-11 h-11"
           />
           <div
-            className="w-10 h-10 rounded-xl border border-border/50 cursor-pointer shadow-sm transition-all duration-200 group-hover:scale-105"
+            className="w-11 h-11 rounded-xl border border-border/50 cursor-pointer shadow-sm transition-all duration-200 group-hover:scale-105"
             style={{ backgroundColor: value }}
           />
         </div>
@@ -73,10 +73,10 @@ function PresetChip({ preset, isActive, onSelect }: PresetChipProps) {
     <button
       onClick={onSelect}
       className={cn(
-        "flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 text-sm",
+        "flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 text-sm min-w-[130px]",
         isActive
-          ? "border-violet-400/30 bg-violet-500/10 shadow-[0_0_0_1px_rgba(155,140,255,0.25)]"
-          : "border-border/50 bg-transparent hover:bg-muted/50"
+          ? "border-violet-400/35 bg-violet-500/10 shadow-[0_0_0_1px_rgba(155,140,255,0.25)]"
+          : "border-border/50 bg-background/20 hover:bg-muted/35"
       )}
     >
       <div className="flex -space-x-1">
@@ -89,9 +89,9 @@ function PresetChip({ preset, isActive, onSelect }: PresetChipProps) {
           style={{ backgroundColor: preset.lossColor }}
         />
       </div>
-      <span className="text-foreground font-medium">{preset.name}</span>
+      <span className="text-foreground font-semibold font-display">{preset.name}</span>
       {isActive && (
-        <Check className="h-3.5 w-3.5 text-violet-300" strokeWidth={2.2} />
+        <Check className="h-3.5 w-3.5 text-violet-300 ml-auto" strokeWidth={2.2} />
       )}
     </button>
   );
@@ -170,51 +170,51 @@ export default function PreferencesSettings({ embedded = false }: PreferencesSet
         </header>
       )}
 
-      <div className={embedded ? 'max-w-4xl space-y-8' : 'px-4 md:px-6 lg:px-8 max-w-4xl'}>
-        <div className="space-y-6">
+      <div className={embedded ? 'max-w-7xl w-full space-y-6' : 'px-4 md:px-6 lg:px-8 max-w-7xl w-full'}>
+        <div className="space-y-5">
           {/* Theme Section */}
-          <section className="space-y-4 rounded-2xl border border-border/50 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur-sm p-4 sm:p-5">
+          <section className="space-y-4 rounded-3xl border border-border/55 bg-card p-4 sm:p-5">
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Theme</h2>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h2 className="text-lg font-bold font-display tracking-tight text-foreground">Theme</h2>
+              <p className="text-sm font-display text-muted-foreground mt-1">
                 Choose your preferred color scheme
               </p>
             </div>
-            <ThemeSwitch value={preferences.theme} onChange={setTheme} />
+            <div className="rounded-2xl border border-border/50 bg-background/30 p-2 sm:p-3">
+              <ThemeSwitch value={preferences.theme} onChange={setTheme} />
+            </div>
           </section>
 
           {/* Presets Section */}
-          <section className="space-y-4 rounded-2xl border border-border/50 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur-sm p-4 sm:p-5">
+          <section className="space-y-4 rounded-3xl border border-border/55 bg-card p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-foreground">Color Presets</h2>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h2 className="text-lg font-bold font-display tracking-tight text-foreground">Color Presets</h2>
+                <p className="text-sm font-display text-muted-foreground mt-1">
                   Save and apply custom color schemes (synced across devices)
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => setShowCreateDialog(true)}
-                  className="h-8 text-xs gap-1.5 rounded-lg"
+                  className="h-10 text-sm gap-2 rounded-xl font-display"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   Save
                 </Button>
                 {preferences.activePresetId !== 'default' && (
                   <Button
                     variant="ghost"
-                    size="sm"
                     onClick={() => setShowDeleteDialog(true)}
-                    className="h-8 text-xs gap-1.5 rounded-lg text-destructive hover:text-destructive"
+                    className="h-10 px-3 text-sm gap-1.5 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
-                    <Trash className="h-3.5 w-3.5" />
+                    <Trash className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5">
               {preferences.presets.map((preset) => (
                 <PresetChip
                   key={preset.id}
@@ -227,14 +227,14 @@ export default function PreferencesSettings({ embedded = false }: PreferencesSet
           </section>
 
           {/* Colors Section */}
-          <section className="space-y-4 rounded-2xl border border-border/50 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur-sm p-4 sm:p-5">
+          <section className="space-y-4 rounded-3xl border border-border/55 bg-card p-4 sm:p-5">
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Custom Colors</h2>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h2 className="text-lg font-bold font-display tracking-tight text-foreground">Custom Colors</h2>
+              <p className="text-sm font-display text-muted-foreground mt-1">
                 Fine-tune your interface colors
               </p>
             </div>
-            <div className="rounded-xl border border-border/50 bg-background/40 px-4">
+            <div className="rounded-2xl border border-border/50 bg-background/30 px-4">
               <ColorRow
                 label="Profit Color"
                 description="Color for positive P&L values"
@@ -249,10 +249,10 @@ export default function PreferencesSettings({ embedded = false }: PreferencesSet
               />
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="px-2.5 py-1 rounded-md font-semibold border border-emerald-500/30 bg-emerald-500/10" style={{ color: preferences.customColors.winColor }}>
+              <span className="px-3 py-1.5 rounded-lg font-semibold font-display border border-emerald-500/30 bg-emerald-500/10" style={{ color: preferences.customColors.winColor }}>
                 +$420
               </span>
-              <span className="px-2.5 py-1 rounded-md font-semibold border border-red-500/30 bg-red-500/10" style={{ color: preferences.customColors.lossColor }}>
+              <span className="px-3 py-1.5 rounded-lg font-semibold font-display border border-red-500/30 bg-red-500/10" style={{ color: preferences.customColors.lossColor }}>
                 -$125
               </span>
             </div>

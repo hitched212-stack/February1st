@@ -186,9 +186,9 @@ export function TradeViewDialogContent({
         />
         {/* Header - theme-aware with safe area padding */}
         <div 
-          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))] sm:pt-4"
+          className="border-b border-border/50 flex-shrink-0 bg-muted/30 dark:bg-white/[0.02] relative z-10 px-4 md:px-6 py-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:pt-3"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <SymbolIcon symbol={trade.symbol} size="md" />
               <div>
@@ -216,11 +216,12 @@ export function TradeViewDialogContent({
           
           {/* Tab Navigation - Modern Segmented Control */}
           <div className="flex justify-center w-full">
-            <div className="flex items-center gap-0.5 p-1 rounded-full bg-muted overflow-x-auto scrollbar-hide w-fit border border-border">
-              {tabs.map(tab => <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={cn("px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap flex-shrink-0", activeTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50")}>
-                  <span className="sm:hidden">{tab.label}</span>
-                  <span className="hidden sm:inline">{tab.labelFull}</span>
-                </button>)}
+            <div className="w-full max-w-3xl rounded-2xl border border-border/50 bg-background/60 p-1.5 backdrop-blur-sm overflow-x-auto scrollbar-hide">
+              <div className="grid min-w-max grid-cols-5 gap-1">
+                {tabs.map(tab => <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={cn("h-9 px-3 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap", activeTab === tab.id ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50")}>
+                    {tab.labelFull}
+                  </button>)}
+              </div>
             </div>
           </div>
         </div>
@@ -239,87 +240,92 @@ export function TradeViewDialogContent({
             <div className="space-y-5 animate-in fade-in-0 duration-300 ease-out">
               {/* Result - Redesigned */}
               <div className={cn(
-                'rounded-2xl border p-5 space-y-1',
+                'rounded-xl border p-4 md:p-5',
                 trade.isPaperTrade || trade.noTradeTaken
                   ? 'border-border/60 bg-muted/40 dark:bg-muted/20'
                   : trade.pnlAmount >= 0 
                     ? 'border-pnl-positive/20 bg-pnl-positive/5 dark:bg-pnl-positive/5' 
                     : 'border-pnl-negative/20 bg-pnl-negative/5 dark:bg-pnl-negative/5'
               )}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Result</span>
-                  {trade.isPaperTrade ? (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-muted text-muted-foreground border border-border/40">
-                      Paper
-                    </span>
-                  ) : trade.noTradeTaken ? (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-muted text-muted-foreground border border-border/40">
-                      No Trade
-                    </span>
-                  ) : (
-                    <span className={cn(
-                      'inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border',
-                      trade.pnlAmount >= 0 
-                        ? 'bg-pnl-positive/15 text-pnl-positive border-pnl-positive/30'
-                        : 'bg-pnl-negative/15 text-pnl-negative border-pnl-negative/30'
-                    )}>
-                      {trade.pnlAmount >= 0 ? 'WIN' : 'LOSS'}
-                    </span>
-                  )}
-                </div>
-                {trade.isPaperTrade || trade.noTradeTaken ? (
-                  <div className="text-3xl font-bold text-muted-foreground tabular-nums">—</div>
-                ) : (
-                  <div className="flex items-baseline gap-2">
-                    <div className={cn('text-3xl font-bold tabular-nums', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
-                      {formatPnl(trade.pnlAmount)}
-                    </div>
-                    <span className={cn('text-base font-semibold tabular-nums', trade.pnlAmount >= 0 ? 'text-pnl-positive/70' : 'text-pnl-negative/70')}>
-                      ({trade.pnlAmount >= 0 ? '+' : ''}{pnlPercentage.toFixed(2)}%)
-                    </span>
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                  <div className="space-y-1.5 min-w-0">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Result</span>
+                    {trade.isPaperTrade || trade.noTradeTaken ? (
+                      <div className="text-2xl font-bold text-muted-foreground tabular-nums leading-none">—</div>
+                    ) : (
+                      <div className="flex items-end gap-2 flex-wrap">
+                        <div className={cn('text-[2rem] md:text-[2.1rem] font-bold font-display tabular-nums tracking-tight leading-none', trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative')}>
+                          {formatPnl(trade.pnlAmount)}
+                        </div>
+                        <span className={cn('text-base font-semibold font-display tabular-nums tracking-tight leading-none pb-0.5', trade.pnlAmount >= 0 ? 'text-pnl-positive/75' : 'text-pnl-negative/75')}>
+                          ({trade.pnlAmount >= 0 ? '+' : ''}{pnlPercentage.toFixed(2)}%)
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  <div className="self-start sm:self-end">
+                    {trade.isPaperTrade ? (
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-muted text-muted-foreground border border-border/50">
+                        Paper
+                      </span>
+                    ) : trade.noTradeTaken ? (
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-muted text-muted-foreground border border-border/50">
+                        No Trade
+                      </span>
+                    ) : (
+                      <span className={cn(
+                        'inline-flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-wider uppercase border',
+                        trade.pnlAmount >= 0
+                          ? 'bg-pnl-positive/15 text-pnl-positive border-pnl-positive/35'
+                          : 'bg-pnl-negative/15 text-pnl-negative border-pnl-negative/35'
+                      )}>
+                        {trade.pnlAmount >= 0 ? 'WIN' : 'LOSS'}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Trade Details - Redesigned Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Entry</span>
-                  <span className="text-base font-semibold text-foreground tabular-nums">{trade.entryPrice?.toLocaleString() || '0'}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Entry</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground tabular-nums leading-tight">{trade.entryPrice?.toLocaleString() || '0'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Stop Loss</span>
-                  <span className="text-base font-semibold text-foreground tabular-nums">
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Stop Loss</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground tabular-nums leading-tight">
                     {trade.stopLoss ? trade.stopLoss.toLocaleString() : null}
                     {trade.stopLoss && trade.stopLossPips ? ' ' : null}
-                    {trade.stopLossPips ? <span className={trade.stopLoss ? "text-sm text-muted-foreground font-normal" : ""}>({trade.stopLossPips} pips)</span> : null}
+                    {trade.stopLossPips ? <span className={trade.stopLoss ? "text-xs text-muted-foreground font-medium" : "text-xs text-muted-foreground font-medium"}>({trade.stopLossPips} pips)</span> : null}
                     {!trade.stopLoss && !trade.stopLossPips ? '-' : null}
                   </span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Take Profit</span>
-                  <span className="text-base font-semibold text-foreground tabular-nums">{trade.takeProfit?.toLocaleString() || '0'}</span>
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Take Profit</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground tabular-nums leading-tight">{trade.takeProfit?.toLocaleString() || '0'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lot Size</span>
-                  <span className="text-base font-semibold text-foreground tabular-nums">{trade.lotSize?.toString() || '0'}</span>
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Lot Size</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground tabular-nums leading-tight">{trade.lotSize?.toString() || '0'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Entry Time</span>
-                  <span className="text-base font-semibold text-foreground">{trade.entryTime || '-'}</span>
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Entry Time</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground leading-tight">{trade.entryTime || '-'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Duration</span>
-                  <span className="text-base font-semibold text-foreground">{trade.holdingTime || '-'}</span>
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Duration</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground leading-tight">{trade.holdingTime || '-'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Risk:Reward</span>
-                  <span className="text-base font-semibold text-foreground">{trade.riskRewardRatio || '-'}</span>
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Risk:Reward</span>
+                  <span className="text-[1.05rem] font-semibold text-foreground leading-tight">{trade.riskRewardRatio || '-'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Grade</span>
+                <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Grade</span>
                   <span className={cn(
-                    "text-base font-bold px-2.5 py-1 rounded-lg w-fit",
+                    "text-sm font-bold px-2 py-0.5 rounded-md w-fit",
                     trade.performanceGrade === 1 && "bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/30",
                     trade.performanceGrade === 2 && "bg-amber-500/15 text-amber-500 border border-amber-500/30",
                     trade.performanceGrade === 3 && "bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/30"
@@ -329,10 +335,22 @@ export function TradeViewDialogContent({
 
               {/* Rules Compliance & Category */}
               <div className="space-y-3">
-                {/* Category Row */}
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
-                  <span className="text-base font-semibold text-foreground capitalize">{(trade as any).category || '-'}</span>
+                {/* Category + Strategy */}
+                <div className={cn(
+                  "grid gap-2.5",
+                  trade.strategy ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+                )}>
+                  <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Category</span>
+                    <span className="text-[1.05rem] font-semibold text-foreground capitalize leading-tight">{(trade as any).category || '-'}</span>
+                  </div>
+
+                  {trade.strategy && (
+                    <div className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/50 min-h-[72px] justify-center">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Strategy</span>
+                      <span className="text-[1.05rem] font-semibold text-foreground leading-tight">{trade.strategy}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Rules Section */}
@@ -408,14 +426,6 @@ export function TradeViewDialogContent({
                   </div>
                 ) : null}
               </div>
-
-              {/* Strategy */}
-              {trade.strategy && (
-                <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Strategy</span>
-                  <span className="text-base font-semibold text-foreground">{trade.strategy}</span>
-                </div>
-              )}
 
               {/* News Section */}
               <div className="space-y-3 p-4 rounded-xl border border-border bg-muted/20">
@@ -589,42 +599,42 @@ export function TradeViewDialogContent({
                   </div>;
                 }
                 
-                return <div className="space-y-6">
+                return <div className="space-y-5">
                   {/* Chart Before Section */}
                   {hasBeforeContent && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-sm font-semibold text-muted-foreground px-2">Chart Before</span>
-                        <div className="h-px flex-1 bg-border" />
+                    <div className="space-y-4 rounded-xl border border-border/50 bg-card/35 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-foreground">Chart Before</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50">
+                            {Math.max(beforeImages.length, beforeSections.length)}
+                          </span>
+                        </div>
+                        <div className="h-px flex-1 bg-border/70" />
                       </div>
                       
                       {(() => {
                         const cardCount = Math.max(beforeImages.length, beforeSections.length);
-                        return Array.from({ length: cardCount || 1 }).map((_, idx) => {
+                        return <div className="grid grid-cols-1 2xl:grid-cols-2 gap-3">
+                          {Array.from({ length: cardCount || 1 }).map((_, idx) => {
                           const image = beforeImages[idx];
                           const section = beforeSections[idx];
                           if (!image && !section) return null;
                           
-                        return <div key={idx} className="space-y-3 p-4 rounded-lg border border-border bg-muted/20">
+                        return <div key={idx} className="space-y-2.5 p-3 rounded-lg border border-border/50 bg-background/40">
                             {section?.timeframe && (
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="px-3 py-1 rounded bg-muted text-sm font-medium text-foreground">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-1 rounded-md bg-muted/70 text-xs font-semibold text-foreground border border-border/50">
                                   {section.timeframe}
                                 </span>
                               </div>
                             )}
                             {image && (
-                              <div className="rounded-lg border border-border overflow-hidden bg-muted/30">
+                              <div className="rounded-lg border border-border/60 overflow-hidden bg-muted/20 aspect-[16/7]">
                               <img 
                                   src={image} 
                                   alt={section?.timeframe || `Chart Before ${idx + 1}`} 
-                                  className="w-full h-auto object-contain cursor-pointer hover:opacity-80 transition-opacity block"
-                                  style={{ 
-                                    imageRendering: 'auto',
-                                    maxWidth: '100%',
-                                    height: 'auto',
-                                  }}
+                                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity block"
                                   loading="eager"
                                   decoding="sync"
                                   onClick={() => onImageClick(images, idx)} 
@@ -632,7 +642,7 @@ export function TradeViewDialogContent({
                               </div>
                             )}
                             {section?.notes && (
-                              <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
+                              <div className="rounded-lg border border-border/50 bg-muted/40 p-2.5 mt-2">
                                 <div 
                                   className="rich-text-content"
                                   dangerouslySetInnerHTML={{ __html: section.notes }}
@@ -640,7 +650,8 @@ export function TradeViewDialogContent({
                               </div>
                             )}
                           </div>;
-                        });
+                        })}
+                        </div>;
                       })()}
                     </div>
                   )}
@@ -649,46 +660,46 @@ export function TradeViewDialogContent({
                   {hasAfterContent && (
                     <div className="relative py-4">
                       <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t-2 border-border/70" />
+                        <div className="w-full border-t border-border/70" />
                       </div>
                     </div>
                   )}
 
                   {/* Chart After Section */}
                   {hasAfterContent && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-sm font-semibold text-muted-foreground px-2">Chart After</span>
-                        <div className="h-px flex-1 bg-border" />
+                    <div className="space-y-4 rounded-xl border border-border/50 bg-card/35 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-foreground">Chart After</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50">
+                            {Math.max(afterImages.length, afterSections.length)}
+                          </span>
+                        </div>
+                        <div className="h-px flex-1 bg-border/70" />
                       </div>
                       
                       {(() => {
                         const cardCount = Math.max(afterImages.length, afterSections.length);
-                        return Array.from({ length: cardCount || 1 }).map((_, idx) => {
+                        return <div className="grid grid-cols-1 2xl:grid-cols-2 gap-3">
+                          {Array.from({ length: cardCount || 1 }).map((_, idx) => {
                           const image = afterImages[idx];
                           const section = afterSections[idx];
                           if (!image && !section) return null;
                           
-                        return <div key={idx} className="space-y-3 p-4 rounded-lg border border-border bg-muted/20">
+                        return <div key={idx} className="space-y-2.5 p-3 rounded-lg border border-border/50 bg-background/40">
                             {section?.timeframe && (
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="px-3 py-1 rounded bg-muted text-sm font-medium text-foreground">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-1 rounded-md bg-muted/70 text-xs font-semibold text-foreground border border-border/50">
                                   {section.timeframe}
                                 </span>
                               </div>
                             )}
                             {image && (
-                              <div className="rounded-lg border border-border overflow-hidden bg-muted/30">
+                              <div className="rounded-lg border border-border/60 overflow-hidden bg-muted/20 aspect-[16/7]">
                               <img 
                                   src={image} 
                                   alt={section?.timeframe || `Chart After ${idx + 1}`} 
-                                  className="w-full h-auto object-contain cursor-pointer hover:opacity-80 transition-opacity block"
-                                  style={{ 
-                                    imageRendering: 'auto',
-                                    maxWidth: '100%',
-                                    height: 'auto',
-                                  }}
+                                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity block"
                                   loading="eager"
                                   decoding="sync"
                                   onClick={() => onImageClick(images, beforeImages.length + idx)} 
@@ -696,7 +707,7 @@ export function TradeViewDialogContent({
                               </div>
                             )}
                             {section?.notes && (
-                              <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
+                              <div className="rounded-lg border border-border/50 bg-muted/40 p-2.5 mt-2">
                                 <div 
                                   className="rich-text-content"
                                   dangerouslySetInnerHTML={{ __html: section.notes }}
@@ -704,7 +715,8 @@ export function TradeViewDialogContent({
                               </div>
                             )}
                           </div>;
-                        });
+                        })}
+                        </div>;
                       })()}
                     </div>
                   )}
@@ -739,48 +751,54 @@ export function TradeViewDialogContent({
                 const hasChartContent = images.length > 0 || chartSections.length > 0;
 
                 return <>
-                  {hasChartContent && <div className="space-y-4">
+                  {hasChartContent && <div className="space-y-4 rounded-xl border border-border/50 bg-card/35 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Plan Charts</span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50">
+                          {Math.max(images.length, chartSections.length)}
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-border/70" />
+                    </div>
                     {(() => {
                       const cardCount = Math.max(images.length, chartSections.length);
-                      return Array.from({ length: cardCount }).map((_, idx) => {
-                        const image = images[idx];
-                        const section = chartSections[idx];
-                        
-                        return <div key={idx} className="space-y-3 p-4 rounded-lg border border-border bg-muted/20">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="px-3 py-1 rounded bg-muted text-sm font-medium text-foreground">
-                              {section?.timeframe || `Chart ${idx + 1}`}
-                            </span>
-                          </div>
-                          {image && <div className="rounded-lg border border-border overflow-hidden bg-muted/30">
-                            <img 
-                              src={image} 
-                              alt={section?.timeframe || `Chart ${idx + 1}`} 
-                              className="w-full h-auto object-contain cursor-pointer hover:opacity-80 transition-opacity block"
-                              style={{ 
-                                imageRendering: 'auto',
-                                maxWidth: '100%',
-                                height: 'auto',
-                              }}
-                              loading="eager"
-                              decoding="sync"
-                              onClick={() => onImageClick(images, idx)} 
-                            />
-                          </div>}
-                          {section?.notes && <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
-                            <div 
-                              className="rich-text-content"
-                              dangerouslySetInnerHTML={{ __html: section.notes }}
-                            />
-                          </div>}
-                        </div>;
-                      });
+                      return <div className="grid grid-cols-1 2xl:grid-cols-2 gap-3">
+                        {Array.from({ length: cardCount }).map((_, idx) => {
+                          const image = images[idx];
+                          const section = chartSections[idx];
+                          
+                          return <div key={idx} className="space-y-2.5 p-3 rounded-lg border border-border/50 bg-background/40">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-1 rounded-md bg-muted/70 text-xs font-semibold text-foreground border border-border/50">
+                                {section?.timeframe || `Chart ${idx + 1}`}
+                              </span>
+                            </div>
+                            {image && <div className="rounded-lg border border-border/60 overflow-hidden bg-muted/20 aspect-[16/7]">
+                              <img 
+                                src={image} 
+                                alt={section?.timeframe || `Chart ${idx + 1}`} 
+                                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity block"
+                                loading="eager"
+                                decoding="sync"
+                                onClick={() => onImageClick(images, idx)} 
+                              />
+                            </div>}
+                            {section?.notes && <div className="rounded-lg border border-border/50 bg-muted/40 p-2.5 mt-2">
+                              <div 
+                                className="rich-text-content"
+                                dangerouslySetInnerHTML={{ __html: section.notes }}
+                              />
+                            </div>}
+                          </div>;
+                        })}
+                      </div>;
                     })()}
                   </div>}
 
-                  {trade.preMarketPlan && <div className="space-y-1.5">
+                  {trade.preMarketPlan && <div className="space-y-2">
                     <span className="text-sm font-semibold text-foreground">Pre-Market Analysis</span>
-                    <div className="rounded-lg border border-border bg-muted/50 p-3">
+                    <div className="rounded-lg border border-border/50 bg-muted/40 p-3">
                       <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.preMarketPlan}</p>
                     </div>
                   </div>}
@@ -816,48 +834,54 @@ export function TradeViewDialogContent({
                 const hasChartContent = images.length > 0 || chartSections.length > 0;
 
                 return <>
-                  {hasChartContent && <div className="space-y-4">
+                  {hasChartContent && <div className="space-y-4 rounded-xl border border-border/50 bg-card/35 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Review Charts</span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50">
+                          {Math.max(images.length, chartSections.length)}
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-border/70" />
+                    </div>
                     {(() => {
                       const cardCount = Math.max(images.length, chartSections.length);
-                      return Array.from({ length: cardCount }).map((_, idx) => {
-                        const image = images[idx];
-                        const section = chartSections[idx];
-                        
-                        return <div key={idx} className="space-y-3 p-4 rounded-lg border border-border bg-muted/20">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="px-3 py-1 rounded bg-muted text-sm font-medium text-foreground">
-                              {section?.timeframe || `Chart ${idx + 1}`}
-                            </span>
-                          </div>
-                          {image && <div className="rounded-lg border border-border overflow-hidden bg-muted/30">
-                            <img 
-                              src={image} 
-                              alt={section?.timeframe || `Chart ${idx + 1}`} 
-                              className="w-full h-auto object-contain cursor-pointer hover:opacity-80 transition-opacity block"
-                              style={{ 
-                                imageRendering: 'auto',
-                                maxWidth: '100%',
-                                height: 'auto',
-                              }}
-                              loading="eager"
-                              decoding="sync"
-                              onClick={() => onImageClick(images, idx)} 
-                            />
-                          </div>}
-                          {section?.notes && <div className="rounded-lg border border-border bg-muted/50 p-3 mt-3">
-                            <div 
-                              className="rich-text-content"
-                              dangerouslySetInnerHTML={{ __html: section.notes }}
-                            />
-                          </div>}
-                        </div>;
-                      });
+                      return <div className="grid grid-cols-1 2xl:grid-cols-2 gap-3">
+                        {Array.from({ length: cardCount }).map((_, idx) => {
+                          const image = images[idx];
+                          const section = chartSections[idx];
+                          
+                          return <div key={idx} className="space-y-2.5 p-3 rounded-lg border border-border/50 bg-background/40">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-1 rounded-md bg-muted/70 text-xs font-semibold text-foreground border border-border/50">
+                                {section?.timeframe || `Chart ${idx + 1}`}
+                              </span>
+                            </div>
+                            {image && <div className="rounded-lg border border-border/60 overflow-hidden bg-muted/20 aspect-[16/7]">
+                              <img 
+                                src={image} 
+                                alt={section?.timeframe || `Chart ${idx + 1}`} 
+                                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity block"
+                                loading="eager"
+                                decoding="sync"
+                                onClick={() => onImageClick(images, idx)} 
+                              />
+                            </div>}
+                            {section?.notes && <div className="rounded-lg border border-border/50 bg-muted/40 p-2.5 mt-2">
+                              <div 
+                                className="rich-text-content"
+                                dangerouslySetInnerHTML={{ __html: section.notes }}
+                              />
+                            </div>}
+                          </div>;
+                        })}
+                      </div>;
                     })()}
                   </div>}
 
-                  {trade.postMarketReview && <div className="space-y-1.5">
+                  {trade.postMarketReview && <div className="space-y-2">
                     <span className="text-sm font-semibold text-foreground">Post-Market Review</span>
-                    <div className="rounded-lg border border-border bg-muted/50 p-3">
+                    <div className="rounded-lg border border-border/50 bg-muted/40 p-3">
                       <p className="text-sm text-foreground whitespace-pre-wrap break-words">{trade.postMarketReview}</p>
                     </div>
                   </div>}

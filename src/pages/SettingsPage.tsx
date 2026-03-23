@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import PreferencesSettings from '@/pages/settings/PreferencesSettings';
 import BillingSettings from '@/pages/settings/BillingSettings';
 import { useState, useEffect } from 'react';
-import { ChevronRight, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Settings2, UserCog, ShieldCheck, Trash2, AlertTriangle, MoreVertical } from 'lucide-react';
+import { ChevronRight, ChevronDown, User, LogOut, Eye, EyeOff, Lock, Mail, Palette, Bell, Settings2, UserCog, ShieldCheck, Trash2, AlertTriangle, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -190,8 +190,6 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
-  const [showEmailChange, setShowEmailChange] = useState(false);
-  const [showUsernameChange, setShowUsernameChange] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [newUsername, setNewUsername] = useState('');
   const [isChangingEmail, setIsChangingEmail] = useState(false);
@@ -201,17 +199,18 @@ export default function SettingsPage() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSavingGlobalSettings, setIsSavingGlobalSettings] = useState(false);
 
   // Initialize activeTab from URL parameter
   const urlParams = new URLSearchParams(location.search);
-  const tabParam = urlParams.get('tab') as 'organization' | 'user' | 'billing' | 'compliance' | null;
-  const [activeTab, setActiveTab] = useState<'organization' | 'user' | 'billing' | 'compliance'>(tabParam || 'organization');
+  const tabParam = urlParams.get('tab') as 'organization' | 'global' | 'user' | 'billing' | 'compliance' | null;
+  const [activeTab, setActiveTab] = useState<'organization' | 'global' | 'user' | 'billing' | 'compliance'>(tabParam || 'organization');
 
   // Update active tab when URL changes
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const tabParam = urlParams.get('tab') as 'organization' | 'user' | 'billing' | 'compliance' | null;
-    if (tabParam && ['organization', 'user', 'billing', 'compliance'].includes(tabParam)) {
+    const tabParam = urlParams.get('tab') as 'organization' | 'global' | 'user' | 'billing' | 'compliance' | null;
+    if (tabParam && ['organization', 'global', 'user', 'billing', 'compliance'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [location.search]);
@@ -221,6 +220,31 @@ export default function SettingsPage() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    setTimeZoneInput(preferences.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, [preferences.timeZone]);
+
+  useEffect(() => {
+    setNewUsername(settings.username || '');
+  }, [settings.username]);
+
+  useEffect(() => {
+    setNewEmail(user?.email || '');
+  }, [user?.email]);
+
+  const handleSaveGlobalSettings = async () => {
+    setIsSavingGlobalSettings(true);
+    try {
+      setTimeZone(timeZoneInput);
+      toast.success('Global settings updated!');
+    } catch (error) {
+      console.error('Error saving global settings:', error);
+      toast.error('Failed to update global settings');
+    } finally {
+      setIsSavingGlobalSettings(false);
+    }
+  };
 
   const handleResetPassword = async () => {
     if (!newPassword || !confirmPassword) {
@@ -280,8 +304,6 @@ export default function SettingsPage() {
       if (error) throw error;
 
       toast.success('Confirmation email sent! Check your inbox to verify the new email.');
-      setNewEmail('');
-      setShowEmailChange(false);
     } catch (error) {
       console.error('Error changing email:', error);
       toast.error('Failed to change email');
@@ -305,8 +327,6 @@ export default function SettingsPage() {
     try {
       await updateSettings({ username: newUsername.trim() });
       toast.success('Username updated successfully');
-      setNewUsername('');
-      setShowUsernameChange(false);
     } catch (error) {
       console.error('Error changing username:', error);
       toast.error('Failed to change username');
@@ -407,6 +427,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'organization' as const, label: 'General', icon: Settings2 },
+    { id: 'global' as const, label: 'Global Settings', icon: GlobeIcon },
     { id: 'user' as const, label: 'Preferences', icon: UserCog },
     { id: 'billing' as const, label: 'Billing', icon: CreditCardIcon },
     { id: 'compliance' as const, label: 'Security', icon: ShieldCheck },
@@ -472,10 +493,10 @@ export default function SettingsPage() {
       <div className="px-4 md:px-6 lg:px-8 py-6">
         {/* Organization Tab */}
         {activeTab === 'organization' && (
-          <div className="space-y-8 max-w-4xl">
-            <div className="space-y-4">
+          <div className="space-y-8 max-w-7xl w-full font-display">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+            <div className="space-y-4 xl:col-span-2">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-6 bg-[#9b8cff] rounded-full" />
                 <h2 className="text-xl font-bold text-foreground">Profile Details</h2>
               </div>
               <div className={cn(
@@ -484,110 +505,81 @@ export default function SettingsPage() {
                   ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                   : "border-border/40 bg-card"
               )}>
-                <Collapsible open={showUsernameChange} onOpenChange={setShowUsernameChange}>
-                  <CollapsibleTrigger className="w-full p-5 sm:p-6 hover:bg-muted/15 transition-colors text-left group">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-[#9b8cff]/10 border border-[#9b8cff]/25 flex items-center justify-center shrink-0">
-                          <User className="h-4 w-4 text-[#9b8cff]" strokeWidth={2} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-base font-semibold text-foreground">Profile Details</p>
-                          <p className="text-sm text-muted-foreground">Username, email, and member information</p>
-                        </div>
-                      </div>
-                      <div className="h-9 w-9 rounded-lg border border-border/50 bg-background/40 flex items-center justify-center shrink-0 group-hover:border-border transition-colors">
-                        <MoreVertical className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={2} />
+                <div className="p-6 sm:p-8 space-y-7">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="shrink-0">
+                      <div className="h-24 w-24 rounded-full border-2 border-[#9b8cff]/45 bg-[#9b8cff]/10 flex items-center justify-center overflow-hidden">
+                        <User className="h-10 w-10 text-[#9b8cff]" strokeWidth={1.8} />
                       </div>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="rounded-xl border border-border/50 bg-background/40 px-4 py-3.5">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">User Name</Label>
-                        <p className="mt-1 text-lg font-semibold text-foreground truncate">{settings.username || 'H1tched'}</p>
-                      </div>
-                      <div className="rounded-xl border border-border/50 bg-background/40 px-4 py-3.5">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Email</Label>
-                        <p className="mt-1 text-base font-medium text-foreground truncate">{user?.email}</p>
-                      </div>
-                      <div className="rounded-xl border border-border/50 bg-background/40 px-4 py-3.5">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Member Since</Label>
-                        <p className="mt-1 text-base font-medium text-foreground">
-                          {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '02/02/2026'}
-                        </p>
-                      </div>
+                    <div className="min-w-0">
+                      <h3 className="text-3xl font-bold font-display tracking-tight text-foreground truncate">{settings.username || 'H1tched'}</h3>
+                      <p className="mt-1 text-base font-display text-muted-foreground">
+                        Date joined: {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-GB') : '25/02/2026'}
+                      </p>
                     </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="border-t border-border/60">
-                    <div className="p-6 space-y-5 bg-muted/20">
-                      <div className="space-y-2">
-                        <Label htmlFor="newUsername" className="text-sm font-medium text-foreground">New Username</Label>
-                        <Input
-                          id="newUsername"
-                          type="text"
-                          value={newUsername}
-                          onChange={(e) => setNewUsername(e.target.value)}
-                          placeholder={settings.username || 'Enter new username'}
-                          className="h-11 bg-background/50 border-border/60"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="newEmail" className="text-sm font-medium text-foreground">New Email</Label>
-                        <Input
-                          id="newEmail"
-                          type="email"
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                          placeholder={user?.email || 'Enter new email'}
-                          className="h-11 bg-background/50 border-border/60"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          A confirmation email will be sent to verify your new email address.
-                        </p>
-                      </div>
-                      <div className="flex gap-3 pt-2">
-                        <Button
-                          onClick={async () => {
-                            const promises = [];
-                            if (newUsername.trim() && newUsername.trim() !== settings.username) {
-                              promises.push(handleChangeUsername());
-                            }
-                            if (newEmail.trim() && newEmail.trim() !== user?.email) {
-                              promises.push(handleChangeEmail());
-                            }
-                            if (promises.length > 0) {
-                              await Promise.all(promises);
-                            } else {
-                              toast.error('No changes to save');
-                            }
-                          }}
-                          disabled={isChangingUsername || isChangingEmail || (!newUsername.trim() && !newEmail.trim())}
-                          className="flex-1 h-11 bg-foreground text-background hover:bg-foreground/90"
-                        >
-                          {(isChangingUsername || isChangingEmail) ? 'Updating...' : 'Save Changes'}
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setShowUsernameChange(false);
-                            setNewUsername('');
-                            setNewEmail('');
-                          }}
-                          variant="outline"
-                          className="flex-1 h-11"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newUsername" className="text-sm font-semibold text-foreground/80">Username</Label>
+                      <Input
+                        id="newUsername"
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        placeholder="Enter username"
+                        className="h-12 rounded-xl bg-background/60 border-border/60 font-display"
+                      />
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newEmail" className="text-sm font-semibold text-foreground/80">Email</Label>
+                      <Input
+                        id="newEmail"
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="Enter email"
+                        className="h-12 rounded-xl bg-background/60 border-border/60 font-display"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <Button
+                      onClick={async () => {
+                        const promises = [];
+                        if (newUsername.trim() && newUsername.trim() !== settings.username) {
+                          promises.push(handleChangeUsername());
+                        }
+                        if (newEmail.trim() && newEmail.trim() !== user?.email) {
+                          promises.push(handleChangeEmail());
+                        }
+                        if (promises.length > 0) {
+                          await Promise.all(promises);
+                        } else {
+                          toast.error('No changes to save');
+                        }
+                      }}
+                      disabled={
+                        isChangingUsername ||
+                        isChangingEmail ||
+                        (newUsername.trim() === (settings.username || '').trim() && newEmail.trim() === (user?.email || '').trim())
+                      }
+                      className="h-12 px-8 rounded-2xl text-lg font-semibold font-display bg-[#9b8cff] hover:bg-[#8b79ff] text-white"
+                    >
+                      {(isChangingUsername || isChangingEmail) ? 'Updating...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 xl:col-span-1">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-6 bg-[#9b8cff] rounded-full" />
-                <h2 className="text-xl font-bold text-foreground">Account Settings</h2>
+                <h2 className="text-xl font-bold font-display text-foreground">Account Settings</h2>
               </div>
               <div className={cn(
                 "rounded-2xl border overflow-hidden transition-all duration-300 shadow-sm",
@@ -596,20 +588,26 @@ export default function SettingsPage() {
                   : "border-border/40 bg-card"
               )}>
                 <Collapsible open={showPasswordReset} onOpenChange={setShowPasswordReset}>
-                  <CollapsibleTrigger className="w-full flex items-center gap-4 p-6 hover:bg-muted/20 transition-colors text-left group">
-                    <div className="h-11 w-11 rounded-xl bg-[#9b8cff]/10 flex items-center justify-center border border-[#9b8cff]/20 group-hover:border-[#9b8cff]/40 transition-colors flex-shrink-0">
-                      <Lock className="h-5 w-5 text-[#9b8cff]" strokeWidth={2} />
+                  <CollapsibleTrigger className="w-full flex items-center gap-3 p-4 hover:bg-muted/20 transition-colors text-left group">
+                    <div className="h-9 w-9 rounded-xl bg-[#9b8cff]/10 flex items-center justify-center border border-[#9b8cff]/20 group-hover:border-[#9b8cff]/40 transition-colors flex-shrink-0">
+                      <Lock className="h-4 w-4 text-[#9b8cff]" strokeWidth={2} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-foreground">Change Password</p>
-                      <p className="text-sm text-muted-foreground">Update your account password</p>
+                      <p className="font-semibold font-display text-sm text-foreground">Change Password</p>
+                      <p className="text-xs font-display text-muted-foreground">Update your account password</p>
                     </div>
-                    <MoreVertical className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" strokeWidth={2} />
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 text-muted-foreground group-hover:text-foreground transition-all duration-300 flex-shrink-0",
+                        showPasswordReset ? "rotate-180" : "rotate-0"
+                      )}
+                      strokeWidth={2}
+                    />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="border-t border-border/60">
-                    <div className="p-6 space-y-5 bg-muted/20">
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword" className="text-sm font-medium text-foreground">New Password</Label>
+                    <div className="p-4 space-y-4 bg-muted/20">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="newPassword" className="text-xs font-medium text-foreground">New Password</Label>
                         <div className="relative">
                           <Input
                             id="newPassword"
@@ -617,7 +615,7 @@ export default function SettingsPage() {
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             placeholder="Enter new password"
-                            className="h-11 bg-background/50 border-border/60 pr-11"
+                            className="h-10 text-sm bg-background/50 border-border/60 pr-10 font-display"
                           />
                           <button
                             type="button"
@@ -632,8 +630,8 @@ export default function SettingsPage() {
                           </button>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirm Password</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="confirmPassword" className="text-xs font-medium text-foreground">Confirm Password</Label>
                         <div className="relative">
                           <Input
                             id="confirmPassword"
@@ -641,7 +639,7 @@ export default function SettingsPage() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="Confirm new password"
-                            className="h-11 bg-background/50 border-border/60 pr-11"
+                            className="h-10 text-sm bg-background/50 border-border/60 pr-10 font-display"
                           />
                           <button
                             type="button"
@@ -659,7 +657,7 @@ export default function SettingsPage() {
                       <Button
                         onClick={handleResetPassword}
                         disabled={isResettingPassword || !newPassword || !confirmPassword}
-                        className="w-full h-11 mt-2"
+                        className="w-full h-10 mt-1 text-sm font-display"
                       >
                         {isResettingPassword ? 'Updating...' : 'Update Password'}
                       </Button>
@@ -668,68 +666,66 @@ export default function SettingsPage() {
                 </Collapsible>
               </div>
             </div>
+            </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-6 bg-[#9b8cff] rounded-full" />
-                <h2 className="text-xl font-bold text-foreground">Time Zone & Localization</h2>
-              </div>
-              <div className={cn(
-                "rounded-2xl border overflow-hidden shadow-sm relative transition-all duration-300",
-                isGlassEnabled
-                  ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                  : "border-border/40 bg-card"
-              )}>
-                <div className="relative p-6">
-                  {/* Header */}
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-xl bg-[#9b8cff]/10 border border-[#9b8cff]/20 flex items-center justify-center flex-shrink-0">
-                        <GlobeIcon className="w-6 h-6 text-[#9b8cff]" />
-                      </div>
-                      <div>
-                        <h4 className="text-base font-semibold text-foreground mb-0.5">Time Zone</h4>
-                        <p className="text-sm text-muted-foreground">Your economic calendar will show news events in this time zone.</p>
-                      </div>
-                    </div>
-                    <div className="text-left lg:text-right">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Time</div>
-                      <div className="text-3xl font-bold text-foreground tabular-nums tracking-tight">{getTimeInTimezone(currentTime, timeZoneInput)}</div>
-                    </div>
-                  </div>
+          </div>
+        )}
 
-                  {/* Timezone Select */}
-                  <div className="space-y-4">
-                    <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
-                      <SelectTrigger className="w-full h-12 rounded-xl bg-background border-border/40 text-sm font-medium hover:border-border transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {TIMEZONE_GROUPS.map((group) => (
-                          <div key={group.region}>
-                            <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                              {group.region}
-                            </div>
-                            {group.timezones.map((tz) => (
-                              <SelectItem key={tz.value} value={tz.value}>
-                                <span className="font-medium">{tz.label}</span>
-                                <span className="text-muted-foreground"> • {tz.name}</span>
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Button
-                      onClick={() => { setTimeZone(timeZoneInput); toast.success('Time zone updated!'); }}
-                      className="w-full h-11 rounded-xl text-sm font-semibold bg-foreground text-background hover:bg-foreground/90 shadow-sm"
-                      disabled={preferences.timeZone === timeZoneInput}
-                    >
-                      Save
-                    </Button>
-                  </div>
+        {/* Global Settings Tab */}
+        {activeTab === 'global' && (
+          <div className="w-full flex justify-center">
+            <div className={cn(
+              "w-full max-w-3xl rounded-3xl border p-6 sm:p-8 md:p-10 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.7)]",
+              isGlassEnabled
+                ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                : "border-border/40 bg-card"
+            )}>
+              <div className="flex items-center justify-between gap-4 mb-8">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">Global settings</h2>
+                  <p className="text-sm font-display font-medium tracking-wide text-muted-foreground">Manage universal workspace defaults</p>
                 </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2.5 rounded-2xl border border-border/50 bg-background/40 p-4 sm:p-5">
+                  <Label className="text-xs font-bold font-display uppercase tracking-widest text-foreground/70">Time Zone</Label>
+                  <Select value={timeZoneInput} onValueChange={setTimeZoneInput}>
+                    <SelectTrigger className="h-14 rounded-xl bg-background/70 border-border/55 px-4 text-base sm:text-lg font-bold font-display text-foreground">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      <SelectItem value="Etc/UTC">UTC (UTC+00:00)</SelectItem>
+                      {TIMEZONE_GROUPS.map((group) => (
+                        <div key={group.region}>
+                          <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            {group.region}
+                          </div>
+                          {group.timezones.map((tz) => (
+                            <SelectItem key={tz.value} value={tz.value}>
+                              <span className="font-medium">{tz.label}</span>
+                              <span className="text-muted-foreground"> • {tz.name}</span>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    onClick={handleSaveGlobalSettings}
+                    disabled={isSavingGlobalSettings || preferences.timeZone === timeZoneInput}
+                    className="h-12 px-9 rounded-2xl text-lg font-bold font-display bg-[#9b8cff] hover:bg-[#8b79ff] text-white"
+                  >
+                    {isSavingGlobalSettings ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-7 text-xs font-display text-muted-foreground/80">
+                Current time preview: {getTimeInTimezone(currentTime, timeZoneInput)}
               </div>
             </div>
           </div>
@@ -737,7 +733,7 @@ export default function SettingsPage() {
 
         {/* User & Permissions Tab */}
         {activeTab === 'user' && (
-          <div className="space-y-6 max-w-5xl w-full">
+          <div className="space-y-6 max-w-7xl w-full font-display">
             <div>
               <PreferencesSettings embedded />
             </div>
@@ -747,9 +743,9 @@ export default function SettingsPage() {
 
         {/* Billing Tab */}
         {activeTab === 'billing' && (
-          <div className="space-y-6 max-w-5xl w-full">
+          <div className="space-y-6 max-w-7xl w-full font-display">
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Billing</h3>
+              <h3 className="text-lg font-semibold font-display text-foreground mb-4">Billing</h3>
               <BillingSettings embedded />
             </div>
           </div>
@@ -757,122 +753,112 @@ export default function SettingsPage() {
 
         {/* Compliance Tab */}
         {activeTab === 'compliance' && (
-          <div className="space-y-8 max-w-3xl w-full">
-            {/* Header */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Danger Zone</h3>
-              <p className="text-sm text-muted-foreground">
-                These actions are permanent and cannot be reversed.
+          <div className="space-y-6 max-w-7xl w-full font-display">
+            <div className={cn(
+              "rounded-3xl border p-4 sm:p-5",
+              isGlassEnabled
+                ? "border-white/10 bg-card/85 backdrop-blur-2xl"
+                : "border-border/50 bg-card"
+            )}>
+              <h3 className="text-xl sm:text-2xl font-bold font-display tracking-tight text-foreground">Danger Zone</h3>
+              <p className="mt-1 text-sm font-display text-muted-foreground max-w-3xl">
+                Permanent actions for your account. Review each option carefully before continuing.
               </p>
             </div>
 
-            {/* Danger Actions */}
-            <div className="space-y-4">
-              {/* Erase All Data */}
-              <div className="group relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm transition-all duration-300 overflow-hidden hover:border-destructive/30">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-destructive/40" />
-                <div className="relative p-6">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className="h-11 w-11 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center justify-center flex-shrink-0">
-                        <Trash2 className="h-5 w-5 text-destructive" strokeWidth={2} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-foreground mb-1.5">Erase All Trading Data</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          Permanently remove all trades, charts, and journal entries. Your account and settings remain untouched.
-                        </p>
-                      </div>
-                    </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-border/55 bg-card p-4 sm:p-5 space-y-4 shadow-sm">
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center justify-center flex-shrink-0">
+                    <Trash2 className="h-4.5 w-4.5 text-destructive" strokeWidth={1.9} />
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full sm:w-auto border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        <Trash2 className="h-3.5 w-3.5 mr-2" />
-                        Erase Data
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Erase all trading data?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete all your trades, charts, and trading history. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleEraseAllData}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Erase All Data
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="min-w-0">
+                    <h4 className="text-lg font-bold font-display tracking-tight text-foreground">Erase All Trading Data</h4>
+                    <p className="mt-1 text-sm font-display text-muted-foreground leading-relaxed">
+                      Permanently remove your trades, charts, and journal entries. Your account and settings remain untouched.
+                    </p>
+                  </div>
                 </div>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full rounded-lg border-destructive/30 text-destructive/90 text-sm font-semibold font-display hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Erase Data
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Erase all trading data?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete all your trades, charts, and trading history. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleEraseAllData}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Erase All Data
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
-              {/* Delete Account */}
-              <div className="group relative rounded-2xl border border-destructive/55 bg-card/70 backdrop-blur-sm hover:border-destructive/70 transition-all duration-300 overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-destructive" />
-                <div className="relative p-6">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className="h-11 w-11 rounded-xl bg-destructive/15 border border-destructive/35 flex items-center justify-center flex-shrink-0">
-                        <AlertTriangle className="h-5 w-5 text-destructive" strokeWidth={2} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-destructive mb-1.5">Delete Account Permanently</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          Complete account deletion including all data, settings, and profile information. This cannot be undone.
-                        </p>
-                      </div>
-                    </div>
+              <div className="rounded-2xl border border-destructive/25 bg-card p-4 sm:p-5 space-y-4 shadow-sm">
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="h-4.5 w-4.5 text-destructive" strokeWidth={1.9} />
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="w-full sm:w-auto"
-                      >
-                        <AlertTriangle className="h-3.5 w-3.5 mr-2" />
-                        Delete Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete your account?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete your account and all associated data. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDeleteAccount}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete Account
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="min-w-0">
+                    <h4 className="text-lg font-bold font-display tracking-tight text-foreground">Delete Account Permanently</h4>
+                    <p className="mt-1 text-sm font-display text-muted-foreground leading-relaxed">
+                      Delete your account, profile, settings, and all associated data. This action cannot be undone.
+                    </p>
+                  </div>
                 </div>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full rounded-lg border-destructive/35 text-destructive/95 text-sm font-semibold font-display hover:bg-destructive/10"
+                    >
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete your account and all associated data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAccount}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete Account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
 
-            {/* Sign Out - Separate Section */}
-            <div className="pt-4 border-t border-border/50">
+            <div className="rounded-2xl border border-border/50 bg-card p-2.5 sm:p-3">
               <Button
                 onClick={handleSignOut}
-                variant="outline"
-                className="w-full h-11 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                variant="ghost"
+                className="w-full h-10 rounded-xl text-muted-foreground text-sm font-display hover:text-foreground hover:bg-muted/45"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
