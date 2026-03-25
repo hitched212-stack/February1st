@@ -2396,7 +2396,7 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Calendar Legend */}
-                <div className="flex flex-wrap items-center justify-center gap-3 py-6">
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2 pb-6">
                   <div className="flex items-center gap-2 rounded-full border border-pnl-positive/25 bg-pnl-positive/10 px-3 py-1.5">
                     <div className="h-2.5 w-2.5 rounded-full bg-pnl-positive" />
                     <span className="text-[11px] text-muted-foreground font-display font-semibold">Profitable</span>
