@@ -37,22 +37,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        // Get existing session from localStorage
+        // Get existing session from localStorage (instant — no network call)
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Verify session is still valid by attempting to refresh
-          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-          
-          if (refreshError || !refreshedSession) {
-            console.debug('Session refresh failed, clearing invalid session');
-            setSession(null);
-            setUser(null);
-          } else {
-            previousUserIdRef.current = refreshedSession.user?.id || null;
-            setSession(refreshedSession);
-            setUser(refreshedSession.user ?? null);
-          }
+          // ── Fast path ──────────────────────────────────────────────────────
+          // Set user immediately so the app renders and trade fetching starts
+          // right away.  The Supabase SDK auto-refreshes expired access tokens
+          // transparently when API calls are made, so we don't need to wait for
+          // a manual refreshSession() before showing the app.
+          previousUserIdRef.current = session.user?.id || null;
+          setSession(session);
+          setUser(session.user ?? null);
+          setLoading(false); // ← unblock the UI immediately
+
+          // Refresh the token in the background so it stays valid.
+          // Don't await — this must not delay app startup.
+          supabase.auth.refreshSession()
+            .then(({ data: { session: refreshedSession }, error: refreshError }) => {
+              if (refreshError || !refreshedSession) {
+                // Refresh token is expired/invalid — sign the user out quietly
+                console.debug('Background session refresh failed, clearing session');
+                setSession(null);
+                setUser(null);
+                previousUserIdRef.current = null;
+                useDataStore.getState().resetAll();
+              }
+              // Success is handled by onAuthStateChange('TOKEN_REFRESHED') below
+            })
+            .catch(() => {
+              // Network error — keep the current session; the SDK will retry
+              // automatically on the next API call.
+              console.debug('Background session refresh network error, keeping session');
+            });
+
+          return; // already called setLoading(false) above
         }
       } catch (error) {
         console.debug('Failed to initialize session:', error);
@@ -147,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setUser(null);
     previousUserIdRef.current = null;
-    
+
     // Reset the global data store
     useDataStore.getState().resetAll();
     

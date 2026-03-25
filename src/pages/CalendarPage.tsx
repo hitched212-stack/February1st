@@ -1673,87 +1673,125 @@ export default function CalendarPage() {
                         </div>
                       </div>
 
-                      <div className="flex-1 space-y-2.5">
-                        {dayOfWeekStats.map((day) => {
-                          const isBestDay = day.day === bestDay.day && bestDay.pnl > 0;
-                          const isWorstDay = day.day === worstDay.day && worstDay.pnl < 0;
-                          const maxPnl = Math.max(...dayOfWeekStats.map(d => Math.abs(d.pnl)), 1);
-                          const barWidth = day.pnl !== 0 ? Math.abs(day.pnl) / maxPnl * 100 : 0;
-                          
-                          return (
-                            <div 
-                              key={day.day} 
-                              className={cn(
-                                'relative px-3.5 py-2.5 rounded-2xl transition-all duration-200 border',
-                                isBestDay && 'bg-pnl-positive/10 border-pnl-positive/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]',
-                                isWorstDay && 'bg-pnl-negative/10 border-pnl-negative/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]',
-                                !isBestDay && !isWorstDay && 'bg-muted/10 border-border/25'
-                              )}
-                            >
-                              <div className="flex items-center gap-3">
-                                {/* Day Label */}
-                                <div className={cn(
-                                  'w-14 h-8 rounded-xl flex items-center justify-center border flex-shrink-0',
-                                  isBestDay && 'bg-pnl-positive/15 border-pnl-positive/35',
-                                  isWorstDay && 'bg-pnl-negative/15 border-pnl-negative/35',
-                                  !isBestDay && !isWorstDay && 'bg-muted/20 border-border/30'
-                                )}>
-                                  <span className={cn(
-                                    'text-xs font-bold uppercase tracking-widest',
-                                    isBestDay ? 'text-pnl-positive' : isWorstDay ? 'text-pnl-negative' : 'text-muted-foreground'
-                                  )}>
-                                    {day.shortDay}
-                                  </span>
-                                </div>
+                      {(() => {
+                        const maxAbsPnl = Math.max(...dayOfWeekStats.map((d) => Math.abs(d.pnl)), 1);
 
-                                {/* Progress Bar */}
-                                <div className="flex-1 min-w-0">
-                                  <div className={cn(
-                                    'h-8 rounded-xl overflow-hidden border border-border/20',
-                                    day.pnl === 0 ? 'bg-muted/15' : 'bg-muted/25'
-                                  )}>
-                                    {day.pnl !== 0 && (
-                                      <div 
-                                        className={cn(
-                                          'h-full rounded-xl transition-all duration-500',
-                                          day.pnl >= 0 
-                                            ? isBestDay 
-                                              ? 'bg-gradient-to-r from-pnl-positive/85 to-pnl-positive' 
-                                              : 'bg-gradient-to-r from-pnl-positive/45 to-pnl-positive/70'
-                                            : isWorstDay
-                                              ? 'bg-gradient-to-r from-pnl-negative/85 to-pnl-negative'
-                                              : 'bg-gradient-to-r from-pnl-negative/45 to-pnl-negative/70'
-                                        )} 
-                                        style={{ width: `${barWidth}%` }}
-                                      />
-                                    )}
-                                  </div>
-                                </div>
+                        return (
+                          <div className="flex-1 flex flex-col gap-3">
+                            {/* Heatmap grid */}
+                            <div className="w-full rounded-2xl border border-border/25 bg-background/40 p-3 sm:p-3.5">
+                              <div className="grid w-full grid-cols-[44px_repeat(5,minmax(0,1fr))] gap-y-1.5 gap-x-1.5">
 
-                                {/* P&L Amount and Badge */}
-                                <div className="flex items-center gap-2.5 flex-shrink-0">
-                                  <span className={cn(
-                                    'text-sm font-bold font-display tabular-nums min-w-[86px] text-right',
-                                    day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground'
-                                  )}>
-                                    {formatPnlWithK(day.pnl)}
-                                  </span>
-                                  
-                                  {(isBestDay || isWorstDay) && (
-                                    <div className={cn(
-                                      'px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border',
-                                      isBestDay && 'bg-pnl-positive/20 text-pnl-positive border-pnl-positive/30',
-                                      isWorstDay && 'bg-pnl-negative/20 text-pnl-negative border-pnl-negative/30'
-                                    )}>
-                                      {isBestDay ? 'Best' : 'Worst'}
+                                {/* Header row */}
+                                <div />
+                                {dayOfWeekStats.map((day) => {
+                                  const isBestDay = day.day === bestDay.day && bestDay.pnl > 0;
+                                  const isWorstDay = day.day === worstDay.day && worstDay.pnl < 0;
+                                  return (
+                                    <div
+                                      key={`header-${day.day}`}
+                                      className={cn(
+                                        'flex flex-col items-center justify-center gap-0.5 rounded-lg py-1.5',
+                                        isBestDay && 'bg-pnl-positive/10',
+                                        isWorstDay && 'bg-pnl-negative/10',
+                                        !isBestDay && !isWorstDay && 'bg-muted/20'
+                                      )}
+                                    >
+                                      <span className={cn(
+                                        'text-[9px] font-bold uppercase tracking-[0.18em]',
+                                        isBestDay ? 'text-pnl-positive' : isWorstDay ? 'text-pnl-negative' : 'text-foreground/60'
+                                      )}>{day.shortDay}</span>
+                                      {isBestDay && (
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-pnl-positive leading-none">Best</span>
+                                      )}
+                                      {isWorstDay && (
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-pnl-negative leading-none">Worst</span>
+                                      )}
                                     </div>
-                                  )}
+                                  );
+                                })}
+
+                                {/* Divider */}
+                                <div className="col-span-6 h-px bg-border/20 my-0.5" />
+
+                                {/* P&L row */}
+                                <div className="h-14 flex items-center">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">P&amp;L</span>
                                 </div>
+                                {dayOfWeekStats.map((day) => {
+                                  const cellStyle = day.pnl > 0
+                                    ? { backgroundColor: 'hsl(var(--pnl-positive) / 0.18)', borderColor: 'hsl(var(--pnl-positive) / 0.35)' }
+                                    : day.pnl < 0
+                                      ? { backgroundColor: 'hsl(var(--pnl-negative) / 0.18)', borderColor: 'hsl(var(--pnl-negative) / 0.35)' }
+                                      : { backgroundColor: 'hsl(var(--muted) / 0.08)', borderColor: 'hsl(var(--border) / 0.22)' };
+                                  return (
+                                    <div
+                                      key={`pnl-${day.day}`}
+                                      className="h-14 rounded-xl border flex items-center justify-center overflow-hidden min-w-0 transition-all duration-200"
+                                      style={cellStyle}
+                                    >
+                                      <span className={cn(
+                                        'text-[10px] font-display font-bold tabular-nums leading-none text-center whitespace-nowrap',
+                                        day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground/40'
+                                      )}>
+                                        {day.pnl === 0 ? '—' : formatPnlWithK(day.pnl)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+
+                                {/* Win % row */}
+                                <div className="h-12 flex items-center">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">Win</span>
+                                </div>
+                                {dayOfWeekStats.map((day) => {
+                                  const winStyle = day.trades > 0
+                                    ? { backgroundColor: 'rgba(96,165,250,0.16)', borderColor: 'rgba(96,165,250,0.32)' }
+                                    : { backgroundColor: 'hsl(var(--muted)/0.06)', borderColor: 'hsl(var(--border)/0.18)' };
+                                  return (
+                                    <div
+                                      key={`win-${day.day}`}
+                                      className="h-12 rounded-xl border flex items-center justify-center overflow-hidden min-w-0 transition-all duration-200"
+                                      style={winStyle}
+                                    >
+                                      <span className={cn(
+                                        'text-[11px] font-display font-bold tabular-nums leading-none',
+                                        day.trades > 0 ? 'text-blue-300' : 'text-muted-foreground/40'
+                                      )}>
+                                        {day.trades > 0 ? `${Math.round(day.winRate)}%` : '—'}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+
+                                {/* Trades row */}
+                                <div className="h-12 flex items-center">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">Qty</span>
+                                </div>
+                                {dayOfWeekStats.map((day) => {
+                                  const tradeStyle = day.trades > 0
+                                    ? { backgroundColor: 'rgba(167,139,250,0.16)', borderColor: 'rgba(167,139,250,0.32)' }
+                                    : { backgroundColor: 'hsl(var(--muted)/0.06)', borderColor: 'hsl(var(--border)/0.18)' };
+                                  return (
+                                    <div
+                                      key={`trades-${day.day}`}
+                                      className="h-12 rounded-xl border flex items-center justify-center overflow-hidden min-w-0 transition-all duration-200"
+                                      style={tradeStyle}
+                                    >
+                                      <span className={cn(
+                                        'text-[11px] font-display font-bold tabular-nums leading-none',
+                                        day.trades > 0 ? 'text-violet-300' : 'text-muted-foreground/40'
+                                      )}>
+                                        {day.trades > 0 ? day.trades : '—'}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -2396,18 +2434,18 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Calendar Legend */}
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2 pb-6">
-                  <div className="flex items-center gap-2 rounded-full border border-pnl-positive/25 bg-pnl-positive/10 px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-pnl-positive" />
-                    <span className="text-[11px] text-muted-foreground font-display font-semibold">Profitable</span>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2 pb-6">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-pnl-positive/10 ring-1 ring-inset ring-pnl-positive/20">
+                    <div className="h-1.5 w-1.5 rounded-full bg-pnl-positive flex-shrink-0" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest font-display" style={{ color: 'hsl(var(--pnl-positive) / 0.85)' }}>Profitable</span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full border border-pnl-negative/25 bg-pnl-negative/10 px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-pnl-negative" />
-                    <span className="text-[11px] text-muted-foreground font-display font-semibold">Loss</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-pnl-negative/10 ring-1 ring-inset ring-pnl-negative/20">
+                    <div className="h-1.5 w-1.5 rounded-full bg-pnl-negative flex-shrink-0" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest font-display" style={{ color: 'hsl(var(--pnl-negative) / 0.85)' }}>Loss</span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                    <span className="text-[11px] text-muted-foreground font-display font-semibold">Today</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 ring-1 ring-inset ring-primary/20">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest font-display text-primary/80">Today</span>
                   </div>
                 </div>
               </>

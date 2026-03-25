@@ -141,6 +141,15 @@ export function useTrades() {
         .limit(500); // Limit to prevent timeout on very large datasets
 
       if (error) {
+        // If the session is fully expired the SDK will return a 401-style error.
+        // Redirect to login rather than retrying indefinitely.
+        if ((error as any).status === 401 || error.message?.toLowerCase().includes('jwt')) {
+          console.debug('Auth error fetching trades, redirecting to login');
+          await supabase.auth.signOut({ scope: 'local' });
+          window.location.replace('/auth');
+          return;
+        }
+
         // Fast retry with minimal delays (100ms, 200ms, 400ms)
         if (retryCount < 3) {
           const delay = 100 * Math.pow(2, retryCount);
