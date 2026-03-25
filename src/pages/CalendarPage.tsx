@@ -756,7 +756,10 @@ export default function CalendarPage() {
         };
     }
   }, [goalPeriod, currentMonth, getDailyPnl, getWeeklyPnl, getMonthlyPnl, getYearlyPnl, settings.goals]);
-  const goalProgress = currentGoal > 0 ? Math.min(currentPnl / currentGoal * 100, 100) : 0;
+  const goalProgress = currentGoal > 0 && currentPnl > 0
+    ? Math.min((currentPnl / currentGoal) * 100, 100)
+    : 0;
+  const visibleGoalProgress = goalProgress > 0 ? Math.max(goalProgress, 2) : 0;
   
   // Dashboard cards P&L (respects date range filter)
   const monthlyPnl = useMemo(() => monthlyTrades.reduce((sum, t) => sum + t.pnlAmount, 0), [monthlyTrades]);
@@ -1864,9 +1867,8 @@ export default function CalendarPage() {
                 ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                 : "border-border/60 bg-card"
             )}>
-              <div className="relative px-4 sm:px-5 py-4">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-5 sm:mb-6">
+              <div className="relative px-3.5 sm:px-4 py-3 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                   <div className="flex items-center gap-2.5">
                     <div className="w-1 h-5 bg-[#9b8cff] rounded-full" />
                     <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Goal Progress</h3>
@@ -1881,151 +1883,56 @@ export default function CalendarPage() {
                       </UiTooltipContent>
                     </UiTooltip>
                   </div>
-                  <div className="inline-flex w-fit gap-1 p-1 rounded-xl border border-border/50 bg-background/50">
-                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map(period => <button key={period} onClick={() => setGoalPeriod(period)} className={cn('px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider', goalPeriod === period ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+
+                  <div className="inline-flex w-fit gap-1 p-1 rounded-lg border border-border/50 bg-background/50">
+                    {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map((period) => (
+                      <button
+                        key={period}
+                        onClick={() => setGoalPeriod(period)}
+                        className={cn(
+                          'px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider',
+                          goalPeriod === period ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
+                        )}
+                      >
                         {period}
-                      </button>)}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Mobile Content */}
-                <div className="sm:hidden space-y-4">
-                  <div className="grid grid-cols-[1fr,92px] items-center gap-3">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{format(currentMonth, 'MMMM yyyy')}</span>
-                        <div className="h-px flex-1 bg-border/40" />
-                      </div>
+                <div className="rounded-xl border border-border/50 bg-background/20 p-3 sm:p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                      {goalPeriod === 'D' ? 'Daily' : goalPeriod === 'W' ? 'Weekly' : goalPeriod === 'M' ? format(currentMonth, 'MMMM yyyy') : format(currentMonth, 'yyyy')}
+                    </span>
+                    <span className="inline-flex items-baseline gap-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Goal</span>
+                      <span className="text-[11px] font-semibold tabular-nums text-foreground leading-none">{formatPnlWithK(currentGoal, false)}</span>
+                    </span>
+                  </div>
 
-                      <div className="flex items-end gap-2">
-                        <p className={cn('text-3xl font-bold font-display tabular-nums leading-none tracking-tight', currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative')}>
-                          {formatPnlWithK(currentPnl)}
-                        </p>
-                        <div className={cn('px-2 py-0.5 rounded-md text-[11px] font-bold tabular-nums', currentPnl >= 0 ? 'bg-[#9b8cff]/10 text-[#9b8cff]' : 'bg-pnl-negative/10 text-pnl-negative')}>
-                          {Math.round(goalProgress)}%
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="relative h-[92px] w-[92px] justify-self-end">
-                      <svg className="transform -rotate-90" width="92" height="92">
-                        <circle cx="46" cy="46" r="39" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted/20" />
-                        <circle
-                          cx="46"
-                          cy="46"
-                          r="39"
-                          fill="none"
-                          stroke={currentPnl >= 0 ? '#9b8cff' : 'hsl(var(--pnl-negative))'}
-                          strokeWidth="7"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 39}`}
-                          strokeDashoffset={`${2 * Math.PI * 39 * (1 - Math.max(0, Math.min(goalProgress, 100)) / 100)}`}
-                          className="transition-all duration-700 ease-out"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-xl font-bold font-display tabular-nums text-foreground leading-none">{Math.round(goalProgress)}%</span>
-                        <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
-                          {goalPeriod === 'D' ? 'Daily' : goalPeriod === 'W' ? 'Weekly' : goalPeriod === 'M' ? 'Monthly' : 'Yearly'}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-end justify-between gap-3">
+                    <p className={cn(
+                      'text-2xl sm:text-3xl font-bold font-display tabular-nums leading-none tracking-tight',
+                      currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative'
+                    )}>
+                      {formatPnlWithK(currentPnl)}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="text-foreground">{formatPnlWithK(currentGoal, false)} Goal</span>
-                    </div>
-                    <div className="relative h-2.5 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                    <div className="relative h-2 rounded-full bg-muted/40 overflow-hidden border border-border/30">
                       <div
-                        className={cn('h-full rounded-full transition-all duration-700 ease-out', currentPnl >= 0 ? 'bg-gradient-to-r from-[#9b8cff] to-[#b8acff]' : 'bg-gradient-to-r from-pnl-negative to-red-400')}
-                        style={{ width: `${Math.max(0, Math.min(goalProgress, 100))}%` }}
+                        className={cn(
+                          'h-full rounded-full transition-all duration-700 ease-out',
+                          currentPnl >= 0 ? 'bg-[#9b8cff]' : 'bg-pnl-negative'
+                        )}
+                        style={{ width: `${visibleGoalProgress}%` }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[9px] font-semibold uppercase tracking-wider">
-                      <span className="text-muted-foreground/60">0%</span>
-                      <span className="text-muted-foreground/60">100%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Desktop/Tablet Content */}
-                <div className="hidden sm:grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-6">
-                  {/* Left: Stats and Progress Bar */}
-                  <div className="space-y-4">
-                    {/* Period Label */}
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{format(currentMonth, 'MMMM yyyy')}</span>
-                      <div className="h-px flex-1 bg-border/40" />
-                    </div>
-                    
-                    {/* P&L Value */}
-                    <div className="flex items-baseline gap-3">
-                      <p className={cn('text-4xl font-bold font-display tabular-nums leading-none tracking-tight', currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative')}>
-                        {formatPnlWithK(currentPnl)}
-                      </p>
-                      <div className={cn('px-2.5 py-1 rounded-md text-xs font-bold tabular-nums', currentPnl >= 0 ? 'bg-[#9b8cff]/10 text-[#9b8cff]' : 'bg-pnl-negative/10 text-pnl-negative')}>
-                        {Math.round(goalProgress)}%
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="text-foreground">{formatPnlWithK(currentGoal, false)} Goal</span>
-                      </div>
-                      <div className="relative h-3 rounded-full bg-muted/40 overflow-hidden border border-border/30">
-                        <div
-                          className={cn('h-full rounded-full transition-all duration-700 ease-out', currentPnl >= 0 ? 'bg-gradient-to-r from-[#9b8cff] to-[#b8acff]' : 'bg-gradient-to-r from-pnl-negative to-red-400')}
-                          style={{ width: `${Math.max(0, Math.min(goalProgress, 100))}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[9px] font-semibold uppercase tracking-wider">
-                        <span className="text-muted-foreground/60">0%</span>
-                        <span className="text-muted-foreground/60">100%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Circular Progress */}
-                  <div className="flex items-center justify-center lg:justify-end">
-                    <div className="relative">
-                      <svg className="transform -rotate-90" width="120" height="120">
-                        {/* Background circle */}
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r="52"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="8"
-                          className="text-muted/20"
-                        />
-                        {/* Progress circle */}
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r="52"
-                          fill="none"
-                          stroke={currentPnl >= 0 ? "#9b8cff" : "hsl(var(--pnl-negative))"}
-                          strokeWidth="8"
-                          strokeLinecap="round"
-                          strokeDasharray={`${2 * Math.PI * 52}`}
-                          strokeDashoffset={`${2 * Math.PI * 52 * (1 - Math.max(0, Math.min(goalProgress, 100)) / 100)}`}
-                          className="transition-all duration-700 ease-out"
-                          style={{ filter: 'drop-shadow(0 0 8px currentColor)' }}
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold font-display tabular-nums text-foreground leading-none">
-                          {Math.round(goalProgress)}%
-                        </span>
-                        <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
-                          {goalPeriod === 'D' ? 'Daily' : goalPeriod === 'W' ? 'Weekly' : goalPeriod === 'M' ? 'Monthly' : 'Yearly'}
-                        </span>
-                      </div>
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>0%</span>
+                      <span>100%</span>
                     </div>
                   </div>
                 </div>
@@ -2262,22 +2169,22 @@ export default function CalendarPage() {
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
                 <div className="hidden md:grid grid-cols-8 gap-2 text-center mb-4">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className="h-7 flex items-center justify-center text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
+                    <div key={i} className="h-7 flex items-center justify-center text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.18em]">
                       {day}
                     </div>
                   ))}
-                  <div className="h-7 flex items-center justify-center text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
+                  <div className="h-7 flex items-center justify-center text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.2em]">
                     WEEK
                   </div>
                 </div>
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-6 gap-1 text-center mb-3">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                    <div key={i} className="h-6 flex items-center justify-center text-[9px] font-bold text-muted-foreground/80 uppercase tracking-[0.16em]">
                       {day}
                     </div>
                   ))}
-                  <div className="h-6 flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                  <div className="h-6 flex items-center justify-center text-[9px] font-bold text-muted-foreground/80 uppercase tracking-[0.18em]">
                     WK
                   </div>
                 </div>
@@ -2306,16 +2213,16 @@ export default function CalendarPage() {
                       const weekdaysOnly = week.slice(1, 6); // Mon to Fri
                       
                       return (
-                        <>
+                        <div key={weekIndex} className="space-y-1.5 md:space-y-0">
                         {/* Desktop/Tablet - Full week */}
-                        <div key={weekIndex} className={cn(
-                          "hidden md:grid grid-cols-8 gap-2 p-3 rounded-2xl border transition-all",
+                        <div className={cn(
+                          "hidden md:grid grid-cols-8 gap-2 rounded-3xl border p-2.5 transition-all duration-300",
                           !weekData?.tradeCount && (preferences.liquidGlassEnabled
                             ? "border-white/10 bg-card/30 backdrop-blur-xl"
-                            : "border-border/40 bg-muted/20")
+                            : "border-border/40 bg-muted/10")
                         )} style={{
-                          backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.05)` : undefined,
-                          borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.2)` : undefined
+                          backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.04)` : undefined,
+                          borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.18)` : undefined
                         }}>
                           {week.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
@@ -2337,21 +2244,21 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-24 rounded-xl flex flex-col items-center justify-center p-2.5 transition-all relative border-2 hover:scale-[1.02] hover:shadow-lg group',
+                                  'group relative flex h-24 flex-col items-center justify-center rounded-2xl border p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-35',
-                                  isTodayDate && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                                  isTodayDate && 'ring-1 ring-primary/70 ring-offset-1 ring-offset-background',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'bg-card/40 backdrop-blur-xl border-white/5 hover:bg-card/60'
-                                    : 'bg-background border-border/20 hover:bg-muted/30')
+                                    ? 'border-white/10 bg-card/35 backdrop-blur-xl hover:bg-card/55'
+                                    : 'border-border/25 bg-background/70 hover:bg-muted/20')
                                 )}
                                 style={tradeCount > 0 ? {
-                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.08)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.25)`,
+                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.11)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.35)`,
                                 } : undefined}
                               >
                                 {/* Date number - top left */}
                                 <div className={cn(
-                                  'absolute top-1.5 left-2 text-sm font-display font-bold tabular-nums',
+                                  'absolute left-2 top-1.5 text-sm font-display font-bold tabular-nums',
                                   isTodayDate ? 'text-primary' : 'text-foreground/50'
                                 )}>
                                   {format(day, 'd')}
@@ -2359,12 +2266,12 @@ export default function CalendarPage() {
 
                                 {/* Trade info - centered */}
                                 {tradeCount > 0 && (
-                                  <div className="flex flex-col items-center gap-1 mt-4">
-                                    <div className="text-base font-bold font-display tabular-nums w-full text-center px-0.5 truncate"
+                                  <div className="mt-4 flex flex-col items-center gap-1">
+                                    <div className="w-full truncate px-0.5 text-center text-[1.1rem] leading-none font-semibold font-display tabular-nums"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground font-display font-semibold tabular-nums bg-muted/40 px-2 py-0.5 rounded-full">
+                                    <div className="rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums backdrop-blur-sm">
                                       {tradeCount} {tradeCount !== 1 ? 'trades' : 'trade'}
                                     </div>
                                   </div>
@@ -2380,30 +2287,30 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary */}
                           <div className={cn(
-                            "h-24 flex flex-col items-center justify-center rounded-xl p-3 border-2 font-bold transition-all",
+                            "h-24 rounded-2xl border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
                             preferences.liquidGlassEnabled
-                              ? "border-white/10 bg-card/60 backdrop-blur-2xl"
-                              : "bg-card/80 border-border/30"
+                              ? "border-white/15 bg-card/60 backdrop-blur-2xl"
+                              : "border-border/35 bg-card/80"
                           )}>
-                            <div className="text-[9px] text-muted-foreground/70 mb-1.5 whitespace-nowrap font-display font-bold uppercase tracking-widest">
+                            <div className="mb-1.5 whitespace-nowrap text-[9px] font-display font-bold uppercase tracking-[0.18em] text-muted-foreground/70">
                               Week {weekIndex + 1}
                             </div>
-                            <div className="text-base font-display tabular-nums mb-1 w-full text-center truncate leading-tight"
+                            <div className="mb-1 w-full truncate text-center text-base leading-tight font-display tabular-nums"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
-                            <div className="text-[10px] text-muted-foreground font-display font-semibold tabular-nums bg-muted/30 px-2 py-0.5 rounded-full">
+                            <div className="rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums">
                               {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
                             </div>
                           </div>
                         </div>
                         
                         {/* Mobile - Weekdays only (Mon-Fri) */}
-                        <div key={`${weekIndex}-mobile`} className={cn(
-                          "grid md:hidden grid-cols-6 gap-1 p-2.5 rounded-2xl border",
+                        <div className={cn(
+                          "grid md:hidden grid-cols-6 gap-1 rounded-2xl border p-2",
                           !weekData?.tradeCount && (preferences.liquidGlassEnabled
                             ? "border-white/10 bg-card/30 backdrop-blur-xl"
-                            : "border-border/40 bg-muted/20")
+                            : "border-border/35 bg-muted/10")
                         )} style={{
                           backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.05)` : undefined,
                           borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.2)` : undefined
@@ -2424,16 +2331,16 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'h-16 rounded-lg flex flex-col items-center justify-center p-1.5 transition-all relative border hover:shadow-md',
+                                  'relative flex h-16 flex-col items-center justify-center rounded-xl border p-1.5 transition-all duration-200 hover:-translate-y-0.5',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
-                                  isTodayDate && 'ring-2 ring-primary shadow-lg',
+                                  isTodayDate && 'ring-1 ring-primary/70 shadow-md',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'bg-card/80 backdrop-blur-2xl border-white/10 hover:bg-card/90'
-                                    : 'bg-background border-border/40 hover:bg-muted/5')
+                                    ? 'border-white/10 bg-card/80 backdrop-blur-2xl hover:bg-card/90'
+                                    : 'border-border/30 bg-background/70 hover:bg-muted/10')
                                 )}
                                 style={tradeCount > 0 ? {
                                   backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.12)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.3)`,
+                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.35)`,
                                   boxShadow: isTodayDate ? 'none' : undefined
                                 } : undefined}
                               >
@@ -2445,11 +2352,11 @@ export default function CalendarPage() {
                                 </div>
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="text-[10px] font-bold font-display tabular-nums w-full text-center px-0.5 truncate"
+                                    <div className="w-full truncate px-0.5 text-center text-[10px] font-bold font-display tabular-nums"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
+                                    <div className="rounded-full bg-background/35 px-1.5 py-0.5 text-[8px] font-display font-semibold text-muted-foreground tabular-nums">
                                       {tradeCount} {tradeCount === 1 ? 'trade' : 'trades'}
                                     </div>
                                   </div>
@@ -2465,12 +2372,12 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary - Mobile */}
                           <div className={cn(
-                            "h-16 flex flex-col items-center justify-center rounded-lg p-1.5 border font-bold",
+                            "h-16 flex flex-col items-center justify-center rounded-xl border p-1.5 font-bold",
                             preferences.liquidGlassEnabled
                               ? "border-white/10 bg-card/80 backdrop-blur-2xl"
-                              : "bg-card border-border/40"
+                              : "border-border/35 bg-card"
                           )}>
-                            <div className="text-[9px] text-muted-foreground/70 mb-0.5 whitespace-nowrap font-display font-semibold tracking-wider">
+                            <div className="mb-0.5 whitespace-nowrap text-[8px] font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
                               Week {weekIndex + 1}
                             </div>
                             <div className="text-[10px] font-display tabular-nums mb-0.5 w-full text-center truncate"
@@ -2482,25 +2389,25 @@ export default function CalendarPage() {
                             </div>
                           </div>
                         </div>
-                        </>
+                        </div>
                       );
                     });
                   })()}
                 </div>
 
                 {/* Calendar Legend */}
-                <div className="flex flex-wrap items-center justify-center gap-6 py-6">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-4 w-4 rounded-md bg-pnl-positive/15 border-2 border-pnl-positive/50" />
-                    <span className="text-xs text-muted-foreground font-display font-semibold">Profitable</span>
+                <div className="flex flex-wrap items-center justify-center gap-3 py-6">
+                  <div className="flex items-center gap-2 rounded-full border border-pnl-positive/25 bg-pnl-positive/10 px-3 py-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full bg-pnl-positive" />
+                    <span className="text-[11px] text-muted-foreground font-display font-semibold">Profitable</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-4 w-4 rounded-md bg-pnl-negative/15 border-2 border-pnl-negative/50" />
-                    <span className="text-xs text-muted-foreground font-display font-semibold">Loss</span>
+                  <div className="flex items-center gap-2 rounded-full border border-pnl-negative/25 bg-pnl-negative/10 px-3 py-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full bg-pnl-negative" />
+                    <span className="text-[11px] text-muted-foreground font-display font-semibold">Loss</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-4 w-4 rounded-md bg-muted/20 ring-2 ring-primary ring-offset-1 ring-offset-background" />
-                    <span className="text-xs text-muted-foreground font-display font-semibold">Today</span>
+                  <div className="flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    <span className="text-[11px] text-muted-foreground font-display font-semibold">Today</span>
                   </div>
                 </div>
               </>

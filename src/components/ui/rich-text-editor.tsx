@@ -446,9 +446,9 @@ export function RichTextEditor({
   };
 
   return (
-    <div className="relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm overflow-visible">
+    <div className="relative rounded-xl border border-border/40 bg-muted/5 overflow-visible">
       {/* Toolbar */}
-      <div className="flex items-center gap-1.5 p-3 bg-muted/35 border-b border-border/60 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible [&>*]:shrink-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden z-10">
+      <div className="flex items-center gap-0.5 px-2 py-1.5 bg-muted/20 border-b border-border/30 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible [&>*]:shrink-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden z-10 relative">
         <button
           type="button"
           onMouseDown={(e) => {
@@ -456,10 +456,10 @@ export function RichTextEditor({
             applyFormat('bold');
           }}
           className={cn(
-            "h-9 min-w-9 px-2 rounded-lg transition-all duration-150",
+            "h-7 w-7 rounded-md transition-all duration-150 flex items-center justify-center",
             isBold
-              ? "bg-foreground/15 text-foreground border border-border/70"
-              : "text-foreground/70 hover:text-foreground hover:bg-background/70 border border-transparent"
+              ? "bg-foreground/12 text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-foreground/6"
           )}
           title="Bold (Ctrl+B)"
         >
@@ -473,10 +473,10 @@ export function RichTextEditor({
             applyFormat('italic');
           }}
           className={cn(
-            "h-9 min-w-9 px-2 rounded-lg transition-all duration-150",
+            "h-7 w-7 rounded-md transition-all duration-150 flex items-center justify-center",
             isItalic
-              ? "bg-foreground/15 text-foreground border border-border/70"
-              : "text-foreground/70 hover:text-foreground hover:bg-background/70 border border-transparent"
+              ? "bg-foreground/12 text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-foreground/6"
           )}
           title="Italic (Ctrl+I)"
         >
@@ -490,17 +490,17 @@ export function RichTextEditor({
             applyFormat('underline');
           }}
           className={cn(
-            "h-9 min-w-9 px-2 rounded-lg transition-all duration-150",
+            "h-7 w-7 rounded-md transition-all duration-150 flex items-center justify-center",
             isUnderline
-              ? "bg-foreground/15 text-foreground border border-border/70"
-              : "text-foreground/70 hover:text-foreground hover:bg-background/70 border border-transparent"
+              ? "bg-foreground/12 text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-foreground/6"
           )}
           title="Underline (Ctrl+U)"
         >
           <Underline className="h-4 w-4" strokeWidth={2} />
         </button>
 
-        <div className="w-px h-6 bg-border/60 mx-1" />
+        <div className="w-px h-3.5 bg-border/40 mx-1" />
 
         {/* List Dropdown */}
         <div className="relative z-40" ref={listDropdownRef}>
@@ -515,7 +515,7 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="h-9 px-2.5 rounded-lg hover:bg-background/70 transition-all duration-150 text-foreground/70 hover:text-foreground flex items-center gap-1.5 border border-transparent hover:border-border/70"
+            className="h-7 px-2 rounded-md hover:bg-foreground/6 transition-all duration-150 text-muted-foreground hover:text-foreground flex items-center gap-1"
             title="List Options"
           >
             {isBulletList ? (
@@ -525,12 +525,11 @@ export function RichTextEditor({
             ) : (
               <span className="text-sm">+</span>
             )}
-            <span className="text-xs">▼</span>
+            <span className="text-[9px] opacity-50">▼</span>
           </button>
 
           {showListDropdown && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-40">
-              <div className="p-2 space-y-1">
+            <div className="absolute top-full mt-2 left-0 bg-card border border-border/60 rounded-2xl z-50 w-40 p-1.5 space-y-0.5">
                 <button
                   type="button"
                   onMouseDown={(e) => {
@@ -539,12 +538,11 @@ export function RichTextEditor({
                     setShowListDropdown(false);
                   }}
                   className={cn(
-                    "w-full text-left px-2 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 whitespace-nowrap",
+                    "w-full text-left px-3 py-2 rounded-xl text-xs transition-colors flex items-center gap-2.5 whitespace-nowrap",
                     isBulletList
-                      ? "bg-foreground/20 text-foreground font-semibold"
-                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+                      ? "bg-foreground/10 text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
-                  title="Bullet List"
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
                   <span>Bullet List</span>
@@ -558,22 +556,20 @@ export function RichTextEditor({
                     setShowListDropdown(false);
                   }}
                   className={cn(
-                    "w-full text-left px-2 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 whitespace-nowrap",
+                    "w-full text-left px-3 py-2 rounded-xl text-xs transition-colors flex items-center gap-2.5 whitespace-nowrap",
                     isNumberedList
-                      ? "bg-foreground/20 text-foreground font-semibold"
-                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+                      ? "bg-foreground/10 text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
-                  title="Numbered List"
                 >
                   <ListOrdered className="h-3.5 w-3.5" strokeWidth={2} />
                   <span>Numbered List</span>
                 </button>
-              </div>
             </div>
           )}
         </div>
 
-        <div className="w-px h-6 bg-border/60 mx-1" />
+        <div className="w-px h-3.5 bg-border/40 mx-1" />
 
         {/* Highlight Color Picker */}
         <div className="relative z-45" ref={highlightPickerRef}>
@@ -587,56 +583,42 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="h-9 min-w-9 px-2 rounded-lg hover:bg-background/70 transition-all duration-150 text-foreground/70 hover:text-foreground border border-transparent hover:border-border/70"
+            className="h-7 w-7 rounded-md hover:bg-foreground/6 transition-all duration-150 text-muted-foreground hover:text-foreground flex items-center justify-center"
             title="Highlight Color"
           >
             <Highlighter className="h-4 w-4" strokeWidth={2} />
           </button>
 
           {showHighlightPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-80 max-h-96 overflow-y-auto">
-              {/* Custom Highlights Section */}
-              {customHighlights.length > 0 && (
-                <div className="p-4 border-b border-border/50">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-semibold text-foreground/80">Custom Highlights</span>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {customHighlights.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setSelectedHighlight(color);
-                          applyHighlight(color);
-                          setShowHighlightPicker(false);
-                        }}
-                        className="w-8 h-8 rounded-full border-2 border-border hover:border-foreground transition-colors cursor-pointer"
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
-                    ))}
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleAddCustomHighlight();
-                      }}
-                      className="w-8 h-8 rounded-full border-2 border-border/50 hover:border-foreground transition-colors cursor-pointer flex items-center justify-center text-foreground/50 hover:text-foreground"
-                      title="Add Custom Highlight"
-                    >
-                      <span className="text-lg">+</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="absolute top-full mt-2 left-0 bg-card border border-border/60 rounded-2xl z-50 w-52 p-3 space-y-3">
+              {/* Default highlights grid */}
+              <div className="grid grid-cols-6 gap-1.5">
+                {['#FFFF00', '#FFE135', '#FFC700', '#FFAA00', '#FF6600', '#FF0000', '#FF69B4', '#FF1493', '#00FF00', '#00FFFF', '#0000FF', '#9370DB', '#FFB6C1', '#FFDAB9', '#FFE4B5', '#FFFACD', '#E0FFFF', '#E6E6FA', '#F0FFF0', '#FFFAF0'].map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSelectedHighlight(color);
+                      applyHighlight(color);
+                      setShowHighlightPicker(false);
+                    }}
+                    className={cn(
+                      "w-6 h-6 rounded-full transition-all hover:scale-110 border-2",
+                      selectedHighlight === color
+                        ? "border-foreground/70 scale-110"
+                        : "border-transparent hover:border-foreground/30"
+                    )}
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
 
-              {/* Default Highlights Section */}
-              <div className="p-4">
-                <span className="text-xs font-semibold text-foreground/80 block mb-3">Default Highlights</span>
-                <div className="grid grid-cols-10 gap-2">
-                  {['#FFFF00', '#FFE135', '#FFC700', '#FFAA00', '#FF6600', '#FF0000', '#FF69B4', '#FF1493', '#00FF00', '#00FFFF', '#0000FF', '#9370DB', '#FFB6C1', '#FFDAB9', '#FFE4B5', '#FFFACD', '#E0FFFF', '#E6E6FA', '#F0FFF0', '#FFFAF0'].map((color) => (
+              {/* Custom highlights */}
+              {customHighlights.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1 border-t border-border/30">
+                  {customHighlights.map((color) => (
                     <button
                       key={color}
                       type="button"
@@ -646,43 +628,41 @@ export function RichTextEditor({
                         applyHighlight(color);
                         setShowHighlightPicker(false);
                       }}
-                      className="w-6 h-6 rounded-full border border-border/30 hover:border-foreground transition-colors cursor-pointer"
+                      className={cn(
+                        "w-6 h-6 rounded-full transition-all hover:scale-110 border-2",
+                        selectedHighlight === color
+                          ? "border-foreground/70 scale-110"
+                          : "border-transparent hover:border-foreground/30"
+                      )}
                       style={{ backgroundColor: color }}
                       title={color}
                     />
                   ))}
                 </div>
-              </div>
+              )}
 
-              {/* Add Highlight + Clear Button */}
-              <div className="p-4 border-t border-border/50 space-y-2">
+              {/* Footer actions */}
+              <div className="flex items-center gap-1.5 pt-1 border-t border-border/30">
                 <button
                   type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleAddCustomHighlight();
-                  }}
-                  className="w-full px-3 py-2 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors flex items-center justify-center gap-2"
+                  onMouseDown={(e) => { e.preventDefault(); handleAddCustomHighlight(); }}
+                  className="flex-1 h-7 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 transition-colors"
                 >
-                  <span>+ Add Highlight</span>
+                  + Custom
                 </button>
                 <button
                   type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    clearHighlight();
-                    setShowHighlightPicker(false);
-                  }}
-                  className="w-full px-3 py-2 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors flex items-center justify-center gap-2"
+                  onMouseDown={(e) => { e.preventDefault(); clearHighlight(); setShowHighlightPicker(false); }}
+                  className="flex-1 h-7 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 transition-colors"
                 >
-                  <span>Remove Highlight</span>
+                  Remove
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="w-px h-6 bg-border/60 mx-1" />
+        <div className="w-px h-3.5 bg-border/40 mx-1" />
 
         {/* Text Color Picker */}
         <div className="relative z-50" ref={colorPickerRef}>
@@ -696,55 +676,41 @@ export function RichTextEditor({
                 setShowFontPicker(false);
               }
             }}
-            className="h-9 w-9 rounded-lg hover:bg-background/70 transition-all duration-150 flex items-center justify-center border border-transparent hover:border-border/70 leading-none"
+            className="h-7 w-7 rounded-md hover:bg-foreground/6 transition-all duration-150 flex items-center justify-center"
             title="Text Color"
           >
             <span className="text-sm font-bold" style={{ color: selectedColor }}>A</span>
           </button>
           {showColorPicker && (
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-56 sm:w-64 max-w-[calc(100vw-1rem)] max-h-80 overflow-y-auto">
-              {/* Custom Colors Section */}
-              {customColors.length > 0 && (
-                <div className="p-3 border-b border-border/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-semibold text-foreground/80">Custom Colors</span>
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {customColors.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setSelectedColor(color);
-                          applyFormat('foreColor', color);
-                          setShowColorPicker(false);
-                        }}
-                        className="w-6 h-6 rounded-md border border-border/50 hover:border-foreground transition-colors cursor-pointer"
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
-                    ))}
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleAddCustomColor();
-                      }}
-                      className="w-6 h-6 rounded-md border border-border/50 hover:border-foreground transition-colors cursor-pointer flex items-center justify-center text-foreground/50 hover:text-foreground"
-                      title="Add Custom Color"
-                    >
-                      <span className="text-sm">+</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 bg-card border border-border/60 rounded-2xl z-50 w-48 p-3 space-y-3">
+              {/* Default Colors Grid */}
+              <div className="grid grid-cols-6 gap-1.5">
+                {defaultColors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSelectedColor(color);
+                      applyFormat('foreColor', color);
+                      setShowColorPicker(false);
+                    }}
+                    className={cn(
+                      "w-6 h-6 rounded-full transition-all hover:scale-110 border-2",
+                      selectedColor.toUpperCase() === color.toUpperCase()
+                        ? "border-foreground/70 scale-110"
+                        : "border-transparent hover:border-foreground/30"
+                    )}
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
 
-              {/* Default Colors Section */}
-              <div className="p-3">
-                <span className="text-[11px] font-semibold text-foreground/80 block mb-2">Default Colors</span>
-                <div className="grid grid-cols-6 gap-1.5">
-                  {defaultColors.map((color) => (
+              {/* Custom Colors */}
+              {customColors.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1 border-t border-border/30">
+                  {customColors.map((color) => (
                     <button
                       key={color}
                       type="button"
@@ -754,36 +720,34 @@ export function RichTextEditor({
                         applyFormat('foreColor', color);
                         setShowColorPicker(false);
                       }}
-                      className="w-5 h-5 rounded-md border border-border/40 hover:border-foreground transition-colors cursor-pointer"
+                      className={cn(
+                        "w-6 h-6 rounded-full transition-all hover:scale-110 border-2",
+                        selectedColor.toUpperCase() === color.toUpperCase()
+                          ? "border-foreground/70 scale-110"
+                          : "border-transparent hover:border-foreground/30"
+                      )}
                       style={{ backgroundColor: color }}
                       title={color}
                     />
                   ))}
                 </div>
-              </div>
+              )}
 
-              {/* Add Custom Color + Clear Button */}
-              <div className="p-3 border-t border-border/50 space-y-1.5">
+              {/* Footer actions */}
+              <div className="flex items-center gap-1.5 pt-1 border-t border-border/30">
                 <button
                   type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleAddCustomColor();
-                  }}
-                  className="w-full px-2.5 py-1.5 text-[11px] font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors flex items-center justify-center gap-2"
+                  onMouseDown={(e) => { e.preventDefault(); handleAddCustomColor(); }}
+                  className="flex-1 h-7 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 transition-colors"
                 >
-                  <span>+ Add Color</span>
+                  + Custom
                 </button>
                 <button
                   type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleClearColor();
-                    setShowColorPicker(false);
-                  }}
-                  className="w-full px-2.5 py-1.5 text-[11px] font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-md transition-colors flex items-center justify-center gap-2"
+                  onMouseDown={(e) => { e.preventDefault(); handleClearColor(); setShowColorPicker(false); }}
+                  className="flex-1 h-7 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 transition-colors"
                 >
-                  <span>Clear</span>
+                  Clear
                 </button>
               </div>
             </div>
@@ -802,16 +766,15 @@ export function RichTextEditor({
                 setShowHighlightPicker(false);
               }
             }}
-            className="h-9 px-2.5 rounded-lg text-xs bg-background/70 border border-border/70 transition-all duration-150 text-foreground/80 hover:text-foreground hover:bg-background cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+            className="h-7 px-2 rounded-md text-xs bg-foreground/6 border border-border/30 transition-all duration-150 text-foreground/60 hover:text-foreground cursor-pointer flex items-center gap-1 whitespace-nowrap"
             title="Font Style"
           >
             <span style={{ fontFamily: currentFontFamily }}>Aa</span>
-            <span className="text-foreground/50">▼</span>
+            <span className="text-[9px] opacity-40">▼</span>
           </button>
 
           {showFontPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-background border border-border rounded-lg shadow-2xl z-50 w-32 md:w-48">
-              <div className="p-2">
+            <div className="absolute top-full mt-2 left-0 bg-card border border-border/60 rounded-2xl z-50 w-40 p-1.5 space-y-0.5">
                 {fontStyles.map((font) => (
                   <button
                     key={font.value}
@@ -823,17 +786,16 @@ export function RichTextEditor({
                       setShowFontPicker(false);
                     }}
                     className={cn(
-                      "w-full text-left px-2 py-1.5 rounded-lg text-xs transition-colors mb-1 whitespace-nowrap",
+                      "w-full text-left px-3 py-2 rounded-xl text-xs transition-colors whitespace-nowrap",
                       currentFontFamily === font.value
-                        ? "bg-foreground/20 text-foreground font-semibold"
-                        : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+                        ? "bg-foreground/10 text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
                     style={{ fontFamily: font.value }}
                   >
                     {font.name}
                   </button>
                 ))}
-              </div>
             </div>
           )}
         </div>
@@ -859,13 +821,13 @@ export function RichTextEditor({
         onBlur={handleBlur}
         className={cn(
           "rich-text-content",
-          "w-full p-4 bg-transparent border-0 rounded-none",
-          "text-foreground dark:text-zinc-100 text-sm outline-none",
+          "w-full px-4 py-3.5 bg-transparent border-0 rounded-none",
+          "text-foreground text-sm leading-relaxed outline-none",
           "focus:bg-transparent",
           "overflow-auto whitespace-pre-wrap break-words",
           className,
-          rows === 4 ? "min-h-44" : "",
-          "empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground"
+          rows === 4 ? "min-h-[140px]" : "",
+          "empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50"
         )}
         data-placeholder={placeholder}
         style={{ WebkitUserSelect: 'text' } as React.CSSProperties}
@@ -873,41 +835,42 @@ export function RichTextEditor({
 
       {/* Custom Color Picker Dialog */}
       {showCustomColorDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background border border-border rounded-lg shadow-2xl p-6 w-80 max-w-full mx-4">
-            <h2 className="text-base font-semibold text-foreground mb-4">Add Custom Color</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[2px] p-4">
+          <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
+            <h2 className="text-xl font-semibold text-foreground">Add Custom Color</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Pick a color and confirm the hex value.</p>
+            <div className="mt-5 space-y-4">
+              <div className="flex items-end gap-3">
                 <input
                   type="color"
                   value={tempCustomColor}
                   onChange={(e) => setTempCustomColor(e.target.value)}
-                  className="h-10 w-10 rounded cursor-pointer outline-none"
+                  className="h-14 w-14 shrink-0 rounded-xl border border-border/60 bg-background cursor-pointer outline-none"
                   style={{ border: 'none', padding: '0' }}
                 />
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-foreground/70 block mb-2">Hex Code</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground block mb-2">Hex Code</label>
                   <input
                     type="text"
                     value={tempCustomColor}
                     onChange={(e) => setTempCustomColor(e.target.value.toUpperCase())}
                     placeholder="#FF5733"
-                    className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm font-mono focus:outline-none focus:border-foreground/50"
+                    className="h-11 w-full rounded-xl border border-border/60 bg-background/60 px-3 text-sm font-mono text-foreground focus:outline-none focus:border-border"
                   />
                 </div>
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowCustomColorDialog(false)}
-                  className="px-3 py-1.5 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors"
+                  className="h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmCustomColor}
-                  className="px-3 py-1.5 text-xs font-medium text-foreground bg-foreground/20 hover:bg-foreground/30 rounded-lg transition-colors"
+                  className="h-10 px-5 rounded-xl text-sm font-medium text-foreground bg-foreground/15 hover:bg-foreground/25 transition-colors"
                 >
                   Add Color
                 </button>
@@ -919,41 +882,42 @@ export function RichTextEditor({
 
       {/* Custom Highlight Color Picker Dialog */}
       {showCustomHighlightDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background border border-border rounded-lg shadow-2xl p-6 w-80 max-w-full mx-4">
-            <h2 className="text-base font-semibold text-foreground mb-4">Add Highlight Color</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[2px] p-4">
+          <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
+            <h2 className="text-xl font-semibold text-foreground">Add Highlight Color</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Pick a highlight and confirm the hex value.</p>
+            <div className="mt-5 space-y-4">
+              <div className="flex items-end gap-3">
                 <input
                   type="color"
                   value={tempCustomHighlight}
                   onChange={(e) => setTempCustomHighlight(e.target.value)}
-                  className="h-10 w-10 rounded cursor-pointer outline-none"
+                  className="h-14 w-14 shrink-0 rounded-xl border border-border/60 bg-background cursor-pointer outline-none"
                   style={{ border: 'none', padding: '0' }}
                 />
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-foreground/70 block mb-2">Hex Code</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground block mb-2">Hex Code</label>
                   <input
                     type="text"
                     value={tempCustomHighlight}
                     onChange={(e) => setTempCustomHighlight(e.target.value.toUpperCase())}
                     placeholder="#FFFF00"
-                    className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm font-mono focus:outline-none focus:border-foreground/50"
+                    className="h-11 w-full rounded-xl border border-border/60 bg-background/60 px-3 text-sm font-mono text-foreground focus:outline-none focus:border-border"
                   />
                 </div>
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowCustomHighlightDialog(false)}
-                  className="px-3 py-1.5 text-xs font-medium text-foreground/70 hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors"
+                  className="h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmCustomHighlight}
-                  className="px-3 py-1.5 text-xs font-medium text-foreground bg-foreground/20 hover:bg-foreground/30 rounded-lg transition-colors"
+                  className="h-10 px-5 rounded-xl text-sm font-medium text-foreground bg-foreground/15 hover:bg-foreground/25 transition-colors"
                 >
                   Add Highlight
                 </button>

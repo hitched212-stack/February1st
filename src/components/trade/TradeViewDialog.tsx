@@ -158,6 +158,20 @@ export function TradeViewDialogContent({
   }];
   const currentEmotion = EMOTION_LABELS.find(e => e.value === trade.emotionalState) || EMOTION_LABELS[2];
   const EmotionIcon = currentEmotion.icon;
+  const moodTone = trade.emotionalState === 1
+    ? {
+        chip: 'border-red-500/35 bg-red-500/10 text-red-400',
+        track: 'bg-red-500'
+      }
+    : trade.emotionalState === 2
+      ? {
+          chip: 'border-amber-500/35 bg-amber-500/10 text-amber-400',
+          track: 'bg-amber-500'
+        }
+      : {
+          chip: 'border-emerald-500/35 bg-emerald-500/10 text-emerald-400',
+          track: 'bg-emerald-500'
+        };
   return <div className="w-full h-full flex flex-col flex-1 min-h-0 animate-in fade-in-0 slide-in-from-bottom-6 duration-500 ease-out">
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
         {/* Dot pattern - only show when enabled */}
@@ -353,78 +367,103 @@ export function TradeViewDialogContent({
                   )}
                 </div>
 
-                {/* Rules Section */}
-                {(trade.followedRulesList && trade.followedRulesList.length > 0) || (trade.brokenRules && trade.brokenRules.length > 0) ? (
+                {/* Rules & Mistakes Section */}
+                {(trade.followedRulesList && trade.followedRulesList.length > 0) || (trade.brokenRules && trade.brokenRules.length > 0) || (trade.mistakeTags && trade.mistakeTags.length > 0) ? (
                   <div className="space-y-3 p-4 rounded-xl border border-border bg-muted/20">
-                    <div className="flex items-center gap-2">
-                      <TradingRulesIcon className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">Trading Rules</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <TradingRulesIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">Trading Rules & Mistakes</span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 rounded-md bg-background/60 border border-border/50 tabular-nums">
+                        {(trade.followedRulesList?.length || 0) + (trade.brokenRules?.length || 0)} rules · {trade.mistakeTags?.length || 0} mistakes
+                      </span>
                     </div>
 
-                    {/* Followed Rules */}
-                    <div className="space-y-2">
-                      <span className="text-xs font-medium text-pnl-positive uppercase tracking-wide">Rules Followed</span>
-                      {trade.followedRulesList && trade.followedRulesList.length > 0 ? (
+                    {((trade.followedRulesList && trade.followedRulesList.length > 0) || (trade.brokenRules && trade.brokenRules.length > 0)) && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <TradingRulesIcon className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">Trading Rules</span>
+                        </div>
+
+                        {/* Followed Rules */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium text-pnl-positive uppercase tracking-wide">Rules Followed</span>
+                          {trade.followedRulesList && trade.followedRulesList.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {trade.followedRulesList.map((rule, index) => (
+                                <span 
+                                  key={index}
+                                  className="px-2 py-1 text-xs rounded-md bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/20"
+                                >
+                                  {rule}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">None</p>
+                          )}
+                        </div>
+
+                        {/* Broken Rules */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-medium text-pnl-negative uppercase tracking-wide">Rules Broken</span>
+                          {trade.brokenRules && trade.brokenRules.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {trade.brokenRules.map((rule, index) => (
+                                <span 
+                                  key={index}
+                                  className="px-2 py-1 text-xs rounded-md bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/20"
+                                >
+                                  {rule}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">None</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {trade.mistakeTags && trade.mistakeTags.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <XIcon className="h-4 w-4 text-red-500/70" />
+                          <span className="text-sm font-medium text-foreground">Identified Mistakes</span>
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
-                          {trade.followedRulesList.map((rule, index) => (
+                          {trade.mistakeTags.map((mistake, index) => (
                             <span 
                               key={index}
-                              className="px-2 py-1 text-xs rounded-md bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/20"
+                              className="px-2.5 py-1.5 text-xs rounded-md bg-red-500/15 text-red-500 border border-red-500/40 font-medium"
                             >
-                              {rule}
+                              {mistake}
                             </span>
                           ))}
                         </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">None</p>
-                      )}
-                    </div>
-
-                    {/* Broken Rules */}
-                    <div className="space-y-2">
-                      <span className="text-xs font-medium text-pnl-negative uppercase tracking-wide">Rules Broken</span>
-                      {trade.brokenRules && trade.brokenRules.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {trade.brokenRules.map((rule, index) => (
-                            <span 
-                              key={index}
-                              className="px-2 py-1 text-xs rounded-md bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/20"
-                            >
-                              {rule}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">None</p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                    <span className="text-sm text-muted-foreground">Rules Compliance</span>
-                    <span className="text-sm text-muted-foreground">No rules recorded</span>
+                  <div className="rounded-2xl border border-border/50 bg-card/70 p-4 backdrop-blur-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-8 w-8 rounded-xl border border-border/60 bg-background/35 flex items-center justify-center shrink-0">
+                          <TradingRulesIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground leading-tight">Trading Rules & Mistakes</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">No rules or mistakes were logged for this trade.</p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground px-2.5 py-1 rounded-lg border border-border/50 bg-background/40">
+                        Empty
+                      </span>
+                    </div>
                   </div>
                 )}
-
-                {/* Mistake Tags Section */}
-                {trade.mistakeTags && trade.mistakeTags.length > 0 ? (
-                  <div className="space-y-3 p-4 rounded-xl border border-red-500/30 bg-red-500/5">
-                    <div className="flex items-center gap-2">
-                      <XIcon className="h-4 w-4 text-red-500/70" />
-                      <span className="text-sm font-medium text-foreground">Identified Mistakes</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {trade.mistakeTags.map((mistake, index) => (
-                        <span 
-                          key={index}
-                          className="px-2.5 py-1.5 text-xs rounded-md bg-red-500/15 text-red-500 border border-red-500/40 font-medium"
-                        >
-                          {mistake}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
               </div>
 
               {/* News Section */}
@@ -508,7 +547,22 @@ export function TradeViewDialogContent({
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No news on this day</p>
+                  <div className="rounded-xl border border-border/50 bg-background/30 p-3.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-7 w-7 rounded-lg border border-border/60 bg-background/35 flex items-center justify-center shrink-0">
+                          <NewsIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground leading-tight">No economic news logged</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">No events were recorded for this trade.</p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground px-2.5 py-1 rounded-lg border border-border/50 bg-background/40">
+                        Empty
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -896,19 +950,29 @@ export function TradeViewDialogContent({
           {/* EMOTIONS TAB */}
           {activeTab === 'emotions' && <div className="space-y-6 animate-in fade-in-0 duration-300 ease-out">
               {/* Emotional State */}
-              {trade.emotionalState && <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border/60">
-                  <EmotionIcon className={cn('h-5 w-5 flex-shrink-0', currentEmotion.color)} />
-                  <span className="text-sm text-muted-foreground">Mood:</span>
-                  <span className="text-sm font-medium text-foreground">{currentEmotion.label}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden ml-auto max-w-24">
-                    <div className={cn('h-full rounded-full', trade.emotionalState === 1 ? 'bg-pnl-negative' : trade.emotionalState === 2 ? 'bg-amber-500' : 'bg-pnl-positive')} style={{ width: `${trade.emotionalState / 3 * 100}%` }} />
+              {trade.emotionalState && (
+                <div className="rounded-2xl border border-border/50 bg-card/70 p-4 backdrop-blur-sm">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('h-10 w-10 rounded-xl border flex items-center justify-center', moodTone.chip)}>
+                      <EmotionIcon className={cn('h-5 w-5 flex-shrink-0', currentEmotion.color)} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Mood</p>
+                      <p className="text-xl font-semibold text-foreground leading-tight mt-0.5">{currentEmotion.label}</p>
+                    </div>
+                    <div className="ml-auto w-24 sm:w-32">
+                      <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
+                        <div className={cn('h-full rounded-full', moodTone.track)} style={{ width: `${trade.emotionalState / 3 * 100}%` }} />
+                      </div>
+                    </div>
                   </div>
-                </div>}
+                </div>
+              )}
 
-              {overallEmotionsText ? <div className="space-y-1.5">
-                  <span className="text-sm font-semibold text-foreground">Overall Emotions</span>
-                  <div className="rounded-lg border border-border bg-muted/50 p-3">
-                    <div 
+              {overallEmotionsText ? <div className="space-y-2.5 rounded-2xl border border-border/50 bg-card/70 p-4 backdrop-blur-sm">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground block">Overall Emotions</span>
+                  <div className="rounded-xl border border-border/50 bg-background/30 p-3.5">
+                    <div
                       className="rich-text-content"
                       dangerouslySetInnerHTML={{ __html: overallEmotionsText }}
                     />

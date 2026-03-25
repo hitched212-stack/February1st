@@ -50,12 +50,12 @@ interface NewsEventSelectorProps {
   onMultiNewsSelect?: (events: SelectedNewsEvent[]) => void;
 }
 
-const QUICK_EVENT_TEMPLATES: Array<{ title: string; impact: NewsImpact; currency: string }> = [
-  { title: 'Non-Farm Payrolls', impact: 'high', currency: 'USD' },
-  { title: 'CPI', impact: 'high', currency: 'USD' },
-  { title: 'FOMC Rate Decision', impact: 'high', currency: 'USD' },
-  { title: 'GDP', impact: 'medium', currency: 'USD' },
-  { title: 'Unemployment Rate', impact: 'medium', currency: 'USD' },
+const QUICK_EVENT_TEMPLATES: Array<{ title: string; impact: NewsImpact }> = [
+  { title: 'Non-Farm Payrolls', impact: 'high' },
+  { title: 'CPI', impact: 'high' },
+  { title: 'FOMC Rate Decision', impact: 'high' },
+  { title: 'GDP', impact: 'medium' },
+  { title: 'Unemployment Rate', impact: 'medium' },
 ];
 
 export function NewsEventSelector({
@@ -80,7 +80,6 @@ export function NewsEventSelector({
     if (selectedNewsTitle && newsImpact) return [{ title: selectedNewsTitle, impact: newsImpact }];
     return [];
   });
-
   // Sync with props
   useEffect(() => {
     if (selectedEvents.length > 0) {
@@ -129,13 +128,13 @@ export function NewsEventSelector({
     syncEvents([...localSelectedEvents, next]);
   };
 
-  const addTemplateEvent = (template: { title: string; impact: NewsImpact; currency: string }) => {
+  const addTemplateEvent = (template: { title: string; impact: NewsImpact }) => {
     syncEvents([
       ...localSelectedEvents,
       {
         title: template.title,
         impact: template.impact,
-        currency: template.currency,
+        currency: quickCurrency,
         time: '',
       },
     ]);
@@ -177,29 +176,42 @@ export function NewsEventSelector({
     }
   }, [hasNews]);
 
+  const getImpactTone = (impact: string) => {
+    switch (impact) {
+      case 'high':
+        return 'border-red-500/30 bg-red-500/10 text-red-400';
+      case 'medium':
+        return 'border-amber-500/30 bg-amber-500/10 text-amber-400';
+      case 'low':
+        return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400';
+      default:
+        return 'border-border/60 bg-background/40 text-muted-foreground';
+    }
+  };
+
   return (
-    <div className="space-y-3 p-3 sm:p-3.5 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg border border-border/60 bg-background/30 flex items-center justify-center">
+    <div className="space-y-4 rounded-2xl border border-border/50 bg-card/70 p-3.5 sm:p-4 backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl border border-border/60 bg-background/35 flex items-center justify-center shadow-sm">
             <NewsIcon className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
-          <Label className="text-xs sm:text-sm font-semibold font-display text-foreground">Economic News</Label>
+          <div className="space-y-0.5">
+            <Label className="text-sm font-semibold font-display text-foreground">Economic News</Label>
+            <p className="text-[11px] text-muted-foreground">Track news events that affected this trade.</p>
+          </div>
         </div>
-        <span className="text-[10px] sm:text-xs px-2 py-1 rounded-md border border-border/60 bg-background/30 text-muted-foreground">
-          Optional
-        </span>
       </div>
       
       <div className="flex justify-center">
-        <div className="w-full max-w-md grid grid-cols-2 gap-1.5 rounded-xl border border-border/60 bg-background/25 p-1">
+        <div className="w-full max-w-md grid grid-cols-2 gap-1.5 rounded-2xl border border-border/60 bg-background/25 p-1.5">
         <button 
           type="button" 
           onClick={() => onHasNewsChange(true)} 
           className={cn(
-            "h-8.5 sm:h-9 rounded-lg text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
+            "h-10 rounded-xl text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
             hasNews 
-              ? "bg-[#9b8cff] text-white shadow-sm" 
+              ? "bg-[#9b8cff] text-white shadow-sm shadow-[#9b8cff]/20" 
               : "text-muted-foreground hover:bg-muted/55 hover:text-foreground"
           )}
         >
@@ -215,9 +227,9 @@ export function NewsEventSelector({
             if (onMultiNewsSelect) onMultiNewsSelect([]);
           }} 
           className={cn(
-            "h-8.5 sm:h-9 rounded-lg text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
+            "h-10 rounded-xl text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
             !hasNews 
-              ? "bg-[#9b8cff] text-white shadow-sm" 
+              ? "bg-[#9b8cff] text-white shadow-sm shadow-[#9b8cff]/20" 
               : "text-muted-foreground hover:bg-muted/55 hover:text-foreground"
           )}
         >
@@ -227,20 +239,38 @@ export function NewsEventSelector({
         </div>
       </div>
 
-      {hasNews && (
-        <div className="space-y-4 pt-1 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-          <div className="flex flex-wrap gap-2">
-            {QUICK_EVENT_TEMPLATES.map((template) => (
-              <button
-                key={`${template.title}-${template.currency}`}
-                type="button"
-                onClick={() => addTemplateEvent(template)}
-                className="h-8 px-2.5 rounded-lg border border-border/60 bg-background/25 hover:bg-muted/50 text-xs text-foreground/90"
-              >
-                {template.title}
-                <span className="ml-1.5 text-muted-foreground">• {template.currency}</span>
-              </button>
-            ))}
+      <div className={cn(
+        "grid transition-all duration-300 ease-in-out",
+        hasNews ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
+      )}>
+      <div className="overflow-hidden">
+        <div className="space-y-4 pt-1">
+          <div className="space-y-3 rounded-2xl border border-border/50 bg-background/20 p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Quick add</Label>
+              <span className="text-[10px] text-muted-foreground px-2.5 py-1 rounded-lg bg-background/40 border border-border/50">
+                {localSelectedEvents.length} event{localSelectedEvents.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {QUICK_EVENT_TEMPLATES.map((template) => (
+                <button
+                  key={template.title}
+                  type="button"
+                  onClick={() => addTemplateEvent(template)}
+                  className="group rounded-xl border border-border/60 bg-background/30 px-2.5 py-2.5 text-left transition-all hover:bg-muted/45 hover:border-border"
+                >
+                  <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                    <span className={cn('shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide', getImpactTone(template.impact))}>
+                      {template.impact}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium text-foreground leading-snug line-clamp-2">
+                    {template.title}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {localSelectedEvents.length === 0 ? (
@@ -248,7 +278,7 @@ export function NewsEventSelector({
               type="button"
               variant="outline"
               onClick={addManualEvent}
-              className="h-10 rounded-xl border-border/60 bg-background/30 hover:bg-muted/45"
+              className="h-11 rounded-2xl border-dashed border-border/60 bg-background/30 hover:bg-muted/45"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add First News Event
@@ -258,17 +288,28 @@ export function NewsEventSelector({
               {localSelectedEvents.map((event, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl border border-border/60 bg-background/35 p-3 space-y-3"
+                  className="rounded-2xl border border-border/60 bg-gradient-to-br from-background/55 to-background/25 p-3.5 sm:p-4 space-y-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Event {idx + 1}
-                    </Label>
-                    <div className="flex items-center gap-1.5">
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-2.5 py-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Event {idx + 1}</span>
+                        {event.impact ? (
+                          <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide', getImpactTone(event.impact))}>
+                            {event.impact}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Add the event name, expected impact, release time, and currency.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/35 p-1">
                       <button
                         type="button"
                         onClick={() => duplicateManualEvent(idx)}
-                        className="h-7 w-7 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center"
+                        className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center transition-colors"
                         title="Duplicate event"
                       >
                         <Copy className="h-3.5 w-3.5" />
@@ -276,7 +317,7 @@ export function NewsEventSelector({
                       <button
                         type="button"
                         onClick={() => removeManualEvent(idx)}
-                        className="h-7 w-7 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center"
+                        className="h-8 w-8 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-colors"
                         title="Remove event"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -284,9 +325,9 @@ export function NewsEventSelector({
                     </div>
                   </div>
 
-                  <div className="grid gap-2.5 md:grid-cols-6">
-                    <div className="md:col-span-3 space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">News Event</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                    <div className="space-y-1.5 sm:col-span-2 lg:col-span-6">
+                      <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">News Event</Label>
                       <Input
                         value={event.title || ''}
                         onChange={(e) => updateManualEvent(idx, 'title', e.target.value)}
@@ -296,19 +337,19 @@ export function NewsEventSelector({
                             addManualEvent(idx);
                           }
                         }}
-                        placeholder="e.g. Non-Farm Payrolls"
-                        className="h-9 bg-background/70 border-border/60 text-sm"
+                        placeholder="Non-Farm Payrolls"
+                        className="h-10 rounded-xl bg-background/70 border-border/60 text-sm sm:text-[15px]"
                       />
                     </div>
 
-                    <div className="md:col-span-1 space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Impact</Label>
+                    <div className="space-y-1.5 lg:col-span-2 min-w-0">
+                      <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Impact</Label>
                       <Select
                         value={event.impact || ''}
                         onValueChange={(value) => updateManualEvent(idx, 'impact', value)}
                       >
-                        <SelectTrigger className="h-9 bg-background/70 border-border/60 text-sm">
-                          <SelectValue placeholder="Select impact" />
+                        <SelectTrigger className="h-10 rounded-xl bg-background/70 border-border/60 text-sm min-w-0">
+                          <SelectValue placeholder="Impact" />
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border">
                           {NEWS_IMPACTS.map((impact) => (
@@ -320,23 +361,23 @@ export function NewsEventSelector({
                       </Select>
                     </div>
 
-                    <div className="md:col-span-1 space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Time</Label>
+                    <div className="space-y-1.5 lg:col-span-2 min-w-0">
+                      <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Time</Label>
                       <Input
                         type="time"
                         value={event.time || ''}
                         onChange={(e) => updateManualEvent(idx, 'time', e.target.value)}
-                        className="h-9 bg-background/70 border-border/60 text-sm"
+                        className="h-10 rounded-xl bg-background/70 border-border/60 text-sm min-w-0"
                       />
                     </div>
 
-                    <div className="md:col-span-1 space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Currency</Label>
+                    <div className="space-y-1.5 lg:col-span-2 min-w-0">
+                      <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Currency</Label>
                       <Input
                         value={event.currency || ''}
                         onChange={(e) => updateManualEvent(idx, 'currency', e.target.value)}
-                        placeholder="e.g. USD"
-                        className="h-9 bg-background/70 border-border/60 uppercase text-sm"
+                        placeholder="USD"
+                        className="h-10 rounded-xl bg-background/70 border-border/60 uppercase text-sm min-w-0"
                       />
                     </div>
                   </div>
@@ -347,7 +388,7 @@ export function NewsEventSelector({
                 type="button"
                 variant="outline"
                 onClick={addManualEvent}
-                className="h-10 rounded-xl border-border/60 bg-background/30 hover:bg-muted/45"
+                className="h-11 w-full rounded-2xl border-dashed border-border/60 bg-background/30 hover:bg-muted/45"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Another Event
@@ -355,7 +396,8 @@ export function NewsEventSelector({
             </div>
           )}
         </div>
-      )}
+      </div>
+      </div>
     </div>
   );
 }
