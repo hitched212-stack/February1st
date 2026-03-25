@@ -1797,100 +1797,111 @@ export default function CalendarPage() {
 
                   {/* Recent Trades */}
                   <div className={cn(
-                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm hover:shadow-md",
+                    "group rounded-2xl border relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/50"
-                      : "border-border/60 bg-card hover:border-border"
+                      ? "border-white/10 bg-black/40 backdrop-blur-2xl"
+                      : "border-border/60 bg-card"
                   )}>
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex items-center justify-between gap-2 mb-5">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                          <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Recent Trades</h3>
-                          <UiTooltip>
-                            <UiTooltipTrigger asChild>
-                              <button type="button" className="inline-flex">
-                                <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                              </button>
-                            </UiTooltipTrigger>
-                            <UiTooltipContent>
-                              <p className="font-display font-medium">Your 5 most recent trades</p>
-                            </UiTooltipContent>
-                          </UiTooltip>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => navigate('/history')}
-                            className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-card/80 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-border transition-colors whitespace-nowrap"
-                          >
-                            View all
-                            <ChevronRight className="h-3 w-3" />
-                          </button>
-                        </div>
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border/40">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full flex-shrink-0" />
+                        <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Recent Trades</h3>
+                        <UiTooltip>
+                          <UiTooltipTrigger asChild>
+                            <button type="button" className="inline-flex">
+                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
+                            </button>
+                          </UiTooltipTrigger>
+                          <UiTooltipContent>
+                            <p className="font-display font-medium">Your 5 most recent trades</p>
+                          </UiTooltipContent>
+                        </UiTooltip>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/history')}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        View all
+                        <ChevronRight className="h-3 w-3" />
+                      </button>
+                    </div>
 
-                      {/* Recent trades list with improved spacing */}
-                      <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-1">
-                        {monthlyTrades.length > 0 ? (
-                          [...monthlyTrades]
-                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                            .slice(0, 5)
-                            .map(trade => (
-                            <div
-                              key={trade.id}
-                              onClick={() => {
-                                setSelectedTrade(trade);
-                                setTradeViewOpen(true);
-                              }}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-card/40 hover:bg-card/60 border border-border/40 transition-all duration-200 cursor-pointer group/trade relative overflow-hidden"
-                            >
-                              {/* Left border accent based on P&L */}
-                              <div className={cn(
-                                "absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-200",
-                                trade.pnlAmount >= 0 ? "bg-[#9b8cff]" : "bg-pnl-negative",
-                                "opacity-0 group-hover/trade:opacity-100"
-                              )} />
-                              {/* Left: Trade type icon and symbol */}
-                              <div className="flex-shrink-0">
-                                <SymbolIcon symbol={trade.symbol} size="sm" />
-                              </div>
+                    {/* Trade rows */}
+                    <div className="flex flex-col divide-y divide-border/30 overflow-y-auto">
+                      {monthlyTrades.length > 0 ? (
+                        [...monthlyTrades]
+                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                          .slice(0, 5)
+                          .map(trade => (
+                          <div
+                            key={trade.id}
+                            onClick={() => { setSelectedTrade(trade); setTradeViewOpen(true); }}
+                            className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/30 transition-colors duration-150 relative group/trade"
+                          >
+                            {/* Always-visible left accent */}
+                            <div className={cn(
+                              "absolute left-0 top-3 bottom-3 w-0.5 rounded-full transition-opacity duration-200",
+                              trade.pnlAmount >= 0 ? "bg-pnl-positive opacity-60 group-hover/trade:opacity-100" : "bg-pnl-negative opacity-60 group-hover/trade:opacity-100"
+                            )} />
 
-                              {/* Middle: Symbol and date */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-semibold text-foreground truncate">
-                                    {trade.symbol}
+                            {/* Symbol icon */}
+                            <div className="flex-shrink-0 pl-1">
+                              <SymbolIcon symbol={trade.symbol} size="sm" />
+                            </div>
+
+                            {/* Symbol + date + direction */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-bold font-display text-foreground">{trade.symbol}</span>
+                                {!trade.noTradeTaken && (
+                                  <span className={cn(
+                                    "text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded",
+                                    trade.direction === 'long'
+                                      ? "bg-pnl-positive/10 text-pnl-positive"
+                                      : "bg-pnl-negative/10 text-pnl-negative"
+                                  )}>
+                                    {trade.direction === 'long' ? 'L' : 'S'}
                                   </span>
-                                </div>
-                                <span className="text-[10px] text-muted-foreground font-medium tracking-wide block">
-                                  {format(new Date(trade.date), 'dd/MM/yyyy')}
-                                </span>
+                                )}
+                                {trade.isPaperTrade && (
+                                  <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground">
+                                    Paper
+                                  </span>
+                                )}
                               </div>
+                              <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
+                                {format(new Date(trade.date), 'dd MMM yyyy')}
+                              </span>
+                            </div>
 
-                              {/* Right: P&L Info */}
-                              <div className="flex-shrink-0 text-right space-y-0.5">
+                            {/* P&L */}
+                            {!trade.isPaperTrade && !trade.noTradeTaken ? (
+                              <div className="flex-shrink-0 text-right">
                                 <span className={cn(
-                                  "text-sm font-bold font-display tabular-nums block",
+                                  "text-sm font-bold font-display tabular-nums block leading-tight",
                                   trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
                                 )}>
                                   {formatCurrency(trade.pnlAmount)}
                                 </span>
                                 <span className={cn(
-                                  "text-[9px] font-semibold tabular-nums block",
-                                  trade.pnlPercentage >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                                  "text-[10px] font-semibold tabular-nums",
+                                  trade.pnlAmount >= 0 ? "text-pnl-positive/70" : "text-pnl-negative/70"
                                 )}>
                                   {trade.pnlPercentage >= 0 ? '+' : ''}{trade.pnlPercentage.toFixed(2)}%
                                 </span>
                               </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-muted-foreground">
-                            <p className="text-xs">No recent trades</p>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground font-medium">—</span>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center justify-center py-16 text-muted-foreground">
+                          <p className="text-xs">No recent trades</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
