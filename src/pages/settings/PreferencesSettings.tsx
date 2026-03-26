@@ -45,12 +45,14 @@ function ColorRow({ label, description, value, onChange }: ColorRowProps) {
         <span className="text-[11px] px-2.5 py-1 rounded-lg border border-border/60 bg-background/60 text-muted-foreground font-mono uppercase tracking-wide">
           {value}
         </span>
-        <div className="relative">
+        <div className="relative w-11 h-11">
           <input
             type="color"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 opacity-0 cursor-pointer w-11 h-11"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10, pointerEvents: 'auto' }}
+            tabIndex={0}
+            aria-label={`Pick ${label}`}
           />
           <div
             className="w-11 h-11 rounded-xl border border-border/50 cursor-pointer shadow-sm transition-all duration-200 group-hover:scale-105"
