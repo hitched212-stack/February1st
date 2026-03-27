@@ -184,9 +184,17 @@ export function useTrades() {
     if (!user) return;
 
     let refetchTimeout: NodeJS.Timeout | null = null;
+    let healthCheckTimeout: NodeJS.Timeout | null = null;
+    let subscriptionStatus: 'SUBSCRIBED' | 'CLOSED' = 'CLOSED';
 
     const channel = supabase
-      .channel(`trades-${user.id}`)
+      .channel(`trades-${user.id}`, { config: { broadcast: { self: true } } })
+      .on('subscribe', () => {
+        subscriptionStatus = 'SUBSCRIBED';
+      })
+      .on('system', { event: 'postgres_changes' }, () => {
+        subscriptionStatus = 'SUBSCRIBED';
+      })
       .on(
         'postgres_changes',
         {
@@ -212,13 +220,38 @@ export function useTrades() {
               // Fetch with silent mode to not interrupt user
               fetchTrades(0, true);
             }
-          }, 3000); // 3s debounce to reduce DB load and allow proper processing
+          }, 1000); // Reduced to 1s for faster updates - DB batching is handled server-side
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          subscriptionStatus = 'SUBSCRIBED';
+        } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+          subscriptionStatus = 'CLOSED';
+          // Attempt to resubscribe on error
+          setTimeout(() => {
+            channel.subscribe();
+          }, 2000);
+        }
+      });
+
+    // Health check: if subscription seems dead, force a refetch
+    const startHealthCheck = () => {
+      if (healthCheckTimeout) clearTimeout(healthCheckTimeout);
+      healthCheckTimeout = setTimeout(() => {
+        if (tradesLoaded && user && activeAccount && !isSwitching) {
+          // Do a silent refetch to ensure data is fresh
+          fetchTrades(0, true);
+          startHealthCheck(); // Restart the health check
+        }
+      }, 30000); // Check every 30 seconds
+    };
+    
+    startHealthCheck();
 
     return () => {
       if (refetchTimeout) clearTimeout(refetchTimeout);
+      if (healthCheckTimeout) clearTimeout(healthCheckTimeout);
       supabase.removeChannel(channel);
     };
   }, [user?.id]); // Only depend on user.id to prevent channel recreation
@@ -237,6 +270,24 @@ export function useTrades() {
       fetchTrades(0, true); // Silent initial fetch - retries happen automatically
     }
   }, [user?.id, activeAccount?.id, tradesLoaded, currentAccountId, fetchTrades, setTrades, setCurrentAccountId, setTradesLoaded]);
+
+  // Refetch trades when app becomes visible (user returns from another tab/app)
+  useEffect(() => {
+    if (!user || !activeAccount) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // App just became visible - refresh trades to catch any missed updates
+        console.debug('App became visible, refreshing trades');
+        fetchTrades(0, true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, activeAccount, fetchTrades]);
 
   // Add trade - automatically assigns to active account
   const addTrade = useCallback(async (tradeData: Omit<Trade, 'id' | 'createdAt' | 'updatedAt'>) => {

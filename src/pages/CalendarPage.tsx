@@ -1899,7 +1899,7 @@ export default function CalendarPage() {
                         ))
                       ) : (
                         <div className="flex items-center justify-center py-16 text-muted-foreground">
-                          <p className="text-xs">No recent trades</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-wider">No recent trades</p>
                         </div>
                       )}
                     </div>
@@ -2445,18 +2445,18 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Calendar Legend */}
-                <div className="flex flex-wrap items-center justify-center gap-2 pt-2 pb-6">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-pnl-positive/10 ring-1 ring-inset ring-pnl-positive/20">
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-4 pb-6">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-pnl-positive/40 bg-pnl-positive/8 hover:bg-pnl-positive/12 transition-colors">
                     <div className="h-1.5 w-1.5 rounded-full bg-pnl-positive flex-shrink-0" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest font-display" style={{ color: 'hsl(var(--pnl-positive) / 0.85)' }}>Profitable</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-foreground">Profitable</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-pnl-negative/10 ring-1 ring-inset ring-pnl-negative/20">
-                    <div className="h-1.5 w-1.5 rounded-full bg-pnl-negative flex-shrink-0" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest font-display" style={{ color: 'hsl(var(--pnl-negative) / 0.85)' }}>Loss</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-muted-foreground/30 bg-muted/20 hover:bg-muted/30 transition-colors">
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 flex-shrink-0" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-muted-foreground">Loss</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 ring-1 ring-inset ring-primary/20">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-primary/50 bg-primary/12 hover:bg-primary/18 transition-colors">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0 animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest font-display text-primary/80">Today</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-primary/90">Today</span>
                   </div>
                 </div>
               </>
