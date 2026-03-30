@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Trade, getCurrencySymbol, NEWS_IMPACTS } from '@/types/trade';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useAccount } from '@/hooks/useAccount';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -129,8 +130,68 @@ export function TradeViewDialogContent({
   
   const pnlPercentage = calculatePnlPercentage();
   const overallEmotionsText = trade.overallEmotions || '';
+  const [mediaHydration, setMediaHydration] = useState<{
+    images: string[];
+    chartAnalysisNotes: string;
+    preMarketImages: string[];
+    preMarketNotes: string;
+    postMarketImages: string[];
+    postMarketNotes: string;
+  } | null>(null);
   
   const [activeTab, setActiveTab] = useState<ViewTab>('general');
+
+  useEffect(() => {
+    setMediaHydration(null);
+  }, [trade.id]);
+
+  const shouldHydrateChartMedia = activeTab === 'charts' && (!trade.images?.length && !trade.chartAnalysisNotes);
+  const shouldHydratePreMarketMedia = activeTab === 'pre-market' && (!trade.preMarketImages?.length && !trade.preMarketNotes);
+  const shouldHydratePostMarketMedia = activeTab === 'post-market' && (!trade.postMarketImages?.length && !trade.postMarketNotes);
+
+  useEffect(() => {
+    if (mediaHydration) return;
+    if (!shouldHydrateChartMedia && !shouldHydratePreMarketMedia && !shouldHydratePostMarketMedia) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from('trades')
+        .select('images,chart_analysis_notes,pre_market_images,pre_market_notes,post_market_images,post_market_notes')
+        .eq('id', trade.id)
+        .single();
+
+      if (cancelled || error || !data) return;
+
+      setMediaHydration({
+        images: Array.isArray(data.images) ? data.images : [],
+        chartAnalysisNotes: data.chart_analysis_notes || '',
+        preMarketImages: Array.isArray(data.pre_market_images) ? data.pre_market_images : [],
+        preMarketNotes: data.pre_market_notes || '',
+        postMarketImages: Array.isArray(data.post_market_images) ? data.post_market_images : [],
+        postMarketNotes: data.post_market_notes || '',
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [trade.id, mediaHydration, shouldHydrateChartMedia, shouldHydratePreMarketMedia, shouldHydratePostMarketMedia]);
+
+  const displayTrade = useMemo(() => {
+    if (!mediaHydration) return trade;
+
+    return {
+      ...trade,
+      images: trade.images?.length ? trade.images : mediaHydration.images,
+      chartAnalysisNotes: trade.chartAnalysisNotes || mediaHydration.chartAnalysisNotes,
+      preMarketImages: trade.preMarketImages?.length ? trade.preMarketImages : mediaHydration.preMarketImages,
+      preMarketNotes: trade.preMarketNotes || mediaHydration.preMarketNotes,
+      postMarketImages: trade.postMarketImages?.length ? trade.postMarketImages : mediaHydration.postMarketImages,
+      postMarketNotes: trade.postMarketNotes || mediaHydration.postMarketNotes,
+    };
+  }, [trade, mediaHydration]);
   const tabs: {
     id: ViewTab;
     label: string;
@@ -586,12 +647,12 @@ export function TradeViewDialogContent({
                   const beforeSections: { timeframe: string | null; notes: string }[] = [];
                   const afterSections: { timeframe: string | null; notes: string }[] = [];
                   
-                  if (!trade.chartAnalysisNotes) {
+                  if (!displayTrade.chartAnalysisNotes) {
                     return { before: beforeSections, after: afterSections };
                   }
                   
                   // Split sections by double newlines, then parse each
-                  const sections = trade.chartAnalysisNotes.split(/\n\n+/);
+                  const sections = displayTrade.chartAnalysisNotes.split(/\n\n+/);
                   
                   sections.forEach(section => {
                     const match = section.match(/^\[(Before|After)\s*-\s*([^\]]+)\]\n?([\s\S]*)/i);
@@ -620,7 +681,7 @@ export function TradeViewDialogContent({
                 };
                 
                 const { before: beforeSections, after: afterSections } = parseChartSections();
-                const images = trade.images || [];
+                const images = displayTrade.images || [];
                 
                 // Images are stored as: [...beforeImages, ...afterImages]
                 // Use section counts to split, but ensure we show all images even without notes
@@ -787,9 +848,9 @@ export function TradeViewDialogContent({
                 // Parse pre-market notes to extract timeframe sections
                 // Handle both [Timeframe]\nnotes and [Timeframe]\n formats (image with no notes)
                 const parsePreMarketSections = () => {
-                  if (!trade.preMarketNotes) return [];
+                  if (!displayTrade.preMarketNotes) return [];
                   // Split by sections that start with [something] - but keep the delimiter
-                  const sectionMatches = trade.preMarketNotes.match(/\[[^\]]+\](?:\n[\s\S]*?)?(?=\n\n\[|\n\[|$)/g);
+                  const sectionMatches = displayTrade.preMarketNotes.match(/\[[^\]]+\](?:\n[\s\S]*?)?(?=\n\n\[|\n\[|$)/g);
                   if (!sectionMatches) return [];
                   return sectionMatches.map(section => {
                     const match = section.match(/^\[([^\]]+)\]\n?([\s\S]*)/);
@@ -801,7 +862,7 @@ export function TradeViewDialogContent({
                 };
                 
                 const chartSections = parsePreMarketSections();
-                const images = trade.preMarketImages || [];
+                const images = displayTrade.preMarketImages || [];
                 const hasChartContent = images.length > 0 || chartSections.length > 0;
 
                 return <>
@@ -870,9 +931,9 @@ export function TradeViewDialogContent({
                 // Parse post-market notes to extract timeframe sections
                 // Handle both [Timeframe]\nnotes and [Timeframe]\n formats (image with no notes)
                 const parsePostMarketSections = () => {
-                  if (!trade.postMarketNotes) return [];
+                  if (!displayTrade.postMarketNotes) return [];
                   // Split by sections that start with [something] - but keep the delimiter
-                  const sectionMatches = trade.postMarketNotes.match(/\[[^\]]+\](?:\n[\s\S]*?)?(?=\n\n\[|\n\[|$)/g);
+                  const sectionMatches = displayTrade.postMarketNotes.match(/\[[^\]]+\](?:\n[\s\S]*?)?(?=\n\n\[|\n\[|$)/g);
                   if (!sectionMatches) return [];
                   return sectionMatches.map(section => {
                     const match = section.match(/^\[([^\]]+)\]\n?([\s\S]*)/);
@@ -884,7 +945,7 @@ export function TradeViewDialogContent({
                 };
                 
                 const chartSections = parsePostMarketSections();
-                const images = trade.postMarketImages || [];
+                const images = displayTrade.postMarketImages || [];
                 const hasChartContent = images.length > 0 || chartSections.length > 0;
 
                 return <>

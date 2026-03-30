@@ -273,20 +273,34 @@ export function useTrades() {
         throw error;
       }
 
+      const existingTradesById = new Map(trades.map((t) => [t.id, t]));
+
       const mappedTrades = (data || []).map(d => {
         const mapped = mapDbTradeToTrade(d as unknown as DbTrade);
+        const existing = existingTradesById.get(mapped.id);
+
+        const mergedMediaTrade = {
+          ...mapped,
+          images: mapped.images.length > 0 ? mapped.images : (existing?.images || []),
+          preMarketImages: mapped.preMarketImages.length > 0 ? mapped.preMarketImages : (existing?.preMarketImages || []),
+          postMarketImages: mapped.postMarketImages.length > 0 ? mapped.postMarketImages : (existing?.postMarketImages || []),
+          chartAnalysisNotes: mapped.chartAnalysisNotes || existing?.chartAnalysisNotes || '',
+          preMarketNotes: mapped.preMarketNotes || existing?.preMarketNotes || '',
+          postMarketNotes: mapped.postMarketNotes || existing?.postMarketNotes || '',
+        };
+
         // Legacy compatibility: some older databases don't have account_id on trades.
         // In that case, bind the trade to the currently active account so account-scoped
         // dashboard views can still render historical data.
-        if (!mapped.accountId && activeAccount?.id) {
-          return { ...mapped, accountId: activeAccount.id };
+        if (!mergedMediaTrade.accountId && activeAccount?.id) {
+          return { ...mergedMediaTrade, accountId: activeAccount.id };
         }
         // If a trade points to an account that isn't in the current user's account list,
         // attach it to the active account so it remains visible instead of being filtered out.
-        if (mapped.accountId && !knownAccountIds.has(mapped.accountId) && activeAccount?.id) {
-          return { ...mapped, accountId: activeAccount.id };
+        if (mergedMediaTrade.accountId && !knownAccountIds.has(mergedMediaTrade.accountId) && activeAccount?.id) {
+          return { ...mergedMediaTrade, accountId: activeAccount.id };
         }
-        return mapped;
+        return mergedMediaTrade;
       });
 
       // Recovery path: if current account returns no trades, but the user has trades in
@@ -349,7 +363,7 @@ export function useTrades() {
         toast.error(`Failed to load trades: ${errorMessage}`);
       }
     }
-  }, [user, activeAccount, accounts, setActiveAccount, setTrades, setCurrentAccountId]);
+  }, [user, activeAccount, accounts, trades, setActiveAccount, setTrades, setCurrentAccountId]);
 
   // Return previous trades during transition for smooth crossfade
   // This prevents the "flash" when switching accounts

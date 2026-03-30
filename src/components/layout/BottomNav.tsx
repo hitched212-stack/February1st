@@ -129,10 +129,9 @@ export function BottomNav() {
   const isHistoryActive = location.pathname === '/history';
   const isAnalyticsActive = location.pathname === '/analytics';
   const isMoreTabActive = moreOpen || isMoreActive;
-  const activeTabClasses = 'gap-2 w-[145px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
-  const moreActiveTabClasses = 'gap-2 w-[104px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100';
-  const inactiveTabClasses = 'w-11 justify-center text-white/75 scale-[0.985]';
-  const tabTransitionClasses = 'transform-gpu will-change-[width,transform,opacity] transition-[width,background-color,color,box-shadow,transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none';
+  const navItemBaseClasses = 'relative z-10 flex h-[54px] min-w-[58px] flex-col items-center justify-center rounded-2xl px-2 transition-all duration-300';
+  const activeItemClasses = 'bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]';
+  const inactiveItemClasses = 'text-white/62 hover:text-white/90 hover:bg-white/[0.04]';
   
   useEffect(() => {
     const timer = setTimeout(() => setHasAnimated(true), 100);
@@ -155,9 +154,9 @@ export function BottomNav() {
     >
       <div className="relative mx-auto max-w-md">
         <div 
-          className="relative flex h-[62px] items-center justify-between gap-1 pl-2 pr-3 rounded-[22px] bg-zinc-900/95 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.45)] overflow-hidden"
+          className="relative flex h-[74px] items-center justify-between gap-1.5 px-2.5 rounded-[22px] bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_16px_36px_rgba(0,0,0,0.42)] overflow-hidden"
         >
-          <div className="absolute top-[1px] left-5 right-5 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-6 top-[1px] h-px bg-gradient-to-r from-transparent via-white/12 to-transparent pointer-events-none" />
           
           {/* Dashboard */}
           <NavLink 
@@ -165,23 +164,16 @@ export function BottomNav() {
             className="relative z-10"
           >
             <div className={cn(
-              "relative flex h-11 items-center rounded-full px-3",
-              tabTransitionClasses,
-              isDashboardActive
-                ? 'gap-2 w-[145px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100'
-                : inactiveTabClasses
+              navItemBaseClasses,
+              isDashboardActive ? activeItemClasses : inactiveItemClasses
             )}>
+              {isDashboardActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
               <GridDotsIcon 
                 className={cn(
-                  'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                  isDashboardActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
+                  'h-[17px] w-[17px] transition-transform duration-300',
+                  isDashboardActive && 'scale-105'
                 )} 
               />
-              <span className={cn(
-                'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
-                'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                isDashboardActive ? 'max-w-[180px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
-              )}>Dashboard</span>
             </div>
           </NavLink>
           
@@ -191,33 +183,28 @@ export function BottomNav() {
             className="relative z-10"
           >
             <div className={cn(
-              "relative flex h-11 items-center rounded-full px-3",
-              tabTransitionClasses,
-              isHistoryActive
-                ? 'gap-2 w-[115px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100'
-                : inactiveTabClasses
+              navItemBaseClasses,
+              isHistoryActive ? activeItemClasses : inactiveItemClasses
             )}>
+              {isHistoryActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
               <HistoryIcon 
                 className={cn(
-                  'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                  isHistoryActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
+                  'h-[17px] w-[17px] transition-transform duration-300',
+                  isHistoryActive && 'scale-105'
                 )} 
               />
-              <span className={cn(
-                'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
-                'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                isHistoryActive ? 'max-w-[64px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
-              )}>History</span>
             </div>
           </NavLink>
 
           {/* Add */}
           <button 
             onClick={() => setShowAccountDialog(true)}
-            className="relative z-10 h-12 w-12 flex items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-[#9b8cff] text-white active:scale-95 transition-all duration-200"
+            className="relative z-10 flex h-[54px] min-w-[58px] flex-col items-center justify-center rounded-2xl px-2 text-white/92 hover:text-white transition-all duration-200"
             aria-label="Add trade"
           >
-            <AddTradeIcon className="h-[22px] w-[22px]" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-[#9b8cff] shadow-[0_10px_22px_rgba(139,92,246,0.4)] border border-violet-300/25">
+              <AddTradeIcon className="h-[19px] w-[19px]" />
+            </span>
           </button>
 
           {/* Analytics */}
@@ -226,23 +213,16 @@ export function BottomNav() {
             className="relative z-10"
           >
             <div className={cn(
-              "relative flex h-11 items-center rounded-full px-3",
-              tabTransitionClasses,
-              isAnalyticsActive
-                ? 'gap-2 w-[135px] bg-gradient-to-r from-violet-600 to-[#9b8cff] text-white scale-100'
-                : inactiveTabClasses
+              navItemBaseClasses,
+              isAnalyticsActive ? activeItemClasses : inactiveItemClasses
             )}>
+              {isAnalyticsActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
               <AnalyticsIcon 
                 className={cn(
-                  'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                  isAnalyticsActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
+                  'h-[17px] w-[17px] transition-transform duration-300',
+                  isAnalyticsActive && 'scale-105'
                 )} 
               />
-              <span className={cn(
-                'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
-                'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                isAnalyticsActive ? 'max-w-[72px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
-              )}>Analytics</span>
             </div>
           </NavLink>
 
@@ -251,24 +231,17 @@ export function BottomNav() {
             <PopoverTrigger asChild>
               <button className="relative z-10">
                 <div className={cn(
-                  "relative flex h-11 items-center rounded-full px-3",
-                  tabTransitionClasses,
-                  isMoreTabActive
-                    ? moreActiveTabClasses
-                    : inactiveTabClasses
+                  navItemBaseClasses,
+                  isMoreTabActive ? activeItemClasses : inactiveItemClasses
                 )}>
+                  {isMoreTabActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
                   <Menu 
                     className={cn(
-                      'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                      isMoreTabActive ? 'h-[18px] w-[18px]' : 'h-[17px] w-[17px]'
+                      'h-[17px] w-[17px] transition-transform duration-300',
+                      isMoreTabActive && 'scale-105'
                     )} 
                     strokeWidth={1.8}
                   />
-                  <span className={cn(
-                    'text-[11px] font-bold uppercase tracking-widest whitespace-nowrap overflow-hidden',
-                    'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                    isMoreTabActive ? 'max-w-[44px] opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-1'
-                  )}>More</span>
                 </div>
               </button>
             </PopoverTrigger>

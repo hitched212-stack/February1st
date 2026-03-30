@@ -1945,9 +1945,9 @@ export default function CalendarPage() {
                 ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                 : "border-border/60 bg-card"
             )}>
-              <div className="relative px-4 sm:px-5 py-4">
+              <div className="relative px-3.5 sm:px-5 py-3.5 sm:py-4">
                 {/* Header row */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                     <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Goal Progress</h3>
@@ -1962,13 +1962,13 @@ export default function CalendarPage() {
                       </UiTooltipContent>
                     </UiTooltip>
                   </div>
-                  <div className="inline-flex gap-0.5 p-1 rounded-lg border border-border/50 bg-background/50">
+                  <div className="inline-flex w-full sm:w-fit justify-between sm:justify-start gap-0.5 p-1 rounded-lg border border-border/50 bg-background/50">
                     {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map((period) => (
                       <button
                         key={period}
                         onClick={() => setGoalPeriod(period)}
                         className={cn(
-                          'px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider',
+                          'flex-1 sm:flex-none px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider',
                           goalPeriod === period ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
                         )}
                       >
@@ -1979,14 +1979,14 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Metric body */}
-                <div className="flex items-center gap-4 sm:gap-6">
+                <div className="flex flex-col gap-3 sm:gap-6 sm:flex-row sm:items-center">
                   {/* Current P&L + period label */}
                   <div className="flex-shrink-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">
                       {goalPeriod === 'D' ? 'Today' : goalPeriod === 'W' ? 'This Week' : goalPeriod === 'M' ? format(currentMonth, 'MMM yyyy') : format(currentMonth, 'yyyy')}
                     </p>
                     <p className={cn(
-                      'text-3xl sm:text-4xl font-bold font-display tabular-nums leading-none tracking-tight',
+                      'text-[2rem] sm:text-4xl font-bold font-display tabular-nums leading-none tracking-tight',
                       currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative'
                     )}>
                       {formatPnlWithK(currentPnl)}
@@ -1994,18 +1994,18 @@ export default function CalendarPage() {
                   </div>
 
                   {/* Divider */}
-                  <div className="h-10 w-px bg-border/50 flex-shrink-0" />
+                  <div className="hidden sm:block h-10 w-px bg-border/50 flex-shrink-0" />
 
                   {/* Stats: goal, remaining, progress % */}
-                  <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+                  <div className="grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6 flex-shrink-0 w-full sm:w-auto">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">Goal</p>
-                      <p className="text-base font-bold font-display tabular-nums text-foreground leading-none">{formatPnlWithK(currentGoal, false)}</p>
+                      <p className="text-sm sm:text-base font-bold font-display tabular-nums text-foreground leading-none">{formatPnlWithK(currentGoal, false)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">Remaining</p>
                       <p className={cn(
-                        'text-base font-bold font-display tabular-nums leading-none',
+                        'text-sm sm:text-base font-bold font-display tabular-nums leading-none',
                         currentGoal > 0 && currentPnl >= currentGoal ? 'text-pnl-positive' : 'text-foreground'
                       )}>
                         {currentGoal > 0
@@ -2018,7 +2018,7 @@ export default function CalendarPage() {
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">Progress</p>
                       <p className={cn(
-                        'text-base font-bold font-display tabular-nums leading-none',
+                        'text-sm sm:text-base font-bold font-display tabular-nums leading-none',
                         goalProgress >= 100 ? 'text-pnl-positive' : currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative'
                       )}>
                         {currentGoal > 0 ? `${Math.min(Math.round(goalProgress), 100)}%` : '—'}
@@ -2027,7 +2027,7 @@ export default function CalendarPage() {
                   </div>
 
                   {/* Progress bar — takes remaining space */}
-                  <div className="flex-1 min-w-0">
+                  <div className="w-full sm:flex-1 sm:min-w-0">
                     <div className="relative h-2.5 rounded-full bg-muted/30 overflow-hidden border border-border/20">
                       <div
                         className={cn(
@@ -2276,22 +2276,22 @@ export default function CalendarPage() {
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
                 <div className="hidden md:grid grid-cols-8 gap-2 text-center mb-4">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className="h-7 flex items-center justify-center text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.18em]">
+                    <div key={i} className="h-7 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-[0.18em]">
                       {day}
                     </div>
                   ))}
-                  <div className="h-7 flex items-center justify-center text-[10px] font-bold text-muted-foreground/80 uppercase tracking-[0.2em]">
+                  <div className="h-7 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-[0.2em]">
                     WEEK
                   </div>
                 </div>
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-6 gap-1 text-center mb-3">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center text-[9px] font-bold text-muted-foreground/80 uppercase tracking-[0.16em]">
+                    <div key={i} className="h-6 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-[0.16em]">
                       {day}
                     </div>
                   ))}
-                  <div className="h-6 flex items-center justify-center text-[9px] font-bold text-muted-foreground/80 uppercase tracking-[0.18em]">
+                  <div className="h-6 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-[0.18em]">
                     WK
                   </div>
                 </div>
@@ -2353,7 +2353,7 @@ export default function CalendarPage() {
                                 className={cn(
                                   'group relative flex h-24 flex-col items-center justify-center rounded-2xl border p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-35',
-                                  isTodayDate && 'ring-1 ring-primary/70 ring-offset-1 ring-offset-background',
+                                  isTodayDate && 'shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.35)]',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
                                     ? 'border-white/10 bg-card/35 backdrop-blur-xl hover:bg-card/55'
                                     : 'border-border/25 bg-background/70 hover:bg-muted/20')
@@ -2365,26 +2365,27 @@ export default function CalendarPage() {
                               >
                                 {/* Date number - top left */}
                                 <div className={cn(
-                                  'absolute left-2 top-1.5 text-sm font-display font-bold tabular-nums',
-                                  isTodayDate ? 'text-primary' : 'text-foreground/50'
+                                  'absolute left-2 top-1.5 text-sm font-display font-bold tabular-nums text-white',
+                                  isTodayDate && 'rounded-md border border-primary/35 bg-primary/15 px-1.5 py-0.5 leading-none'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
 
                                 {/* Trade info - centered */}
                                 {tradeCount > 0 && (
-                                  <div className="mt-4 flex flex-col items-center gap-1">
-                                    <div className="w-full truncate px-0.5 text-center text-[1.1rem] leading-none font-semibold font-display tabular-nums"
+                                  <div className="mt-3.5 flex flex-col items-center gap-1.5">
+                                    <div className="w-full truncate px-0.5 text-center text-[1rem] leading-[1.1] font-bold font-display tabular-nums tracking-tight"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
                                     <div
-                                      className="text-[10px] font-display font-semibold tabular-nums"
+                                      className="text-[9px] leading-none font-display font-medium tabular-nums tracking-[0.03em]"
                                       style={{ color: `hsl(var(${Number(pnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
                                     >
                                       {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
                                     </div>
-                                    <div className="rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums backdrop-blur-sm">
+                                    <div className="inline-flex items-center gap-1 rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums backdrop-blur-sm">
+                                      <ArrowLeftRight className="h-2.5 w-2.5" />
                                       {tradeCount} {tradeCount !== 1 ? 'trades' : 'trade'}
                                     </div>
                                   </div>
@@ -2408,17 +2409,18 @@ export default function CalendarPage() {
                             <div className="mb-1.5 whitespace-nowrap text-[9px] font-display font-bold uppercase tracking-[0.18em] text-muted-foreground/70">
                               Week {weekIndex + 1}
                             </div>
-                            <div className="mb-0.5 w-full truncate text-center text-[15px] leading-tight font-display tabular-nums"
+                            <div className="mb-1 w-full truncate text-center text-[15px] leading-[1.12] font-display font-bold tabular-nums tracking-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div
-                              className="mb-1 text-[10px] leading-none font-display font-semibold tabular-nums"
+                              className="mb-1.5 text-[9px] leading-none font-display font-medium tabular-nums tracking-[0.03em]"
                               style={{ color: `hsl(var(${Number(weekPnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
                             >
                               {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
-                            <div className="rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums">
+                            <div className="inline-flex items-center gap-1 rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums">
+                              <ArrowLeftRight className="h-2.5 w-2.5" />
                               {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
                             </div>
                           </div>
@@ -2452,7 +2454,7 @@ export default function CalendarPage() {
                                 className={cn(
                                   'relative flex h-16 flex-col items-center justify-center rounded-xl border p-1.5 transition-all duration-200 hover:-translate-y-0.5',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
-                                  isTodayDate && 'ring-1 ring-primary/70 shadow-md',
+                                  isTodayDate && 'shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.35)]',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
                                     ? 'border-white/10 bg-card/80 backdrop-blur-2xl hover:bg-card/90'
                                     : 'border-border/30 bg-background/70 hover:bg-muted/10')
@@ -2464,8 +2466,8 @@ export default function CalendarPage() {
                                 } : undefined}
                               >
                                 <div className={cn(
-                                  'absolute top-0.5 left-1 text-xs font-display font-bold tabular-nums',
-                                  isTodayDate ? 'text-primary' : 'text-foreground/60'
+                                  'absolute top-0.5 left-1 text-[11px] font-display font-bold tabular-nums text-white',
+                                  isTodayDate && 'rounded-md border border-primary/35 bg-primary/15 px-1 py-0.5 leading-none'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
@@ -2481,7 +2483,8 @@ export default function CalendarPage() {
                                     >
                                       {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
                                     </div>
-                                    <div className="rounded-full bg-background/35 px-1.5 py-0.5 text-[8px] font-display font-semibold text-muted-foreground tabular-nums">
+                                    <div className="inline-flex items-center gap-1 rounded-full bg-background/35 px-1.5 py-0.5 text-[8px] font-display font-semibold text-muted-foreground tabular-nums">
+                                      <ArrowLeftRight className="h-2 w-2" />
                                       {tradeCount} {tradeCount === 1 ? 'trade' : 'trades'}
                                     </div>
                                   </div>
@@ -2515,7 +2518,8 @@ export default function CalendarPage() {
                             >
                               {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
-                            <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
+                            <div className="inline-flex items-center gap-1 text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
+                              <ArrowLeftRight className="h-2 w-2" />
                               {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
                             </div>
                           </div>
@@ -2716,7 +2720,7 @@ export default function CalendarPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className="font-display font-bold text-[1.9rem] sm:text-[2rem] leading-none tracking-tight text-foreground">{trade.symbol}</span>
+                            <span className="font-display font-bold text-[1.45rem] sm:text-[1.55rem] leading-none tracking-tight text-foreground">{trade.symbol}</span>
                             <span className={cn(
                               'inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-display font-bold tracking-[0.08em] uppercase',
                               trade.direction === 'long' 
@@ -2746,7 +2750,7 @@ export default function CalendarPage() {
                         ) : (
                           <div className="text-right">
                             <p className={cn(
-                              'text-[1.9rem] sm:text-[2rem] leading-none font-display font-bold',
+                              'text-[1.45rem] sm:text-[1.55rem] leading-none font-display font-bold',
                               trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
                             )}>
                               {trade.pnlAmount >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(trade.pnlAmount).toLocaleString()}
