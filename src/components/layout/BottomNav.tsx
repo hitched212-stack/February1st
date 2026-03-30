@@ -5,7 +5,7 @@ import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { usePreferences } from '@/hooks/usePreferences';
 import { AccountSelectionDialog } from '@/components/account/AccountSelectionDialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 
 // Custom 4-dot grid icon - filled rectangles matching sidebar
 const GridDotsIcon = ({ className }: { className?: string }) => (
@@ -122,6 +122,12 @@ export function BottomNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
+  const navContainerRef = useRef<HTMLDivElement | null>(null);
+  const dashboardRef = useRef<HTMLDivElement | null>(null);
+  const historyRef = useRef<HTMLDivElement | null>(null);
+  const analyticsRef = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<HTMLButtonElement | null>(null);
+  const [activeIndicator, setActiveIndicator] = useState({ centerX: 0, opacity: 0 });
   
   const isMoreActive = ['/settings', '/news', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
 
@@ -137,6 +143,38 @@ export function BottomNav() {
     const timer = setTimeout(() => setHasAnimated(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  useLayoutEffect(() => {
+    const getActiveElement = () => {
+      if (isDashboardActive) return dashboardRef.current;
+      if (isHistoryActive) return historyRef.current;
+      if (isAnalyticsActive) return analyticsRef.current;
+      if (isMoreTabActive) return moreRef.current;
+      return null;
+    };
+
+    const updateIndicator = () => {
+      const activeElement = getActiveElement();
+      const container = navContainerRef.current;
+
+      if (!activeElement || !container) {
+        setActiveIndicator((prev) => ({ ...prev, opacity: 0 }));
+        return;
+      }
+
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = activeElement.getBoundingClientRect();
+
+      setActiveIndicator({
+        centerX: activeRect.left - containerRect.left + activeRect.width / 2,
+        opacity: 1,
+      });
+    };
+
+    updateIndicator();
+    window.addEventListener('resize', updateIndicator);
+    return () => window.removeEventListener('resize', updateIndicator);
+  }, [isDashboardActive, isHistoryActive, isAnalyticsActive, isMoreTabActive]);
 
   // Hide navigation when on add trade or edit trade pages
   const isTradeFormPage = location.pathname === '/add' || location.pathname.startsWith('/edit');
@@ -154,20 +192,28 @@ export function BottomNav() {
     >
       <div className="relative mx-auto max-w-md">
         <div 
+          ref={navContainerRef}
           className="relative flex h-[74px] items-center justify-between gap-1.5 px-2.5 rounded-[22px] bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_16px_36px_rgba(0,0,0,0.42)] overflow-hidden"
         >
           <div className="absolute inset-x-6 top-[1px] h-px bg-gradient-to-r from-transparent via-white/12 to-transparent pointer-events-none" />
+          <div
+            className="pointer-events-none absolute top-[13px] z-[1] h-0.5 w-7 rounded-full bg-[#9b8cff] shadow-[0_0_18px_rgba(155,140,255,0.9)] transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{
+              left: 0,
+              transform: `translateX(${activeIndicator.centerX - 14}px)`,
+              opacity: activeIndicator.opacity,
+            }}
+          />
           
           {/* Dashboard */}
           <NavLink 
             to="/dashboard" 
             className="relative z-10"
           >
-            <div className={cn(
+            <div ref={dashboardRef} className={cn(
               navItemBaseClasses,
               isDashboardActive ? activeItemClasses : inactiveItemClasses
             )}>
-              {isDashboardActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
               <GridDotsIcon 
                 className={cn(
                   'h-[17px] w-[17px] transition-transform duration-300',
@@ -182,11 +228,10 @@ export function BottomNav() {
             to="/history" 
             className="relative z-10"
           >
-            <div className={cn(
+            <div ref={historyRef} className={cn(
               navItemBaseClasses,
               isHistoryActive ? activeItemClasses : inactiveItemClasses
             )}>
-              {isHistoryActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
               <HistoryIcon 
                 className={cn(
                   'h-[17px] w-[17px] transition-transform duration-300',
@@ -212,11 +257,10 @@ export function BottomNav() {
             to="/analytics" 
             className="relative z-10"
           >
-            <div className={cn(
+            <div ref={analyticsRef} className={cn(
               navItemBaseClasses,
               isAnalyticsActive ? activeItemClasses : inactiveItemClasses
             )}>
-              {isAnalyticsActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
               <AnalyticsIcon 
                 className={cn(
                   'h-[17px] w-[17px] transition-transform duration-300',
@@ -230,11 +274,10 @@ export function BottomNav() {
           <Popover open={moreOpen} onOpenChange={setMoreOpen}>
             <PopoverTrigger asChild>
               <button className="relative z-10">
-                <div className={cn(
+                <div ref={moreRef} className={cn(
                   navItemBaseClasses,
                   isMoreTabActive ? activeItemClasses : inactiveItemClasses
                 )}>
-                  {isMoreTabActive && <span className="absolute top-1.5 h-0.5 w-6 rounded-full bg-[#9b8cff]" />}
                   <Menu 
                     className={cn(
                       'h-[17px] w-[17px] transition-transform duration-300',

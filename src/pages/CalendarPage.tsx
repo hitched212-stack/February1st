@@ -2292,7 +2292,7 @@ export default function CalendarPage() {
                     </div>
                   ))}
                   <div className="h-6 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-[0.18em]">
-                    WK
+                    WEEK
                   </div>
                 </div>
 
@@ -2366,7 +2366,7 @@ export default function CalendarPage() {
                                 {/* Date number - top left */}
                                 <div className={cn(
                                   'absolute left-2 top-1.5 text-sm font-display font-bold tabular-nums text-white',
-                                  isTodayDate && 'rounded-md border border-primary/35 bg-primary/15 px-1.5 py-0.5 leading-none'
+                                  isTodayDate && 'rounded-md border border-primary/70 bg-primary/30 px-1.5 py-0.5 leading-none shadow-[0_0_0_1px_hsl(var(--primary)/0.18)]'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
@@ -2401,7 +2401,7 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary */}
                           <div className={cn(
-                            "h-28 rounded-2xl border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
+                            "h-24 rounded-2xl border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
                             preferences.liquidGlassEnabled
                               ? "border-white/15 bg-card/60 backdrop-blur-2xl"
                               : "border-border/35 bg-card/80"
@@ -2466,24 +2466,24 @@ export default function CalendarPage() {
                                 } : undefined}
                               >
                                 <div className={cn(
-                                  'absolute top-0.5 left-1 text-[11px] font-display font-bold tabular-nums text-white',
-                                  isTodayDate && 'rounded-md border border-primary/35 bg-primary/15 px-1 py-0.5 leading-none'
+                                  'absolute top-0.5 left-1 text-[10px] font-display font-bold tabular-nums text-white',
+                                  isTodayDate && 'rounded-md border border-primary/70 bg-primary/30 px-0.5 py-0.5 leading-none shadow-[0_0_0_1px_hsl(var(--primary)/0.18)]'
                                 )}>
                                   {format(day, 'd')}
                                 </div>
                                 {tradeCount > 0 && (
-                                  <div className="flex flex-col items-center gap-0.5 mt-2">
-                                    <div className="w-full truncate px-0.5 text-center text-[10px] font-bold font-display tabular-nums"
+                                  <div className="flex flex-col items-center gap-0.5 mt-1.5">
+                                    <div className="w-full truncate px-0.5 text-center text-[9px] font-bold font-display tabular-nums"
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
                                     <div
-                                      className="text-[8px] font-display font-semibold tabular-nums"
+                                      className="text-[7px] font-display font-semibold tabular-nums"
                                       style={{ color: `hsl(var(${Number(pnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
                                     >
                                       {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
                                     </div>
-                                    <div className="inline-flex items-center gap-1 rounded-full bg-background/35 px-1.5 py-0.5 text-[8px] font-display font-semibold text-muted-foreground tabular-nums">
+                                    <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-background/35 px-1 py-0.5 text-[7px] font-display font-semibold text-muted-foreground tabular-nums">
                                       <ArrowLeftRight className="h-2 w-2" />
                                       {tradeCount} {tradeCount === 1 ? 'trade' : 'trades'}
                                     </div>
@@ -2500,7 +2500,7 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary - Mobile */}
                           <div className={cn(
-                            "h-20 flex flex-col items-center justify-center rounded-xl border p-1.5 font-bold",
+                            "h-16 flex flex-col items-center justify-center rounded-xl border p-1.5 font-bold",
                             preferences.liquidGlassEnabled
                               ? "border-white/10 bg-card/80 backdrop-blur-2xl"
                               : "border-border/35 bg-card"
@@ -2508,17 +2508,17 @@ export default function CalendarPage() {
                             <div className="mb-0.5 whitespace-nowrap text-[8px] font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
                               Week {weekIndex + 1}
                             </div>
-                            <div className="text-[10px] font-display tabular-nums mb-0 w-full text-center truncate leading-tight"
+                            <div className="text-[9px] font-display tabular-nums mb-0 w-full text-center truncate leading-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div
-                              className="text-[8px] leading-none font-display font-semibold tabular-nums mb-0.5"
+                              className="text-[7px] leading-none font-display font-semibold tabular-nums mb-0.5"
                               style={{ color: `hsl(var(${Number(weekPnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
                             >
                               {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
-                            <div className="inline-flex items-center gap-1 text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
+                            <div className="inline-flex items-center gap-1 whitespace-nowrap text-[7px] text-muted-foreground font-display font-semibold tabular-nums">
                               <ArrowLeftRight className="h-2 w-2" />
                               {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
                             </div>
@@ -2540,8 +2540,10 @@ export default function CalendarPage() {
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 flex-shrink-0" />
                     <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-muted-foreground">Loss</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-primary/50 bg-primary/12 hover:bg-primary/18 transition-colors">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0 animate-pulse" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-primary/35 bg-primary/[0.08] hover:bg-primary/[0.12] transition-colors">
+                    <span className="inline-flex items-center justify-center rounded-md border border-primary/70 bg-primary/30 px-1.5 py-0.5 text-[10px] leading-none font-display font-bold tabular-nums text-white shadow-[0_0_0_1px_hsl(var(--primary)/0.18)]">
+                      30
+                    </span>
                     <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-primary/90">Today</span>
                   </div>
                 </div>
