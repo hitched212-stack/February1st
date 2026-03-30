@@ -27,9 +27,9 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-[#9b8cff]/35 bg-[#9b8cff]/10",
+        default: "border-violet-400/35 bg-violet-400/10",
         destructive: "border-pnl-negative/35 bg-pnl-negative/10",
-        success: "border-pnl-positive/35 bg-pnl-positive/10",
+        success: "border-sky-400/35 bg-sky-400/10",
       },
     },
     defaultVariants: {
@@ -98,12 +98,12 @@ ToastDescription.displayName = ToastPrimitives.Description.displayName;
 // Toast Icon component for consistent icon display
 const ToastIcon = ({ variant }: { variant?: "default" | "destructive" | "success" | null }) => {
   if (variant === "success") {
-    return <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-pnl-positive" />;
+    return <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-sky-300" />;
   }
   if (variant === "destructive") {
     return <AlertCircle className="h-5 w-5 flex-shrink-0 text-pnl-negative" />;
   }
-  return <Info className="h-5 w-5 flex-shrink-0 text-muted-foreground" />;
+  return <Info className="h-5 w-5 flex-shrink-0 text-violet-300" />;
 };
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;

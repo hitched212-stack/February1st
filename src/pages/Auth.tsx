@@ -140,7 +140,8 @@ export default function Auth() {
       }
     } else {
       toast.success('Welcome back!', {
-        className: '!border-[#9b8cff]/45 !bg-[#9b8cff]/14 !text-foreground',
+        position: 'top-center',
+        className: '!border-sky-400/40 !bg-sky-400/12 !text-sky-100',
       });
       navigate('/dashboard?returning=true');
     }

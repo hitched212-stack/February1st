@@ -1456,10 +1456,10 @@ export default function CalendarPage() {
                 </div>
 
                 {/* 3 Card Row: Best/Worst Trades, Performance by Day, Recent Trades */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.2fr_0.8fr] xl:items-stretch gap-4 mt-4">
                   {/* Daily Net Cumulative P&L Chart */}
                   <div className={cn(
-                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm",
+                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] xl:h-[460px] shadow-sm",
                     preferences.liquidGlassEnabled
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
                       : "border-border/60 bg-card hover:border-border hover:shadow-md"
@@ -1651,7 +1651,7 @@ export default function CalendarPage() {
 
                   {/* Performance by Day */}
                   <div className={cn(
-                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm hover:shadow-md",
+                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] xl:h-[460px] shadow-sm hover:shadow-md",
                     preferences.liquidGlassEnabled
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/50"
                       : "border-border/60 bg-card hover:border-border"
@@ -1676,118 +1676,140 @@ export default function CalendarPage() {
 
                       {(() => {
                         const maxAbsPnl = Math.max(...dayOfWeekStats.map((d) => Math.abs(d.pnl)), 1);
+                        const maxTrades = Math.max(...dayOfWeekStats.map((d) => d.trades), 1);
+                        const activeDays = dayOfWeekStats.filter((d) => d.trades > 0).length;
+                        const averageWinRate = activeDays > 0
+                          ? dayOfWeekStats.filter((d) => d.trades > 0).reduce((sum, day) => sum + day.winRate, 0) / activeDays
+                          : 0;
 
                         return (
-                          <div className="flex-1 flex flex-col gap-3">
-                            {/* Heatmap grid */}
-                            <div className="w-full rounded-2xl border border-border/25 bg-background/40 p-3 sm:p-3.5">
-                              <div className="grid w-full grid-cols-[44px_repeat(5,minmax(0,1fr))] gap-y-1.5 gap-x-1.5">
+                          <div className="flex-1 flex flex-col gap-4">
+                            <div className="grid grid-cols-3 gap-2.5">
+                              <div className="rounded-2xl border border-pnl-positive/20 bg-pnl-positive/[0.08] px-3 py-3">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-pnl-positive/70">Best day</p>
+                                <p className="mt-2 text-sm font-bold font-display text-foreground">{bestDay.shortDay}</p>
+                                <p className="mt-1 text-[12px] font-bold font-display tabular-nums text-pnl-positive">
+                                  {bestDay.pnl > 0 ? formatCurrency(bestDay.pnl) : '—'}
+                                </p>
+                              </div>
 
-                                {/* Header row */}
+                              <div className="rounded-2xl border border-pnl-negative/20 bg-pnl-negative/[0.08] px-3 py-3">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-pnl-negative/70">Worst day</p>
+                                <p className="mt-2 text-sm font-bold font-display text-foreground">{worstDay.shortDay}</p>
+                                <p className="mt-1 text-[12px] font-bold font-display tabular-nums text-pnl-negative">
+                                  {worstDay.pnl < 0 ? formatCurrency(worstDay.pnl) : '—'}
+                                </p>
+                              </div>
+
+                              <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.08] px-3 py-3">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-sky-300/80">Avg win rate</p>
+                                <p className="mt-2 text-sm font-bold font-display text-foreground">{activeDays}/5 days</p>
+                                <p className="mt-1 text-[12px] font-bold font-display tabular-nums text-sky-300">
+                                  {activeDays > 0 ? `${Math.round(averageWinRate)}%` : '—'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex-1 rounded-[26px] border border-border/25 bg-gradient-to-b from-background/80 via-background/55 to-background/30 p-3.5 sm:p-4">
+                              <div className="grid grid-cols-[32px_repeat(5,minmax(0,1fr))] gap-1.5 items-center">
                                 <div />
                                 {dayOfWeekStats.map((day) => {
                                   const isBestDay = day.day === bestDay.day && bestDay.pnl > 0;
                                   const isWorstDay = day.day === worstDay.day && worstDay.pnl < 0;
+
                                   return (
                                     <div
                                       key={`header-${day.day}`}
                                       className={cn(
-                                        'flex flex-col items-center justify-center gap-0.5 rounded-lg py-1.5',
-                                        isBestDay && 'bg-pnl-positive/10',
-                                        isWorstDay && 'bg-pnl-negative/10',
-                                        !isBestDay && !isWorstDay && 'bg-muted/20'
+                                        'rounded-2xl border px-1 py-3 text-center',
+                                        isBestDay && 'border-pnl-positive/30 bg-pnl-positive/[0.08] shadow-[0_0_0_1px_hsl(var(--pnl-positive)/0.08)]',
+                                        isWorstDay && 'border-pnl-negative/30 bg-pnl-negative/[0.08] shadow-[0_0_0_1px_hsl(var(--pnl-negative)/0.08)]',
+                                        !isBestDay && !isWorstDay && 'border-border/30 bg-muted/10'
                                       )}
                                     >
-                                      <span className={cn(
-                                        'text-[9px] font-bold uppercase tracking-[0.18em]',
-                                        isBestDay ? 'text-pnl-positive' : isWorstDay ? 'text-pnl-negative' : 'text-foreground/60'
-                                      )}>{day.shortDay}</span>
-                                      {isBestDay && (
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-pnl-positive leading-none">Best</span>
-                                      )}
-                                      {isWorstDay && (
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-pnl-negative leading-none">Worst</span>
-                                      )}
+                                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-foreground/70">{day.shortDay}</p>
                                     </div>
                                   );
                                 })}
 
-                                {/* Divider */}
-                                <div className="col-span-6 h-px bg-border/20 my-0.5" />
-
-                                {/* P&L row */}
-                                <div className="h-14 flex items-center">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">P&amp;L</span>
-                                </div>
+                                <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-muted-foreground/75">P&amp;L</span>
                                 {dayOfWeekStats.map((day) => {
-                                  const cellStyle = day.pnl > 0
-                                    ? { backgroundColor: 'hsl(var(--pnl-positive) / 0.18)', borderColor: 'hsl(var(--pnl-positive) / 0.35)' }
-                                    : day.pnl < 0
-                                      ? { backgroundColor: 'hsl(var(--pnl-negative) / 0.18)', borderColor: 'hsl(var(--pnl-negative) / 0.35)' }
-                                      : { backgroundColor: 'hsl(var(--muted) / 0.08)', borderColor: 'hsl(var(--border) / 0.22)' };
+                                  const intensity = Math.max(0.08, Math.abs(day.pnl) / maxAbsPnl);
+                                  const isPositive = day.pnl > 0;
+                                  const isNegative = day.pnl < 0;
+
                                   return (
                                     <div
                                       key={`pnl-${day.day}`}
-                                      className="h-14 rounded-xl border flex items-center justify-center overflow-hidden min-w-0 transition-all duration-200"
-                                      style={cellStyle}
+                                      className={cn(
+                                        'relative overflow-hidden rounded-2xl border px-1 py-3.5 flex items-center justify-center',
+                                        isPositive && 'border-pnl-positive/25 bg-pnl-positive/[0.08]',
+                                        isNegative && 'border-pnl-negative/25 bg-pnl-negative/[0.08]',
+                                        !isPositive && !isNegative && 'border-border/25 bg-muted/10'
+                                      )}
                                     >
-                                      <span className={cn(
-                                        'text-[10px] font-display font-bold tabular-nums leading-none text-center whitespace-nowrap',
-                                        day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground/40'
+                                      <div
+                                        className={cn(
+                                          'absolute inset-x-0 bottom-0',
+                                          isPositive ? 'bg-pnl-positive/15' : isNegative ? 'bg-pnl-negative/15' : 'bg-muted/15'
+                                        )}
+                                        style={{ height: `${Math.round(intensity * 100)}%` }}
+                                      />
+                                      <p className={cn(
+                                        'relative z-10 text-[11px] font-bold font-display tabular-nums leading-none whitespace-nowrap text-center',
+                                        isPositive ? 'text-pnl-positive' : isNegative ? 'text-pnl-negative' : 'text-muted-foreground/45'
                                       )}>
                                         {day.pnl === 0 ? '—' : formatPnlWithK(day.pnl)}
-                                      </span>
+                                      </p>
                                     </div>
                                   );
                                 })}
 
-                                {/* Win % row */}
-                                <div className="h-12 flex items-center">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">Win</span>
-                                </div>
-                                {dayOfWeekStats.map((day) => {
-                                  const winStyle = day.trades > 0
-                                    ? { backgroundColor: 'rgba(96,165,250,0.16)', borderColor: 'rgba(96,165,250,0.32)' }
-                                    : { backgroundColor: 'hsl(var(--muted)/0.06)', borderColor: 'hsl(var(--border)/0.18)' };
-                                  return (
-                                    <div
-                                      key={`win-${day.day}`}
-                                      className="h-12 rounded-xl border flex items-center justify-center overflow-hidden min-w-0 transition-all duration-200"
-                                      style={winStyle}
-                                    >
+                                <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-muted-foreground/75">Win</span>
+                                {dayOfWeekStats.map((day) => (
+                                  <div
+                                    key={`win-${day.day}`}
+                                    className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.08] px-1.5 py-2.5"
+                                  >
+                                    <div className="flex items-center justify-between gap-1">
                                       <span className={cn(
-                                        'text-[11px] font-display font-bold tabular-nums leading-none',
-                                        day.trades > 0 ? 'text-blue-300' : 'text-muted-foreground/40'
+                                        'text-[12px] font-bold font-display tabular-nums leading-none',
+                                        day.trades > 0 ? 'text-sky-300' : 'text-muted-foreground/45'
                                       )}>
                                         {day.trades > 0 ? `${Math.round(day.winRate)}%` : '—'}
                                       </span>
                                     </div>
-                                  );
-                                })}
+                                    <div className="mt-2 h-1.5 rounded-full bg-sky-400/10 overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full bg-sky-300/70"
+                                        style={{ width: `${day.trades > 0 ? Math.max(8, Math.round(day.winRate)) : 0}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
 
-                                {/* Trades row */}
-                                <div className="h-12 flex items-center">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">Qty</span>
-                                </div>
-                                {dayOfWeekStats.map((day) => {
-                                  const tradeStyle = day.trades > 0
-                                    ? { backgroundColor: 'rgba(167,139,250,0.16)', borderColor: 'rgba(167,139,250,0.32)' }
-                                    : { backgroundColor: 'hsl(var(--muted)/0.06)', borderColor: 'hsl(var(--border)/0.18)' };
-                                  return (
-                                    <div
-                                      key={`trades-${day.day}`}
-                                      className="h-12 rounded-xl border flex items-center justify-center overflow-hidden min-w-0 transition-all duration-200"
-                                      style={tradeStyle}
-                                    >
+                                <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-muted-foreground/75">Qty</span>
+                                {dayOfWeekStats.map((day) => (
+                                  <div
+                                    key={`trades-${day.day}`}
+                                    className="rounded-2xl border border-violet-400/20 bg-violet-400/[0.08] px-1.5 py-2.5"
+                                  >
+                                    <div className="flex items-center justify-between gap-1">
                                       <span className={cn(
-                                        'text-[11px] font-display font-bold tabular-nums leading-none',
-                                        day.trades > 0 ? 'text-violet-300' : 'text-muted-foreground/40'
+                                        'text-[12px] font-bold font-display tabular-nums leading-none',
+                                        day.trades > 0 ? 'text-violet-300' : 'text-muted-foreground/45'
                                       )}>
                                         {day.trades > 0 ? day.trades : '—'}
                                       </span>
                                     </div>
-                                  );
-                                })}
+                                    <div className="mt-2 h-1.5 rounded-full bg-violet-400/10 overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full bg-violet-300/70"
+                                        style={{ width: `${day.trades > 0 ? Math.max(8, Math.round((day.trades / maxTrades) * 100)) : 0}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           </div>
@@ -1798,7 +1820,7 @@ export default function CalendarPage() {
 
                   {/* Recent Trades */}
                   <div className={cn(
-                    "group rounded-2xl border relative overflow-hidden transition-all duration-300 min-h-[320px] shadow-sm",
+                    "group rounded-2xl border relative overflow-hidden transition-all duration-300 min-h-[320px] xl:h-[460px] shadow-sm flex flex-col",
                     preferences.liquidGlassEnabled
                       ? "border-white/10 bg-black/40 backdrop-blur-2xl"
                       : "border-border/60 bg-card"
@@ -1830,7 +1852,7 @@ export default function CalendarPage() {
                     </div>
 
                     {/* Trade rows */}
-                    <div className="flex flex-col divide-y divide-border/30 overflow-y-auto">
+                    <div className="flex-1 min-h-0 flex flex-col gap-2 p-3 overflow-y-auto">
                       {monthlyTrades.length > 0 ? (
                         [...monthlyTrades]
                           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -1839,67 +1861,73 @@ export default function CalendarPage() {
                           <div
                             key={trade.id}
                             onClick={() => { setSelectedTrade(trade); setTradeViewOpen(true); }}
-                            className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/30 transition-colors duration-150 relative group/trade"
+                            className="relative cursor-pointer overflow-hidden rounded-2xl border border-border/40 bg-background/30 px-3 py-3 transition-all duration-200 hover:border-border/70 hover:bg-muted/20 hover:shadow-sm group/trade"
                           >
                             {/* Always-visible left accent */}
                             <div className={cn(
-                              "absolute left-0 top-3 bottom-3 w-0.5 rounded-full transition-opacity duration-200",
+                              "absolute left-0 top-2.5 bottom-2.5 w-0.5 rounded-full transition-opacity duration-200",
                               trade.pnlAmount >= 0 ? "bg-pnl-positive opacity-60 group-hover/trade:opacity-100" : "bg-pnl-negative opacity-60 group-hover/trade:opacity-100"
                             )} />
 
-                            {/* Symbol icon */}
-                            <div className="flex-shrink-0 pl-1">
-                              <SymbolIcon symbol={trade.symbol} size="sm" />
-                            </div>
-
-                            {/* Symbol + date + direction */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-bold font-display text-foreground">{trade.symbol}</span>
-                                {!trade.noTradeTaken && (
-                                  <span className={cn(
-                                    "text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded",
-                                    trade.direction === 'long'
-                                      ? "bg-pnl-positive/10 text-pnl-positive"
-                                      : "bg-pnl-negative/10 text-pnl-negative"
-                                  )}>
-                                    {trade.direction === 'long' ? 'L' : 'S'}
-                                  </span>
-                                )}
-                                {trade.isPaperTrade && (
-                                  <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground">
-                                    Paper
-                                  </span>
-                                )}
+                            <div className="flex items-start gap-3 pl-1">
+                              {/* Symbol icon */}
+                              <div className="flex-shrink-0 pt-0.5">
+                                <SymbolIcon symbol={trade.symbol} size="sm" />
                               </div>
-                              <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
-                                {format(new Date(trade.date), 'dd MMM yyyy')}
-                              </span>
-                            </div>
 
-                            {/* P&L */}
-                            {!trade.isPaperTrade && !trade.noTradeTaken ? (
-                              <div className="flex-shrink-0 text-right">
-                                <span className={cn(
-                                  "text-sm font-bold font-display tabular-nums block leading-tight",
-                                  trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
-                                )}>
-                                  {formatCurrency(trade.pnlAmount)}
-                                </span>
-                                <span className={cn(
-                                  "text-[10px] font-semibold tabular-nums",
-                                  trade.pnlAmount >= 0 ? "text-pnl-positive/70" : "text-pnl-negative/70"
-                                )}>
-                                  {trade.pnlPercentage >= 0 ? '+' : ''}{trade.pnlPercentage.toFixed(2)}%
-                                </span>
+                              {/* Content */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span className="truncate text-base font-bold font-display text-foreground leading-none">{trade.symbol}</span>
+                                      {!trade.noTradeTaken && (
+                                        <span className={cn(
+                                          "inline-flex h-6 min-w-6 items-center justify-center rounded-lg px-2 text-[10px] font-bold uppercase tracking-wide",
+                                          trade.direction === 'long'
+                                            ? "bg-pnl-positive/10 text-pnl-positive"
+                                            : "bg-pnl-negative/10 text-pnl-negative"
+                                        )}>
+                                          {trade.direction === 'long' ? 'L' : 'S'}
+                                        </span>
+                                      )}
+                                      {trade.isPaperTrade && (
+                                        <span className="inline-flex items-center rounded-lg bg-muted/60 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                                          Paper
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="mt-2 flex items-center gap-2 text-[12px] font-display font-semibold text-muted-foreground/85">
+                                      <span className="tabular-nums tracking-[0.04em]">{format(new Date(trade.date), 'dd MMM yyyy')}</span>
+                                    </div>
+                                  </div>
+
+                                  {!trade.isPaperTrade && !trade.noTradeTaken ? (
+                                    <div className="flex-shrink-0 text-right">
+                                      <span className={cn(
+                                        "text-[15px] font-bold font-display tabular-nums block leading-none",
+                                        trade.pnlAmount >= 0 ? "text-pnl-positive" : "text-pnl-negative"
+                                      )}>
+                                        {formatCurrency(trade.pnlAmount)}
+                                      </span>
+                                      <span className={cn(
+                                        "mt-2 inline-flex rounded-lg px-2 py-1 text-[10px] font-semibold tabular-nums",
+                                        trade.pnlAmount >= 0 ? "bg-pnl-positive/10 text-pnl-positive/80" : "bg-pnl-negative/10 text-pnl-negative/80"
+                                      )}>
+                                        {trade.pnlPercentage >= 0 ? '+' : ''}{trade.pnlPercentage.toFixed(2)}%
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-[10px] text-muted-foreground font-medium">—</span>
+                                  )}
+                                </div>
                               </div>
-                            ) : (
-                              <span className="text-[10px] text-muted-foreground font-medium">—</span>
-                            )}
+                            </div>
                           </div>
                         ))
                       ) : (
-                        <div className="flex items-center justify-center py-16 text-muted-foreground">
+                        <div className="flex items-center justify-center rounded-2xl border border-dashed border-border/50 bg-background/20 py-16 text-muted-foreground">
                           <p className="text-[11px] font-semibold uppercase tracking-wider">No recent trades</p>
                         </div>
                       )}
@@ -1910,17 +1938,18 @@ export default function CalendarPage() {
 
           {/* Main Calendar Section - Full width on desktop */}
           <div className="w-full space-y-3">
-            {/* Goal Progress Card - Modern Redesign */}
+            {/* Goal Progress Card - Clean Professional Metric */}
             <div className={cn(
               "rounded-2xl border relative overflow-hidden transition-all duration-300 shadow-sm",
               preferences.liquidGlassEnabled
                 ? "border-white/10 bg-card/85 backdrop-blur-2xl"
                 : "border-border/60 bg-card"
             )}>
-              <div className="relative px-3.5 sm:px-4 py-3 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-1 h-5 bg-[#9b8cff] rounded-full" />
+              <div className="relative px-4 sm:px-5 py-4">
+                {/* Header row */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
                     <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Goal Progress</h3>
                     <UiTooltip>
                       <UiTooltipTrigger asChild>
@@ -1933,8 +1962,7 @@ export default function CalendarPage() {
                       </UiTooltipContent>
                     </UiTooltip>
                   </div>
-
-                  <div className="inline-flex w-fit gap-1 p-1 rounded-lg border border-border/50 bg-background/50">
+                  <div className="inline-flex gap-0.5 p-1 rounded-lg border border-border/50 bg-background/50">
                     {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map((period) => (
                       <button
                         key={period}
@@ -1950,37 +1978,66 @@ export default function CalendarPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border/50 bg-background/20 p-3 sm:p-3.5 space-y-2.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                      {goalPeriod === 'D' ? 'Daily' : goalPeriod === 'W' ? 'Weekly' : goalPeriod === 'M' ? format(currentMonth, 'MMMM yyyy') : format(currentMonth, 'yyyy')}
-                    </span>
-                    <span className="inline-flex items-baseline gap-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Goal</span>
-                      <span className="text-[11px] font-semibold tabular-nums text-foreground leading-none">{formatPnlWithK(currentGoal, false)}</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-end justify-between gap-3">
+                {/* Metric body */}
+                <div className="flex items-center gap-4 sm:gap-6">
+                  {/* Current P&L + period label */}
+                  <div className="flex-shrink-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">
+                      {goalPeriod === 'D' ? 'Today' : goalPeriod === 'W' ? 'This Week' : goalPeriod === 'M' ? format(currentMonth, 'MMM yyyy') : format(currentMonth, 'yyyy')}
+                    </p>
                     <p className={cn(
-                      'text-2xl sm:text-3xl font-bold font-display tabular-nums leading-none tracking-tight',
+                      'text-3xl sm:text-4xl font-bold font-display tabular-nums leading-none tracking-tight',
                       currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative'
                     )}>
                       {formatPnlWithK(currentPnl)}
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="relative h-2 rounded-full bg-muted/40 overflow-hidden border border-border/30">
+                  {/* Divider */}
+                  <div className="h-10 w-px bg-border/50 flex-shrink-0" />
+
+                  {/* Stats: goal, remaining, progress % */}
+                  <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">Goal</p>
+                      <p className="text-base font-bold font-display tabular-nums text-foreground leading-none">{formatPnlWithK(currentGoal, false)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">Remaining</p>
+                      <p className={cn(
+                        'text-base font-bold font-display tabular-nums leading-none',
+                        currentGoal > 0 && currentPnl >= currentGoal ? 'text-pnl-positive' : 'text-foreground'
+                      )}>
+                        {currentGoal > 0
+                          ? currentPnl >= currentGoal
+                            ? 'Achieved'
+                            : formatPnlWithK(currentGoal - currentPnl, false)
+                          : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">Progress</p>
+                      <p className={cn(
+                        'text-base font-bold font-display tabular-nums leading-none',
+                        goalProgress >= 100 ? 'text-pnl-positive' : currentPnl >= 0 ? 'text-[#9b8cff]' : 'text-pnl-negative'
+                      )}>
+                        {currentGoal > 0 ? `${Math.min(Math.round(goalProgress), 100)}%` : '—'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Progress bar — takes remaining space */}
+                  <div className="flex-1 min-w-0">
+                    <div className="relative h-2.5 rounded-full bg-muted/30 overflow-hidden border border-border/20">
                       <div
                         className={cn(
                           'h-full rounded-full transition-all duration-700 ease-out',
-                          currentPnl >= 0 ? 'bg-[#9b8cff]' : 'bg-pnl-negative'
+                          goalProgress >= 100 ? 'bg-pnl-positive' : currentPnl >= 0 ? 'bg-[#9b8cff]' : 'bg-pnl-negative'
                         )}
                         style={{ width: `${visibleGoalProgress}%` }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <div className="flex items-center justify-between mt-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/60">
                       <span>0%</span>
                       <span>100%</span>
                     </div>
@@ -2321,6 +2378,12 @@ export default function CalendarPage() {
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
+                                    <div
+                                      className="text-[10px] font-display font-semibold tabular-nums"
+                                      style={{ color: `hsl(var(${Number(pnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
+                                    >
+                                      {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
+                                    </div>
                                     <div className="rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums backdrop-blur-sm">
                                       {tradeCount} {tradeCount !== 1 ? 'trades' : 'trade'}
                                     </div>
@@ -2337,7 +2400,7 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary */}
                           <div className={cn(
-                            "h-24 rounded-2xl border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
+                            "h-28 rounded-2xl border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
                             preferences.liquidGlassEnabled
                               ? "border-white/15 bg-card/60 backdrop-blur-2xl"
                               : "border-border/35 bg-card/80"
@@ -2345,9 +2408,15 @@ export default function CalendarPage() {
                             <div className="mb-1.5 whitespace-nowrap text-[9px] font-display font-bold uppercase tracking-[0.18em] text-muted-foreground/70">
                               Week {weekIndex + 1}
                             </div>
-                            <div className="mb-1 w-full truncate text-center text-base leading-tight font-display tabular-nums"
+                            <div className="mb-0.5 w-full truncate text-center text-[15px] leading-tight font-display tabular-nums"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
+                            </div>
+                            <div
+                              className="mb-1 text-[10px] leading-none font-display font-semibold tabular-nums"
+                              style={{ color: `hsl(var(${Number(weekPnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
+                            >
+                              {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
                             <div className="rounded-full border border-border/30 bg-background/35 px-2 py-0.5 text-[10px] font-display font-semibold text-muted-foreground tabular-nums">
                               {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
@@ -2406,6 +2475,12 @@ export default function CalendarPage() {
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
+                                    <div
+                                      className="text-[8px] font-display font-semibold tabular-nums"
+                                      style={{ color: `hsl(var(${Number(pnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
+                                    >
+                                      {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
+                                    </div>
                                     <div className="rounded-full bg-background/35 px-1.5 py-0.5 text-[8px] font-display font-semibold text-muted-foreground tabular-nums">
                                       {tradeCount} {tradeCount === 1 ? 'trade' : 'trades'}
                                     </div>
@@ -2422,7 +2497,7 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary - Mobile */}
                           <div className={cn(
-                            "h-16 flex flex-col items-center justify-center rounded-xl border p-1.5 font-bold",
+                            "h-20 flex flex-col items-center justify-center rounded-xl border p-1.5 font-bold",
                             preferences.liquidGlassEnabled
                               ? "border-white/10 bg-card/80 backdrop-blur-2xl"
                               : "border-border/35 bg-card"
@@ -2430,9 +2505,15 @@ export default function CalendarPage() {
                             <div className="mb-0.5 whitespace-nowrap text-[8px] font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
                               Week {weekIndex + 1}
                             </div>
-                            <div className="text-[10px] font-display tabular-nums mb-0.5 w-full text-center truncate"
+                            <div className="text-[10px] font-display tabular-nums mb-0 w-full text-center truncate leading-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
+                            </div>
+                            <div
+                              className="text-[8px] leading-none font-display font-semibold tabular-nums mb-0.5"
+                              style={{ color: `hsl(var(${Number(weekPnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
+                            >
+                              {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
                             <div className="text-[8px] text-muted-foreground font-display font-semibold tabular-nums">
                               {weekData?.tradeCount || 0} {(weekData?.tradeCount || 0) === 1 ? 'trade' : 'trades'}
@@ -2487,40 +2568,113 @@ export default function CalendarPage() {
                 )}
                 <div className="relative">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">Performance by Day ({format(currentMonth, 'yyyy')})</h3>
-                  <div className="space-y-1.5">
-                  {(() => {
-                    const stats = yearlyDayOfWeekStats;
-                    const yearBestDay = stats.reduce((best, day) => day.pnl > best.pnl ? day : best, stats[0]);
-                    const yearWorstDay = stats.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, stats[0]);
-                    const maxPnl = Math.max(...stats.map(d => Math.abs(d.pnl)), 1);
-                    
-                    return stats.map(day => {
-                      const isBestDay = day.day === yearBestDay.day && yearBestDay.pnl > 0;
-                      const isWorstDay = day.day === yearWorstDay.day && yearWorstDay.pnl < 0;
-                      const barWidth = day.pnl !== 0 ? Math.abs(day.pnl) / maxPnl * 100 : 0;
-                      
+                  <div>
+                    {(() => {
+                      const stats = yearlyDayOfWeekStats;
+                      const yearBestDay = stats.reduce((best, day) => day.pnl > best.pnl ? day : best, stats[0]);
+                      const yearWorstDay = stats.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, stats[0]);
+                      const maxAbsPnl = Math.max(...stats.map((d) => Math.abs(d.pnl)), 1);
+
                       return (
-                        <div key={day.day} className={cn('flex items-center gap-2 p-2 rounded-xl transition-colors', isBestDay && 'bg-pnl-positive/10 border border-pnl-positive/20', isWorstDay && 'bg-pnl-negative/10 border border-pnl-negative/20', !isBestDay && !isWorstDay && 'bg-muted/30 border border-transparent')}>
-                          <div className="w-10 flex-shrink-0">
-                            <span className={cn('text-xs font-semibold', day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground')}>
-                              {day.shortDay}
-                            </span>
+                        <div className="w-full rounded-2xl border border-border/25 bg-gradient-to-b from-background/70 to-background/30 p-3.5 sm:p-4">
+                          <div>
+                            <div className="grid grid-cols-[42px_repeat(5,minmax(0,1fr))] gap-1.5 sm:gap-2 mb-3 items-stretch">
+                                <div />
+                                {stats.map((day) => {
+                                  const isBestDay = day.day === yearBestDay.day && yearBestDay.pnl > 0;
+                                  const isWorstDay = day.day === yearWorstDay.day && yearWorstDay.pnl < 0;
+
+                                  return (
+                                    <div
+                                      key={`year-header-${day.day}`}
+                                      className={cn(
+                                        'relative rounded-xl border px-1.5 py-1.5 min-h-[76px] flex flex-col items-center justify-center gap-1 text-center transition-all duration-200',
+                                        isBestDay && 'border-pnl-positive/35 bg-pnl-positive/10 shadow-[0_0_0_1px_hsl(var(--pnl-positive)/0.15)]',
+                                        isWorstDay && 'border-pnl-negative/35 bg-pnl-negative/10 shadow-[0_0_0_1px_hsl(var(--pnl-negative)/0.15)]',
+                                        !isBestDay && !isWorstDay && 'border-border/35 bg-muted/15'
+                                      )}
+                                    >
+                                      <span className="block text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.16em] text-foreground/70">{day.shortDay}</span>
+                                      {isBestDay && <span className="inline-flex items-center justify-center rounded-md bg-pnl-positive/20 px-1.5 py-0.5 text-[7px] leading-none font-bold uppercase tracking-[0.08em] text-pnl-positive whitespace-nowrap">Best</span>}
+                                      {isWorstDay && <span className="inline-flex items-center justify-center rounded-md bg-pnl-negative/20 px-1.5 py-0.5 text-[7px] leading-none font-bold uppercase tracking-[0.08em] text-pnl-negative whitespace-nowrap">Worst</span>}
+                                    </div>
+                                  );
+                                })}
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="grid grid-cols-[42px_repeat(5,minmax(0,1fr))] gap-1.5 sm:gap-2 items-center">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/80">P&amp;L</span>
+                              {stats.map((day) => {
+                                const intensity = Math.max(0.08, Math.abs(day.pnl) / maxAbsPnl);
+                                const isPositive = day.pnl > 0;
+                                const isNegative = day.pnl < 0;
+
+                                return (
+                                  <div
+                                    key={`year-pnl-${day.day}`}
+                                    className={cn(
+                                      'relative h-16 overflow-hidden rounded-xl border flex items-center justify-center',
+                                      isPositive && 'border-pnl-positive/35 bg-pnl-positive/10',
+                                      isNegative && 'border-pnl-negative/35 bg-pnl-negative/10',
+                                      !isPositive && !isNegative && 'border-border/25 bg-muted/10'
+                                    )}
+                                  >
+                                    <div
+                                      className={cn(
+                                        'absolute inset-x-0 bottom-0 rounded-b-xl',
+                                        isPositive ? 'bg-pnl-positive/20' : isNegative ? 'bg-pnl-negative/20' : 'bg-muted/15'
+                                      )}
+                                      style={{ height: `${Math.round(intensity * 100)}%` }}
+                                    />
+                                    <span className={cn(
+                                      'relative z-10 text-[11px] font-display font-bold tabular-nums leading-none',
+                                      isPositive ? 'text-pnl-positive' : isNegative ? 'text-pnl-negative' : 'text-muted-foreground/40'
+                                    )}>
+                                      {day.pnl === 0 ? '—' : formatPnlWithK(day.pnl)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                                <div className="grid grid-cols-[42px_repeat(5,minmax(0,1fr))] gap-1.5 sm:gap-2 items-center">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/80">Win</span>
+                              {stats.map((day) => (
+                                <div
+                                  key={`year-win-${day.day}`}
+                                  className="h-12 rounded-xl border border-sky-400/25 bg-sky-400/10 flex items-center justify-center"
+                                >
+                                  <span className={cn(
+                                    'text-[12px] font-display font-bold tabular-nums leading-none',
+                                    day.trades > 0 ? 'text-sky-300' : 'text-muted-foreground/40'
+                                  )}>
+                                    {day.trades > 0 ? `${Math.round(day.winRate)}%` : '—'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                                <div className="grid grid-cols-[42px_repeat(5,minmax(0,1fr))] gap-1.5 sm:gap-2 items-center">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/80">Qty</span>
+                              {stats.map((day) => (
+                                <div
+                                  key={`year-qty-${day.day}`}
+                                  className="h-12 rounded-xl border border-violet-400/25 bg-violet-400/10 flex items-center justify-center"
+                                >
+                                  <span className={cn(
+                                    'text-[12px] font-display font-bold tabular-nums leading-none',
+                                    day.trades > 0 ? 'text-violet-300' : 'text-muted-foreground/40'
+                                  )}>
+                                    {day.trades > 0 ? day.trades : '—'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            </div>
                           </div>
-                          <div className="flex-1 h-5 bg-muted/50 dark:bg-white/5 rounded-lg overflow-hidden relative">
-                            {day.pnl !== 0 && <div className={cn('h-full rounded-lg transition-all', day.pnl >= 0 ? 'bg-pnl-positive/70' : 'bg-pnl-negative/70')} style={{
-                              width: `${barWidth}%`
-                            }} />}
-                          </div>
-                          <div className="w-16 text-right flex-shrink-0">
-                            <span className={cn('text-xs font-semibold font-display', day.pnl > 0 ? 'text-pnl-positive' : day.pnl < 0 ? 'text-pnl-negative' : 'text-muted-foreground')}>
-                              {formatPnlWithK(day.pnl)}
-                            </span>
-                          </div>
-                          {isBestDay && <span className="text-[8px] text-pnl-positive font-bold bg-pnl-positive/20 px-1.5 py-0.5 rounded-md uppercase tracking-wide">Best</span>}
-                          {isWorstDay && <span className="text-[8px] text-pnl-negative font-bold bg-pnl-negative/20 px-1.5 py-0.5 rounded-md uppercase tracking-wide">Worst</span>}
                         </div>
                       );
-                    });
                     })()}
                   </div>
                 </div>
@@ -2532,37 +2686,39 @@ export default function CalendarPage() {
 
       {/* Day View Dialog */}
       <Dialog open={dayDialogOpen} onOpenChange={setDayDialogOpen} modal={true}>
-        <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto" style={{ zIndex: 9999 }}>
+        <DialogContent className="sm:max-w-[470px] max-h-[82vh] overflow-y-auto rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl" style={{ zIndex: 9999 }}>
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl font-bold">
+            <DialogTitle className="text-lg sm:text-xl font-display font-bold tracking-tight text-foreground">
               {selectedDate && format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="mt-1 text-sm font-display font-medium text-muted-foreground">
               {selectedDayTrades.length} {selectedDayTrades.length === 1 ? 'trade' : 'trades'} on this day
             </p>
           </DialogHeader>
           
-          <div className="space-y-3 mt-4">
+          <div className="mt-4 space-y-3">
             {selectedDayTrades.length > 0 ? (
               <>
                 {selectedDayTrades.map(trade => (
                   <div 
                     key={trade.id} 
-                    className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 px-3 py-3 cursor-pointer transition-all duration-200 hover:border-border hover:bg-muted/20 hover:shadow-md animate-in fade-in-0 slide-in-from-bottom-6 duration-500 ease-out"
                     onClick={() => {
                       setSelectedTrade(trade);
                       setDayDialogOpen(false);
                       setTradeViewOpen(true);
                     }}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3 flex-1">
-                        <SymbolIcon symbol={trade.symbol} size="md" />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2.5 flex-1">
+                        <div className="pt-0.5">
+                          <SymbolIcon symbol={trade.symbol} size="md" />
+                        </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className="font-bold text-lg">{trade.symbol}</span>
+                            <span className="font-display font-bold text-[1.9rem] sm:text-[2rem] leading-none tracking-tight text-foreground">{trade.symbol}</span>
                             <span className={cn(
-                              'inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wide uppercase',
+                              'inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-display font-bold tracking-[0.08em] uppercase',
                               trade.direction === 'long' 
                                 ? 'bg-pnl-positive/10 text-pnl-positive' 
                                 : 'bg-pnl-negative/10 text-pnl-negative'
@@ -2576,7 +2732,7 @@ export default function CalendarPage() {
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm font-display font-medium text-muted-foreground">
                             {trade.category || 'Stocks'} • {trade.lotSize} units
                           </p>
                         </div>
@@ -2590,13 +2746,13 @@ export default function CalendarPage() {
                         ) : (
                           <div className="text-right">
                             <p className={cn(
-                              'text-lg font-bold font-display',
+                              'text-[1.9rem] sm:text-[2rem] leading-none font-display font-bold',
                               trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
                             )}>
                               {trade.pnlAmount >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(trade.pnlAmount).toLocaleString()}
                             </p>
                             <p className={cn(
-                              'text-xs font-display',
+                              'mt-1 text-sm sm:text-base leading-none font-display font-semibold',
                               trade.pnlAmount >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
                             )}>
                               {trade.pnlAmount >= 0 ? '+' : ''}{calculatePnlPercentage(trade.pnlAmount).toFixed(2)}%
@@ -2649,13 +2805,13 @@ export default function CalendarPage() {
 
             <Button 
               variant="outline" 
-              className="w-full" 
+              className="w-full h-11 rounded-xl border-border/50 bg-background/40 font-display text-sm font-semibold tracking-tight hover:bg-muted/30" 
               onClick={() => {
                 setDayDialogOpen(false);
                 navigate(`/add?date=${selectedDate}`);
               }}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-3.5 w-3.5" />
               Add Trade for This Date
             </Button>
           </div>

@@ -736,18 +736,18 @@ export function TradeForm({
         if (!updated) {
           throw new Error('Failed to update trade');
         }
-        toast({
-          title: 'Trade updated successfully',
-          variant: 'success'
+        sonnerToast.success('Trade updated successfully', {
+          position: 'top-center',
+          className: '!border-sky-400/40 !bg-sky-400/12 !text-sky-100',
         });
       } else {
         const createdTrade = await addTrade(validatedData);
         if (!createdTrade) {
           throw new Error('Failed to save trade');
         }
-        toast({
-          title: 'Trade saved successfully',
-          variant: 'success'
+        sonnerToast.success('Trade logged successfully', {
+          position: 'top-center',
+          className: '!border-sky-400/40 !bg-sky-400/12 !text-sky-100',
         });
       }
       navigate(-1);

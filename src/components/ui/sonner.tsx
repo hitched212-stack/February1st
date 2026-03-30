@@ -28,10 +28,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
           actionButton: "group-[.toast]:h-8 group-[.toast]:rounded-lg group-[.toast]:border group-[.toast]:border-border/60 group-[.toast]:bg-muted/50 group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-display group-[.toast]:font-semibold group-[.toast]:text-foreground hover:group-[.toast]:bg-muted",
           cancelButton: "group-[.toast]:h-8 group-[.toast]:rounded-lg group-[.toast]:border group-[.toast]:border-border/60 group-[.toast]:bg-muted/30 group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-display group-[.toast]:font-semibold group-[.toast]:text-muted-foreground hover:group-[.toast]:bg-muted/50",
           closeButton: "text-foreground/80",
-          success: "group-[.toaster]:border-pnl-positive/35 group-[.toaster]:bg-pnl-positive/10",
+          success: "group-[.toaster]:border-sky-400/35 group-[.toaster]:bg-sky-400/10 group-[.toaster]:text-sky-100",
           error: "group-[.toaster]:border-pnl-negative/35 group-[.toaster]:bg-pnl-negative/10",
           warning: "group-[.toaster]:border-yellow-500/35 group-[.toaster]:bg-yellow-500/10",
-          info: "group-[.toaster]:border-[#9b8cff]/35 group-[.toaster]:bg-[#9b8cff]/10",
+          info: "group-[.toaster]:border-violet-400/35 group-[.toaster]:bg-violet-400/10 group-[.toaster]:text-violet-100",
         },
       }}
       {...props}
