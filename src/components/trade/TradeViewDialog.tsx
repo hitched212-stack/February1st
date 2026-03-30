@@ -268,9 +268,9 @@ export function TradeViewDialogContent({
               <SymbolIcon symbol={trade.symbol} size="md" />
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-lg font-semibold text-foreground">{trade.symbol}</span>
+                  <span className="text-[1.55rem] leading-none font-display font-semibold tracking-[-0.03em] text-foreground">{trade.symbol}</span>
                   <span className={cn(
-                    'inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide uppercase whitespace-nowrap',
+                    'inline-flex items-center rounded-xl px-3 py-1 text-[9px] font-display font-bold tracking-[0.16em] uppercase whitespace-nowrap',
                     trade.direction === 'long' 
                       ? 'bg-pnl-positive/10 text-pnl-positive border border-pnl-positive/40'
                       : 'bg-pnl-negative/10 text-pnl-negative border border-pnl-negative/40'
@@ -278,7 +278,7 @@ export function TradeViewDialogContent({
                     {trade.direction === 'long' ? 'Long' : 'Short'}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <p className="mt-1 flex items-center gap-1.5 text-[12px] font-display font-medium tracking-[0.01em] text-muted-foreground">
                   <Calendar className="h-3 w-3" />
                   {format(new Date(trade.date), 'EEEE, MMMM d, yyyy')}
                 </p>

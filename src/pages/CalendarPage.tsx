@@ -2086,13 +2086,11 @@ export default function CalendarPage() {
               {/* Center - Stats */}
               {viewMode === 'month' && (
                 <div className="hidden sm:flex items-center gap-4 absolute left-1/2 -translate-x-1/2 text-center justify-center">
-                  <span className="text-sm text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-sm text-foreground font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
+                  <span className="text-sm text-white whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-sm text-[#9b8cff] font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
                     const tradeDate = new Date(t.date);
                     return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                   }).length}</span></span>
-                  <span className="text-sm text-muted-foreground whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-sm font-display font-semibold tabular-nums" style={{
-                    color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
-                  }}>{formatPnlWithK(displayedMonthlyPnl)}</span></span>
+                  <span className="text-sm text-white whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-sm text-[#9b8cff] font-display font-semibold tabular-nums">{formatPnlWithK(displayedMonthlyPnl)}</span></span>
                 </div>
               )}
               
@@ -2155,18 +2153,16 @@ export default function CalendarPage() {
             {/* Mobile month stats row */}
             {viewMode === 'month' && (
               <div className="sm:hidden mt-1 mb-2 px-1">
-                <div className="w-full text-center text-sm text-muted-foreground font-display font-semibold tabular-nums whitespace-nowrap">
+                <div className="w-full text-center text-sm text-white font-display font-semibold tabular-nums whitespace-nowrap">
                   <span>
-                    Trades: <span className="text-foreground">{filteredTrades.filter(t => {
+                    Trades: <span className="text-[#9b8cff]">{filteredTrades.filter(t => {
                       const tradeDate = new Date(t.date);
                       return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                     }).length}</span>
                   </span>
                   <span className="mx-3" />
                   <span>
-                    P&amp;L: <span style={{
-                      color: `hsl(var(${displayedMonthlyPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))`
-                    }}>{formatPnlWithK(displayedMonthlyPnl)}</span>
+                    P&amp;L: <span className="text-[#9b8cff]">{formatPnlWithK(displayedMonthlyPnl)}</span>
                   </span>
                 </div>
               </div>
@@ -2444,8 +2440,6 @@ export default function CalendarPage() {
                             const tradeCount = dayTrades.length;
                             const isTodayDate = isToday(day);
                             const isCurrentMonth = isSameMonth(day, currentMonth);
-                            const accountBalance = activeAccount?.starting_balance || 0;
-                            const pnlPercent = accountBalance > 0 ? (dayPnl / accountBalance * 100).toFixed(2) : '0.00';
                             
                             return (
                               <button
@@ -2477,12 +2471,6 @@ export default function CalendarPage() {
                                       style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
-                                    <div
-                                      className="text-[7px] font-display font-semibold tabular-nums"
-                                      style={{ color: `hsl(var(${Number(pnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
-                                    >
-                                      {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
-                                    </div>
                                     <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-background/35 px-1 py-0.5 text-[7px] font-display font-semibold text-muted-foreground tabular-nums">
                                       <ArrowLeftRight className="h-2 w-2" />
                                       {tradeCount} {tradeCount === 1 ? 'trade' : 'trades'}
@@ -2511,12 +2499,6 @@ export default function CalendarPage() {
                             <div className="text-[9px] font-display tabular-nums mb-0 w-full text-center truncate leading-tight"
                               style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
-                            </div>
-                            <div
-                              className="text-[7px] leading-none font-display font-semibold tabular-nums mb-0.5"
-                              style={{ color: `hsl(var(${Number(weekPnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
-                            >
-                              {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
                             <div className="inline-flex items-center gap-1 whitespace-nowrap text-[7px] text-muted-foreground font-display font-semibold tabular-nums">
                               <ArrowLeftRight className="h-2 w-2" />
