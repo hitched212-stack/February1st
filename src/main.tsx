@@ -3,6 +3,19 @@ import App from "./App.tsx";
 import "./index.css";
 import { supabase } from "./integrations/supabase/client";
 
+// Ensure stale service workers do not keep serving outdated app bundles.
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations()
+    .then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+      });
+    })
+    .catch(() => {
+      // no-op
+    });
+}
+
 // Keep session alive in all environments (web, PWA, mobile, tablet)
 // Refresh auth token when app becomes visible (user returns to app tab/window)
 document.addEventListener('visibilitychange', async () => {

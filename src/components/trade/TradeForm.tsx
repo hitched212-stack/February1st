@@ -732,13 +732,19 @@ export function TradeForm({
     };
     try {
       if (editTrade) {
-        await updateTrade(editTrade.id, validatedData);
+        const updated = await updateTrade(editTrade.id, validatedData);
+        if (!updated) {
+          throw new Error('Failed to update trade');
+        }
         toast({
           title: 'Trade updated successfully',
           variant: 'success'
         });
       } else {
-        await addTrade(validatedData);
+        const createdTrade = await addTrade(validatedData);
+        if (!createdTrade) {
+          throw new Error('Failed to save trade');
+        }
         toast({
           title: 'Trade saved successfully',
           variant: 'success'

@@ -58,6 +58,21 @@ interface DbTrade {
   updated_at: string;
 }
 
+const isMissingColumnError = (error: unknown): boolean => {
+  const message = (error as { message?: string } | null)?.message?.toLowerCase() || '';
+  return message.includes('column') && message.includes('does not exist');
+};
+
+const isStatementTimeoutError = (error: unknown): boolean => {
+  const message = (error as { message?: string } | null)?.message?.toLowerCase() || '';
+  return message.includes('cancelling statement due to timeout') || message.includes('statement timeout') || message.includes('canceling statement due to statement timeout');
+};
+
+const isNetworkLoadError = (error: unknown): boolean => {
+  const message = (error as { message?: string } | null)?.message?.toLowerCase() || '';
+  return message.includes('load failed') || message.includes('failed to fetch') || message.includes('networkerror');
+};
+
 const mapDbTradeToTrade = (dbTrade: DbTrade): Trade => ({
   id: dbTrade.id,
   accountId: dbTrade.account_id || undefined,
@@ -109,12 +124,78 @@ const mapDbTradeToTrade = (dbTrade: DbTrade): Trade => ({
   updatedAt: dbTrade.updated_at,
 });
 
+const getLegacyPersistedTrades = (activeAccountId?: string): Trade[] => {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const raw = window.localStorage.getItem('trade-log-storage');
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    const legacyTrades = Array.isArray(parsed?.state?.trades) ? parsed.state.trades : [];
+
+    return legacyTrades.map((t: Partial<Trade>, index: number): Trade => ({
+      id: String(t.id ?? `legacy-${index}`),
+      accountId: t.accountId || activeAccountId,
+      symbol: t.symbol || '',
+      direction: (t.direction as TradeDirection) || 'long',
+      date: t.date || new Date().toISOString().split('T')[0],
+      entryTime: t.entryTime || '00:00',
+      holdingTime: t.holdingTime || '',
+      lotSize: Number(t.lotSize || 0),
+      performanceGrade: (Math.min(3, Number(t.performanceGrade || 3)) as 1 | 2 | 3),
+      entryPrice: Number(t.entryPrice || 0),
+      stopLoss: Number(t.stopLoss || 0),
+      stopLossPips: t.stopLossPips,
+      takeProfit: Number(t.takeProfit || 0),
+      riskRewardRatio: t.riskRewardRatio || '',
+      pnlAmount: Number(t.pnlAmount || 0),
+      pnlPercentage: Number(t.pnlPercentage || 0),
+      preMarketPlan: t.preMarketPlan || '',
+      postMarketReview: t.postMarketReview || '',
+      emotionalJournalBefore: t.emotionalJournalBefore || '',
+      emotionalJournalDuring: t.emotionalJournalDuring || '',
+      emotionalJournalAfter: t.emotionalJournalAfter || '',
+      overallEmotions: t.overallEmotions || '',
+      emotionalState: Number(t.emotionalState || 3),
+      images: Array.isArray(t.images) ? t.images : [],
+      preMarketImages: Array.isArray(t.preMarketImages) ? t.preMarketImages : [],
+      postMarketImages: Array.isArray(t.postMarketImages) ? t.postMarketImages : [],
+      chartAnalysisNotes: t.chartAnalysisNotes || '',
+      preMarketNotes: t.preMarketNotes || '',
+      postMarketNotes: t.postMarketNotes || '',
+      strategy: t.strategy,
+      category: t.category || 'stocks',
+      forecastId: t.forecastId,
+      followedRules: t.followedRules ?? true,
+      followedRulesList: Array.isArray(t.followedRulesList) ? t.followedRulesList : [],
+      brokenRules: Array.isArray(t.brokenRules) ? t.brokenRules : [],
+      notes: t.notes || '',
+      mistakeTagging: t.mistakeTagging || '',
+      mistakeTags: Array.isArray(t.mistakeTags) ? t.mistakeTags : [],
+      hasNews: t.hasNews ?? false,
+      newsEvents: Array.isArray(t.newsEvents) ? t.newsEvents : [],
+      isPaperTrade: t.isPaperTrade ?? false,
+      noTradeTaken: t.noTradeTaken ?? false,
+      status: t.status || 'closed',
+      newsType: t.newsType,
+      newsImpact: t.newsImpact,
+      newsTime: t.newsTime,
+      createdAt: t.createdAt || new Date().toISOString(),
+      updatedAt: t.updatedAt || new Date().toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+};
+
 export function useTrades() {
   const { user } = useAuth();
-  const { activeAccount, isSwitching } = useAccount();
+  const { activeAccount, accounts, isSwitching, setActiveAccount } = useAccount();
   const { trades, tradesLoaded, currentAccountId, previousTrades, isTransitioning, setTrades, setCurrentAccountId, setTradesLoaded } = useDataStore();
   const hasFetchedRef = useRef(false);
   const recentlyUpdatedRef = useRef<Set<string>>(new Set());
+  const hasShownLoadErrorRef = useRef(false);
 
   // Fetch trades from database for the active account - with fast retry logic
   const fetchTrades = useCallback(async (retryCount = 0, silent = false): Promise<void> => {
@@ -124,21 +205,54 @@ export function useTrades() {
     }
 
     const accountId = activeAccount?.id ?? null;
+    const knownAccountIds = new Set(accounts.map(a => a.id));
 
     try {
       // Optimized query - only select needed fields and use index hints via ordering
       let query = supabase
         .from('trades')
-        .select('id,user_id,account_id,symbol,direction,date,entry_time,holding_time,lot_size,performance_grade,entry_price,stop_loss,stop_loss_pips,take_profit,risk_reward_ratio,pnl_amount,pnl_percentage,pre_market_plan,post_market_review,emotional_journal_before,emotional_journal_during,emotional_journal_after,overall_emotions,emotional_state,images,pre_market_images,post_market_images,chart_analysis_notes,pre_market_notes,post_market_notes,strategy,category,forecast_id,followed_rules,followed_rules_list,broken_rules,notes,mistake_tagging,mistake_tags,has_news,news_events,is_paper_trade,no_trade_taken,status,news_type,news_impact,news_time,created_at,updated_at')
+        .select('*')
         .eq('user_id', user.id);
 
-      if (accountId) {
-        query = query.eq('account_id', accountId);
+      let data: any[] | null = null;
+      let error: any = null;
+
+      try {
+        const primaryResult = await query
+          .order('date', { ascending: false })
+          .limit(200); // Keep payload bounded
+
+        data = primaryResult.data;
+        error = primaryResult.error;
+      } catch (primaryError) {
+        // Browser/network-level fetch failure: retry with lightweight projection
+        if (isNetworkLoadError(primaryError)) {
+          const lightResult = await supabase
+            .from('trades')
+            .select('id,user_id,account_id,symbol,direction,date,entry_time,holding_time,lot_size,performance_grade,entry_price,stop_loss,stop_loss_pips,take_profit,risk_reward_ratio,pnl_amount,pnl_percentage,strategy,category,is_paper_trade,no_trade_taken,status,created_at,updated_at')
+            .eq('user_id', user.id)
+            .order('date', { ascending: false })
+            .limit(100);
+
+          data = lightResult.data;
+          error = lightResult.error;
+        } else {
+          throw primaryError;
+        }
       }
 
-      const { data, error } = await query
-        .order('date', { ascending: false })
-        .limit(500); // Limit to prevent timeout on very large datasets
+      // Fallback for large datasets/rows: retry with a lightweight projection
+      if (error && isStatementTimeoutError(error)) {
+        const lightResult = await supabase
+          .from('trades')
+          .select('id,user_id,account_id,symbol,direction,date,entry_time,holding_time,lot_size,performance_grade,entry_price,stop_loss,stop_loss_pips,take_profit,risk_reward_ratio,pnl_amount,pnl_percentage,strategy,category,is_paper_trade,no_trade_taken,status,created_at,updated_at')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false })
+          .limit(100);
+
+        data = lightResult.data;
+        error = lightResult.error;
+      }
 
       if (error) {
         // If the session is fully expired the SDK will return a 401-style error.
@@ -159,19 +273,83 @@ export function useTrades() {
         throw error;
       }
 
-      const mappedTrades = (data || []).map(d => mapDbTradeToTrade(d as unknown as DbTrade));
+      const mappedTrades = (data || []).map(d => {
+        const mapped = mapDbTradeToTrade(d as unknown as DbTrade);
+        // Legacy compatibility: some older databases don't have account_id on trades.
+        // In that case, bind the trade to the currently active account so account-scoped
+        // dashboard views can still render historical data.
+        if (!mapped.accountId && activeAccount?.id) {
+          return { ...mapped, accountId: activeAccount.id };
+        }
+        // If a trade points to an account that isn't in the current user's account list,
+        // attach it to the active account so it remains visible instead of being filtered out.
+        if (mapped.accountId && !knownAccountIds.has(mapped.accountId) && activeAccount?.id) {
+          return { ...mapped, accountId: activeAccount.id };
+        }
+        return mapped;
+      });
+
+      // Recovery path: if current account returns no trades, but the user has trades in
+      // another account, auto-switch to that account so dashboard isn't stuck empty.
+      if (accountId && mappedTrades.length === 0) {
+        const fallbackResult = await supabase
+          .from('trades')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false })
+          .limit(500);
+
+        if (!fallbackResult.error && (fallbackResult.data?.length || 0) > 0) {
+          const fallbackMappedTrades = (fallbackResult.data || []).map(d => {
+            const mapped = mapDbTradeToTrade(d as unknown as DbTrade);
+            if (!mapped.accountId && activeAccount?.id) {
+              return { ...mapped, accountId: activeAccount.id };
+            }
+            return mapped;
+          });
+
+          const accountsWithTrades = new Set(
+            fallbackMappedTrades
+              .map(t => t.accountId)
+              .filter((id): id is string => Boolean(id))
+          );
+
+          const fallbackAccount = accounts.find(a => a.id !== accountId && accountsWithTrades.has(a.id));
+          if (fallbackAccount) {
+            setActiveAccount(fallbackAccount);
+          }
+
+          setTrades(fallbackMappedTrades);
+          setCurrentAccountId(accountId ?? 'all');
+          return;
+        }
+      }
+
+      // Final fallback: if backend is empty, restore legacy locally persisted trades.
+      if (mappedTrades.length === 0) {
+        const legacyTrades = getLegacyPersistedTrades(activeAccount?.id);
+        if (legacyTrades.length > 0) {
+          setTrades(legacyTrades);
+          setCurrentAccountId(accountId ?? 'all');
+          toast.success('Loaded trades from local backup');
+          return;
+        }
+      }
+
       setTrades(mappedTrades);
       setCurrentAccountId(accountId ?? 'all');
     } catch (error) {
       console.error('Error fetching trades:', error);
       // Set empty trades so UI shows "No trades yet" instead of infinite loading
       setTrades([]);
-      // Only show error toast on user-initiated refresh, not on initial load
-      if (!silent) {
-        toast.error('Failed to load trades. Please try again.');
+      const errorMessage = (error as { message?: string } | null)?.message || 'Unknown error';
+      // Show once even in silent mode so backend communication issues aren't hidden
+      if (!silent || !hasShownLoadErrorRef.current) {
+        hasShownLoadErrorRef.current = true;
+        toast.error(`Failed to load trades: ${errorMessage}`);
       }
     }
-  }, [user, activeAccount, setTrades, setCurrentAccountId]);
+  }, [user, activeAccount, accounts, setActiveAccount, setTrades, setCurrentAccountId]);
 
   // Return previous trades during transition for smooth crossfade
   // This prevents the "flash" when switching accounts
@@ -302,9 +480,7 @@ export function useTrades() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .insert({
+      const insertPayload = {
           user_id: user.id,
           account_id: activeAccount.id,
           symbol: tradeData.symbol,
@@ -351,14 +527,57 @@ export function useTrades() {
           news_type: tradeData.newsType || null,
           news_impact: tradeData.newsImpact || null,
           news_time: tradeData.newsTime || null,
-        } as any)
+      };
+
+      let { data, error } = await supabase
+        .from('trades')
+        .insert(insertPayload as any)
         .select()
         .single();
+
+      // Backward-compatible fallback for projects where newer columns are not migrated yet
+      if (error && isMissingColumnError(error)) {
+        const fallbackPayload = {
+          user_id: user.id,
+          symbol: tradeData.symbol,
+          direction: tradeData.direction,
+          date: tradeData.date,
+          entry_time: tradeData.entryTime,
+          holding_time: tradeData.holdingTime,
+          lot_size: tradeData.lotSize,
+          performance_grade: tradeData.performanceGrade,
+          entry_price: tradeData.entryPrice,
+          stop_loss: tradeData.stopLoss,
+          take_profit: tradeData.takeProfit,
+          risk_reward_ratio: tradeData.riskRewardRatio,
+          pnl_amount: tradeData.pnlAmount,
+          pnl_percentage: tradeData.pnlPercentage,
+          pre_market_plan: tradeData.preMarketPlan,
+          post_market_review: tradeData.postMarketReview,
+          emotional_journal_before: tradeData.emotionalJournalBefore,
+          emotional_journal_during: tradeData.emotionalJournalDuring,
+          emotional_journal_after: tradeData.emotionalJournalAfter,
+          images: tradeData.images,
+          strategy: tradeData.strategy,
+        };
+
+        const fallbackResult = await supabase
+          .from('trades')
+          .insert(fallbackPayload as any)
+          .select()
+          .single();
+
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
 
       if (error) throw error;
 
       // Immediately update local state for instant UI update
-      const newTrade = mapDbTradeToTrade(data as unknown as DbTrade);
+      const mappedNewTrade = mapDbTradeToTrade(data as unknown as DbTrade);
+      const newTrade = !mappedNewTrade.accountId && activeAccount?.id
+        ? { ...mappedNewTrade, accountId: activeAccount.id }
+        : mappedNewTrade;
       setTrades([newTrade, ...trades]);
       
       // Mark as recently updated to prevent real-time listener from overwriting it

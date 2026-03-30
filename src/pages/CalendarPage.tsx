@@ -130,7 +130,8 @@ export default function CalendarPage() {
 
   const accountTrades = useMemo(() => {
     if (!activeAccount) return trades;
-    return trades.filter(trade => trade.accountId === activeAccount.id);
+    const scopedTrades = trades.filter(trade => trade.accountId === activeAccount.id);
+    return scopedTrades.length > 0 ? scopedTrades : trades;
   }, [trades, activeAccount?.id]);
 
   const firstTradeDate = useMemo(() => {

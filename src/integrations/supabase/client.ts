@@ -6,10 +6,47 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const authStorage = typeof window !== 'undefined' ? window.localStorage : undefined;
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const isTransientNetworkError = (error: unknown) => {
+  const message = (error as { message?: string } | null)?.message?.toLowerCase() || '';
+  return (
+    message.includes('load failed') ||
+    message.includes('failed to fetch') ||
+    message.includes('networkerror') ||
+    message.includes('network request failed') ||
+    message.includes('fetch failed')
+  );
+};
+
+const resilientFetch: typeof fetch = async (input, init) => {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await fetch(input, {
+        ...init,
+        cache: 'no-store',
+      });
+    } catch (error) {
+      lastError = error;
+      if (!isTransientNetworkError(error) || attempt === 2) {
+        throw error;
+      }
+      await sleep(300 * (attempt + 1));
+    }
+  }
+
+  throw lastError;
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: {
+    fetch: resilientFetch,
+  },
   auth: {
     storage: authStorage,
     persistSession: true,
