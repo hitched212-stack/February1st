@@ -378,7 +378,23 @@ export function useTrades() {
       // Show once even in silent mode so backend communication issues aren't hidden
       if (!silent || !hasShownLoadErrorRef.current) {
         hasShownLoadErrorRef.current = true;
-        toast.error(`Failed to load trades: ${errorMessage}`);
+        const isTradeFormRoute =
+          typeof window !== 'undefined' &&
+          (window.location.pathname === '/add' || window.location.pathname.startsWith('/edit'));
+
+        if (isTradeFormRoute && typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('trade-form-card-toast', {
+              detail: {
+                title: 'Failed to load trades',
+                description: errorMessage,
+                variant: 'error',
+              },
+            })
+          );
+        } else {
+          toast.error(`Failed to load trades: ${errorMessage}`);
+        }
       }
     }
   }, [user, activeAccount, accounts, trades, setActiveAccount, setTrades, setCurrentAccountId]);
@@ -511,8 +527,22 @@ export function useTrades() {
       return null;
     }
 
-    try {
-      const insertPayload = {
+    const nowIso = new Date().toISOString();
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimisticTrade: Trade = {
+      ...tradeData,
+      id: tempId,
+      accountId: activeAccount.id,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    // Optimistic UI update first so the form can close instantly
+    setTrades([optimisticTrade, ...trades]);
+
+    (async () => {
+      try {
+        const insertPayload = {
           user_id: user.id,
           account_id: activeAccount.id,
           symbol: tradeData.symbol,
@@ -561,71 +591,77 @@ export function useTrades() {
           news_time: tradeData.newsTime || null,
       };
 
-      let { data, error } = await supabase
-        .from('trades')
-        .insert(insertPayload as any)
-        .select()
-        .single();
-
-      // Backward-compatible fallback for projects where newer columns are not migrated yet
-      if (error && isMissingColumnError(error)) {
-        const fallbackPayload = {
-          user_id: user.id,
-          symbol: tradeData.symbol,
-          direction: tradeData.direction,
-          date: tradeData.date,
-          entry_time: tradeData.entryTime,
-          holding_time: tradeData.holdingTime,
-          lot_size: tradeData.lotSize,
-          performance_grade: tradeData.performanceGrade,
-          entry_price: tradeData.entryPrice,
-          stop_loss: tradeData.stopLoss,
-          take_profit: tradeData.takeProfit,
-          risk_reward_ratio: tradeData.riskRewardRatio,
-          pnl_amount: tradeData.pnlAmount,
-          pnl_percentage: tradeData.pnlPercentage,
-          pre_market_plan: tradeData.preMarketPlan,
-          post_market_review: tradeData.postMarketReview,
-          emotional_journal_before: tradeData.emotionalJournalBefore,
-          emotional_journal_during: tradeData.emotionalJournalDuring,
-          emotional_journal_after: tradeData.emotionalJournalAfter,
-          images: tradeData.images,
-          strategy: tradeData.strategy,
-        };
-
-        const fallbackResult = await supabase
+        let { data, error } = await supabase
           .from('trades')
-          .insert(fallbackPayload as any)
+          .insert(insertPayload as any)
           .select()
           .single();
 
-        data = fallbackResult.data;
-        error = fallbackResult.error;
+        // Backward-compatible fallback for projects where newer columns are not migrated yet
+        if (error && isMissingColumnError(error)) {
+          const fallbackPayload = {
+            user_id: user.id,
+            symbol: tradeData.symbol,
+            direction: tradeData.direction,
+            date: tradeData.date,
+            entry_time: tradeData.entryTime,
+            holding_time: tradeData.holdingTime,
+            lot_size: tradeData.lotSize,
+            performance_grade: tradeData.performanceGrade,
+            entry_price: tradeData.entryPrice,
+            stop_loss: tradeData.stopLoss,
+            take_profit: tradeData.takeProfit,
+            risk_reward_ratio: tradeData.riskRewardRatio,
+            pnl_amount: tradeData.pnlAmount,
+            pnl_percentage: tradeData.pnlPercentage,
+            pre_market_plan: tradeData.preMarketPlan,
+            post_market_review: tradeData.postMarketReview,
+            emotional_journal_before: tradeData.emotionalJournalBefore,
+            emotional_journal_during: tradeData.emotionalJournalDuring,
+            emotional_journal_after: tradeData.emotionalJournalAfter,
+            images: tradeData.images,
+            strategy: tradeData.strategy,
+          };
+
+          const fallbackResult = await supabase
+            .from('trades')
+            .insert(fallbackPayload as any)
+            .select()
+            .single();
+
+          data = fallbackResult.data;
+          error = fallbackResult.error;
+        }
+
+        if (error) throw error;
+
+        const mappedNewTrade = mapDbTradeToTrade(data as unknown as DbTrade);
+        const newTrade = !mappedNewTrade.accountId && activeAccount?.id
+          ? { ...mappedNewTrade, accountId: activeAccount.id }
+          : mappedNewTrade;
+
+        // Replace optimistic trade with persisted trade
+        setTrades([
+          newTrade,
+          ...trades.filter(trade => trade.id !== tempId),
+        ]);
+
+        // Mark as recently updated to prevent real-time listener from overwriting it
+        recentlyUpdatedRef.current.add(newTrade.id);
+        setTimeout(() => recentlyUpdatedRef.current.delete(newTrade.id), 7000);
+      } catch (error) {
+        console.error('Error adding trade:', error);
+        // Revert optimistic insert on failure
+        setTrades(trades.filter(trade => trade.id !== tempId));
+        toast.error('Failed to add trade');
       }
+    })();
 
-      if (error) throw error;
-
-      // Immediately update local state for instant UI update
-      const mappedNewTrade = mapDbTradeToTrade(data as unknown as DbTrade);
-      const newTrade = !mappedNewTrade.accountId && activeAccount?.id
-        ? { ...mappedNewTrade, accountId: activeAccount.id }
-        : mappedNewTrade;
-      setTrades([newTrade, ...trades]);
-      
-      // Mark as recently updated to prevent real-time listener from overwriting it
-      recentlyUpdatedRef.current.add(newTrade.id);
-      setTimeout(() => recentlyUpdatedRef.current.delete(newTrade.id), 7000);
-
-      return newTrade;
-    } catch (error) {
-      console.error('Error adding trade:', error);
-      toast.error('Failed to add trade');
-      return null;
-    }
+    return optimisticTrade;
   }, [user, activeAccount, trades, setTrades]);
 
-  // Update trade - with retry logic to handle timeouts
-  const updateTrade = useCallback(async (id: string, updates: Partial<Trade>, retryCount = 0): Promise<boolean> => {
+  // Update trade - optimistic local update first, persist in background
+  const updateTrade = useCallback(async (id: string, updates: Partial<Trade>): Promise<boolean> => {
     if (!user) {
       toast.error('Please log in to update trades');
       return false;
@@ -704,31 +740,39 @@ export function useTrades() {
     // Clear the flag after a longer delay - 7 seconds to ensure data persistence
     setTimeout(() => recentlyUpdatedRef.current.delete(id), 7000);
 
-    try {
-      const { error } = await supabase
-        .from('trades')
-        .update(updateData)
-        .eq('id', id)
-        .eq('user_id', user.id);
+    (async () => {
+      try {
+        let lastError: unknown = null;
 
-      if (error) {
-        // Retry on timeout with exponential backoff (100ms, 200ms, 400ms)
-        if (retryCount < 3) {
-          const delay = 100 * Math.pow(2, retryCount);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return updateTrade(id, updates, retryCount + 1);
+        for (let attempt = 0; attempt <= 3; attempt++) {
+          const { error } = await supabase
+            .from('trades')
+            .update(updateData)
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+          if (!error) {
+            return;
+          }
+
+          lastError = error;
+
+          if (attempt < 3) {
+            const delay = 100 * Math.pow(2, attempt);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
         }
-        throw error;
-      }
 
-      return true;
-    } catch (error) {
-      console.error('Error updating trade:', error);
-      // Revert optimistic update on failure
-      fetchTrades(0, true);
-      toast.error('Failed to update trade');
-      return false;
-    }
+        throw lastError;
+      } catch (error) {
+        console.error('Error updating trade:', error);
+        // Revert optimistic update on failure
+        fetchTrades(0, true);
+        toast.error('Failed to update trade');
+      }
+    })();
+
+    return true;
   }, [user, trades, setTrades, fetchTrades]);
 
   // Delete trade

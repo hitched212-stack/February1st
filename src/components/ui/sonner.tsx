@@ -1,24 +1,22 @@
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, toast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
-  const isMobile = useIsMobile();
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      position={isMobile ? "top-center" : "top-right"}
+      position="top-center"
       duration={3000}
       closeButton
-      style={isMobile ? { 
+      style={{ 
         top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         pointerEvents: 'none',
-      } : undefined}
+      }}
       toastOptions={{
         classNames: {
           toast:
@@ -29,7 +27,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton: "group-[.toast]:h-8 group-[.toast]:rounded-lg group-[.toast]:border group-[.toast]:border-border/60 group-[.toast]:bg-muted/30 group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-display group-[.toast]:font-semibold group-[.toast]:text-muted-foreground hover:group-[.toast]:bg-muted/50",
           closeButton: "text-foreground/80",
           success: "group-[.toaster]:border-sky-400/35 group-[.toaster]:bg-sky-400/10 group-[.toaster]:text-sky-100",
-          error: "group-[.toaster]:border-pnl-negative/35 group-[.toaster]:bg-pnl-negative/10",
+          error: "group-[.toaster]:border-violet-400/35 group-[.toaster]:bg-violet-400/10 group-[.toaster]:text-violet-100",
           warning: "group-[.toaster]:border-yellow-500/35 group-[.toaster]:bg-yellow-500/10",
           info: "group-[.toaster]:border-violet-400/35 group-[.toaster]:bg-violet-400/10 group-[.toaster]:text-violet-100",
         },

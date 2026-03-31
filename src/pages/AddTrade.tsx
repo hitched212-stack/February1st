@@ -6,8 +6,8 @@ export default function AddTrade() {
   const defaultDate = searchParams.get('date');
 
   return (
-    <div className="w-full h-full flex flex-col bg-background animate-in fade-in-0 slide-in-from-bottom-6 duration-500 ease-out">
-      <div className="flex-1 overflow-hidden">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-transparent animate-in fade-in-0 slide-in-from-bottom-6 duration-500 ease-out">
+      <div className="relative flex-1 overflow-hidden">
         <TradeForm />
       </div>
     </div>

@@ -19,7 +19,6 @@ const FULL_SHORT_DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { getCurrencySymbol, Trade, Currency } from '@/types/trade';
-import { TradingInsights } from '@/components/trade/TradingInsights';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -131,7 +130,16 @@ export default function CalendarPage() {
   const accountTrades = useMemo(() => {
     if (!activeAccount) return trades;
     const scopedTrades = trades.filter(trade => trade.accountId === activeAccount.id);
-    return scopedTrades.length > 0 ? scopedTrades : trades;
+
+    // IMPORTANT: Keep dashboard strictly account-scoped.
+    // Do not fall back to all trades when selected account has none,
+    // otherwise metrics/cards will mix data from other accounts.
+    if (scopedTrades.length > 0) return scopedTrades;
+
+    // Legacy compatibility only: if no trades have account mapping at all,
+    // keep showing historical data for older datasets.
+    const hasMappedAccountTrades = trades.some(trade => Boolean(trade.accountId));
+    return hasMappedAccountTrades ? [] : trades;
   }, [trades, activeAccount?.id]);
 
   const firstTradeDate = useMemo(() => {
@@ -981,14 +989,14 @@ export default function CalendarPage() {
               {/* Action Pills */}
               <div className="flex items-center gap-2">
                 {/* Account Selector */}
-                <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
+                <div className="rounded-full border border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] backdrop-blur-2xl shadow-[0_12px_30px_rgba(0,0,0,0.35)] transition-all hover:border-white/20">
                   <DashboardAccountSelector />
                 </div>
                 
                 {/* Date Range Selector */}
                 
                 {/* Date Range Selector */}
-                <div className="rounded-full border border-border/40 bg-card/95 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
+                <div className="rounded-full border border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] backdrop-blur-2xl shadow-[0_12px_30px_rgba(0,0,0,0.35)] transition-all hover:border-white/20">
                 {dayDialogOpen ? (
                   <Button
                     key="disabled-btn"
@@ -1016,7 +1024,7 @@ export default function CalendarPage() {
                         variant="ghost"
                         className={cn(
                           "group h-10 transition-all duration-200 px-4 gap-2 flex-shrink-0 text-sm rounded-full",
-                          "hover:bg-muted/30"
+                          "hover:bg-white/5"
                         )}
                       >
                         <CalendarIcon className="h-4 w-4 text-foreground" />
@@ -1235,235 +1243,259 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* 4 KPI Cards Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-                  {/* Account Balance Card */}
-                  <div className={cn(
-                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
-                  )}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Balance</p>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p className="font-display font-medium">Current account balance based on starting balance and cumulative P&L.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={() => setBalanceHidden(!balanceHidden)}
-                        className="inline-flex p-1 rounded hover:bg-foreground/5 transition-colors"
-                      >
-                        {balanceHidden ? (
-                          <EyeOff className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                        ) : (
-                          <Eye className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="mt-auto space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Account</span>
-                        <span className="text-[10px] text-foreground font-bold uppercase tracking-wider">
-                          {activeAccount?.name || 'Default'}
-                        </span>
-                      </div>
-                      <p className="text-2xl font-bold font-display tabular-nums tracking-tight text-foreground">
-                        {balanceHidden ? '••••••' : `${currencySymbol}${accountBalance.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}`}
-                      </p>
-                    </div>
+            {/* KPI Cards Row */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
+              {/* Account Balance Card */}
+              <div
+                className={cn(
+                  'group relative flex min-h-[132px] flex-col overflow-hidden rounded-[24px] border p-4 transition-all duration-300',
+                  preferences.liquidGlassEnabled
+                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]'
+                    : 'border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md'
+                )}
+              >
+                <div
+                  className="pointer-events-none absolute right-0 top-0 h-24 w-28"
+                  style={{
+                    background:
+                      'radial-gradient(110% 110% at 100% 0%, rgba(155,140,255,0.14) 0%, rgba(155,140,255,0.05) 42%, rgba(155,140,255,0) 74%)',
+                  }}
+                />
+                <div className="relative z-10 mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-1 rounded-full bg-[#9b8cff]" />
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-foreground">Balance</p>
+                    <UiTooltip>
+                      <UiTooltipTrigger asChild>
+                        <button type="button" className="inline-flex">
+                          <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 transition-colors group-hover:text-[#9b8cff]" />
+                        </button>
+                      </UiTooltipTrigger>
+                      <UiTooltipContent>
+                        <p className="font-display font-medium">Current account balance based on starting balance and cumulative P&L.</p>
+                      </UiTooltipContent>
+                    </UiTooltip>
                   </div>
-
-                  <div className={cn(
-                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
-                  )}>
-                    <div className="flex items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Net P&L</p>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p className="font-display font-medium">Total net profit or loss for the selected period.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
-                      </div>
-                    </div>
-                    <div className="mt-auto space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Return</span>
-                        <span className={cn(
-                          "inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-bold font-display tabular-nums",
-                          monthlyNetPnlPercentage >= 0
-                            ? "text-pnl-positive bg-pnl-positive/15 border-pnl-positive/30"
-                            : "text-pnl-negative bg-pnl-negative/15 border-pnl-negative/30"
-                        )}>
-                          {monthlyNetPnlPercentage >= 0 ? '+' : ''}{monthlyNetPnlPercentage.toFixed(2)}%
-                        </span>
-                      </div>
-                      <p className={cn(
-                        "text-2xl font-bold font-display tabular-nums tracking-tight",
-                        monthlyOverview.netPnl >= 0 ? "text-pnl-positive" : "text-pnl-negative"
-                      )}>
-                        {formatCurrency(monthlyOverview.netPnl)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={cn(
-                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
-                  )}>
-                    <div className="flex items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Trade Win %</p>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p className="font-display font-medium">Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto flex items-end justify-between gap-4">
-                      <p className="text-2xl font-bold font-display tabular-nums tracking-tight text-foreground">{winRate.toFixed(1)}%</p>
-
-                      <div className="flex flex-col items-end gap-1">
-                        <svg viewBox="0 0 100 55" className="w-20 h-10">
-                          <path
-                            d="M 10 50 A 40 40 0 0 1 90 50"
-                            fill="none"
-                            stroke="hsl(var(--muted))"
-                            strokeWidth="10"
-                            strokeLinecap="round"
-                            pathLength={100}
-                          />
-                          <path
-                            d="M 10 50 A 40 40 0 0 1 90 50"
-                            fill="none"
-                            stroke="#9b8cff"
-                            strokeWidth="10"
-                            strokeLinecap="round"
-                            pathLength={100}
-                            strokeDasharray={`${Math.max(0, Math.min(100, winRate))} 100`}
-                            className="transition-all duration-500"
-                          />
-                        </svg>
-
-                        <div className="flex items-center gap-1">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/20">{wins}</span>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums bg-[#9b8cff]/20 text-[#9b8cff] border border-[#9b8cff]/30">{monthlyOverview.breakeven}</span>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tabular-nums bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/20">{losses}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={cn(
-                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
-                  )}>
-                    <div className="flex items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Avg Win/Loss</p>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p className="font-display font-medium">Average P&amp;L per trade over the selected period.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5 mt-auto">
-                      <p className="text-[10px] text-muted-foreground/80 font-semibold uppercase tracking-wider">per Trade</p>
-                      <p className={cn(
-                        "text-2xl font-bold font-display tabular-nums tracking-tight",
-                        avgPnlPerTrade >= 0 ? "text-foreground" : "text-pnl-negative"
-                      )}>
-                        {avgPnlPerTrade.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={cn(
-                    "group rounded-2xl border p-4 relative overflow-hidden min-h-[128px] flex flex-col transition-all duration-300 shadow-sm",
-                    preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
-                  )}>
-                    <div className="flex items-center mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-[#9b8cff] rounded-full" />
-                        <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Expected Value</p>
-                        <UiTooltip>
-                          <UiTooltipTrigger asChild>
-                            <button type="button" className="inline-flex">
-                              <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 group-hover:text-[#9b8cff] transition-colors" />
-                            </button>
-                          </UiTooltipTrigger>
-                          <UiTooltipContent>
-                            <p className="font-display font-medium">Expected return per trade based on historical outcomes.</p>
-                          </UiTooltipContent>
-                        </UiTooltip>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 mb-2.5">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] leading-none font-bold tabular-nums bg-pnl-positive/15 text-pnl-positive border border-pnl-positive/20">{wins}</span>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] leading-none font-bold tabular-nums bg-pnl-negative/15 text-pnl-negative border border-pnl-negative/20">{losses}</span>
-                    </div>
-                    <p className={cn(
-                      "text-2xl font-bold font-display tabular-nums tracking-tight mt-auto",
-                      monthlyOverview.expectancy >= 0 ? "text-pnl-positive" : "text-pnl-negative"
-                    )}>
-                      {formatCurrency(monthlyOverview.expectancy)}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBalanceHidden(!balanceHidden)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border/50 bg-background/40 transition-colors hover:bg-foreground/5"
+                  >
+                    {balanceHidden ? (
+                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground transition-colors hover:text-foreground" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5 text-muted-foreground transition-colors hover:text-foreground" />
+                    )}
+                  </button>
                 </div>
 
+                <div className="relative z-10 mt-auto space-y-2">
+                  <p className="text-[1.65rem] font-bold font-display tracking-tight tabular-nums text-foreground">
+                    {balanceHidden
+                      ? '••••••'
+                      : `${currencySymbol}${accountBalance.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Net P&L Card */}
+              <div
+                className={cn(
+                  'group relative flex min-h-[132px] flex-col overflow-hidden rounded-[24px] border p-4 transition-all duration-300',
+                  preferences.liquidGlassEnabled
+                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]'
+                    : 'border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md'
+                )}
+              >
+                <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
+                <div className="relative z-10 mb-4 flex items-center gap-2">
+                  <div className="h-4 w-1 rounded-full bg-[#9b8cff]" />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-foreground">Net P&amp;L</p>
+                  <UiTooltip>
+                    <UiTooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 transition-colors group-hover:text-[#9b8cff]" />
+                      </button>
+                    </UiTooltipTrigger>
+                    <UiTooltipContent>
+                      <p className="font-display font-medium">Total net profit or loss for the selected period.</p>
+                    </UiTooltipContent>
+                  </UiTooltip>
+                </div>
+                <div className="relative z-10 mt-auto space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Return</span>
+                    <span
+                      className={cn(
+                        'inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold font-display tabular-nums',
+                        monthlyNetPnlPercentage >= 0
+                          ? 'border-pnl-positive/30 bg-pnl-positive/15 text-pnl-positive'
+                          : 'border-pnl-negative/30 bg-pnl-negative/15 text-pnl-negative'
+                      )}
+                    >
+                      {monthlyNetPnlPercentage >= 0 ? '+' : ''}
+                      {monthlyNetPnlPercentage.toFixed(2)}%
+                    </span>
+                  </div>
+                  <p
+                    className={cn(
+                      'text-[1.65rem] font-bold font-display tracking-tight tabular-nums',
+                      monthlyOverview.netPnl >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
+                    )}
+                  >
+                    {formatCurrency(monthlyOverview.netPnl)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Trade Win Card */}
+              <div
+                className={cn(
+                  'group relative flex min-h-[132px] flex-col overflow-hidden rounded-[24px] border p-4 transition-all duration-300',
+                  preferences.liquidGlassEnabled
+                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]'
+                    : 'border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md'
+                )}
+              >
+                <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
+                <div className="relative z-10 mb-4 flex items-center gap-2">
+                  <div className="h-4 w-1 rounded-full bg-[#9b8cff]" />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-foreground">Trade Win %</p>
+                  <UiTooltip>
+                    <UiTooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 transition-colors group-hover:text-[#9b8cff]" />
+                      </button>
+                    </UiTooltipTrigger>
+                    <UiTooltipContent>
+                      <p className="font-display font-medium">Percentage of winning trades. Chips show wins, breakeven, and losses.</p>
+                    </UiTooltipContent>
+                  </UiTooltip>
+                </div>
+
+                <div className="relative z-10 mt-auto flex items-end justify-between gap-3">
+                  <p className="text-[1.65rem] font-bold font-display tracking-tight tabular-nums text-foreground">{winRate.toFixed(1)}%</p>
+
+                  <div className="flex flex-col items-end gap-1.5">
+                    <svg viewBox="0 0 100 55" className="h-10 w-20">
+                      <path
+                        d="M 10 50 A 40 40 0 0 1 90 50"
+                        fill="none"
+                        stroke="hsl(var(--muted))"
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                        pathLength={100}
+                      />
+                      <path
+                        d="M 10 50 A 40 40 0 0 1 90 50"
+                        fill="none"
+                        stroke="#9b8cff"
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                        pathLength={100}
+                        strokeDasharray={`${Math.max(0, Math.min(100, winRate))} 100`}
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+
+                    <div className="flex items-center gap-1">
+                      <span className="rounded-md border border-pnl-positive/20 bg-pnl-positive/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-pnl-positive">{wins}</span>
+                      <span className="rounded-md border border-[#9b8cff]/30 bg-[#9b8cff]/20 px-2 py-0.5 text-[10px] font-bold tabular-nums text-[#9b8cff]">{monthlyOverview.breakeven}</span>
+                      <span className="rounded-md border border-pnl-negative/20 bg-pnl-negative/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-pnl-negative">{losses}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Avg Win/Loss Card */}
+              <div
+                className={cn(
+                  'group relative flex min-h-[132px] flex-col overflow-hidden rounded-[24px] border p-4 transition-all duration-300',
+                  preferences.liquidGlassEnabled
+                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]'
+                    : 'border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md'
+                )}
+              >
+                <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
+                <div className="relative z-10 mb-4 flex items-center gap-2">
+                  <div className="h-4 w-1 rounded-full bg-[#9b8cff]" />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-foreground">Avg Win/Loss</p>
+                  <UiTooltip>
+                    <UiTooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 transition-colors group-hover:text-[#9b8cff]" />
+                      </button>
+                    </UiTooltipTrigger>
+                    <UiTooltipContent>
+                      <p className="font-display font-medium">Average P&amp;L per trade over the selected period.</p>
+                    </UiTooltipContent>
+                  </UiTooltip>
+                </div>
+                <div className="relative z-10 mt-auto space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Per Trade</p>
+                  <p
+                    className={cn(
+                      'text-[1.65rem] font-bold font-display tracking-tight tabular-nums',
+                      avgPnlPerTrade >= 0 ? 'text-foreground' : 'text-pnl-negative'
+                    )}
+                  >
+                    {formatCurrency(avgPnlPerTrade)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Expected Value Card */}
+              <div
+                className={cn(
+                  'group relative flex min-h-[132px] flex-col overflow-hidden rounded-[24px] border p-4 transition-all duration-300',
+                  preferences.liquidGlassEnabled
+                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]'
+                    : 'border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md'
+                )}
+              >
+                <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
+                <div className="relative z-10 mb-3 flex items-center gap-2">
+                  <div className="h-4 w-1 rounded-full bg-[#9b8cff]" />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-foreground">Expected Value</p>
+                  <UiTooltip>
+                    <UiTooltipTrigger asChild>
+                      <button type="button" className="inline-flex">
+                        <Info className="h-3.5 w-3.5 text-[#9b8cff]/70 transition-colors group-hover:text-[#9b8cff]" />
+                      </button>
+                    </UiTooltipTrigger>
+                    <UiTooltipContent>
+                      <p className="font-display font-medium">Expected return per trade based on historical outcomes.</p>
+                    </UiTooltipContent>
+                  </UiTooltip>
+                </div>
+                <div className="relative z-10 mb-2.5 flex items-center gap-1">
+                  <span className="rounded-md border border-pnl-positive/20 bg-pnl-positive/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-pnl-positive">{wins}</span>
+                  <span className="rounded-md border border-pnl-negative/20 bg-pnl-negative/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-pnl-negative">{losses}</span>
+                </div>
+                <p
+                  className={cn(
+                    'relative z-10 mt-auto text-[1.65rem] font-bold font-display tracking-tight tabular-nums',
+                    monthlyOverview.expectancy >= 0 ? 'text-pnl-positive' : 'text-pnl-negative'
+                  )}
+                >
+                  {formatCurrency(monthlyOverview.expectancy)}
+                </p>
+              </div>
+            </div>
+
                 {/* 3 Card Row: Best/Worst Trades, Performance by Day, Recent Trades */}
-                <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.2fr_0.8fr] xl:items-stretch gap-4 mt-4">
+                <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_1.2fr_0.8fr] xl:items-stretch xl:gap-5">
                   {/* Daily Net Cumulative P&L Chart */}
                   <div className={cn(
-                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] xl:h-[460px] shadow-sm",
+                    "group relative min-h-[320px] overflow-hidden rounded-[26px] border p-5 transition-all duration-300 xl:h-[460px]",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/45 hover:border-white/15"
-                      : "border-border/60 bg-card hover:border-border hover:shadow-md"
+                      ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]"
+                      : "border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md"
                   )}>
+                    <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
                     <div className="relative flex flex-col h-full">
                       <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-2">
@@ -1488,20 +1520,20 @@ export default function CalendarPage() {
                         </div>
                       ) : (
                         <div className="flex-1 flex flex-col">
-                          <div className="grid grid-cols-3 gap-2 mb-4">
-                            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+                          <div className="mb-4 grid grid-cols-3 gap-2.5">
+                            <div className="rounded-2xl border border-border/45 bg-background/35 px-2.5 py-2.5 text-center">
                               <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Peak</p>
                               <p className={cn("text-xs font-bold font-display tabular-nums", cumulativePnlChart.peak >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
                                 {formatCurrency(cumulativePnlChart.peak)}
                               </p>
                             </div>
-                            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+                            <div className="rounded-2xl border border-border/45 bg-background/35 px-2.5 py-2.5 text-center">
                               <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Lowest P&L</p>
                               <p className={cn("text-xs font-bold font-display tabular-nums", cumulativePnlChart.trough >= 0 ? "text-pnl-positive" : "text-pnl-negative")}>
                                 {formatCurrency(cumulativePnlChart.trough)}
                               </p>
                             </div>
-                            <div className="rounded-xl border border-border/50 bg-background/40 px-2.5 py-2 text-center">
+                            <div className="rounded-2xl border border-border/45 bg-background/35 px-2.5 py-2.5 text-center">
                               <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Sessions</p>
                               <p className="text-xs font-bold font-display text-foreground tabular-nums">{cumulativePnlChart.sessions}</p>
                             </div>
@@ -1611,8 +1643,8 @@ export default function CalendarPage() {
                           </div>
                           
                           {/* Summary Stats */}
-                          <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-border/40">
-                            <div className="text-center">
+                          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border/35 pt-4">
+                            <div className="rounded-xl border border-border/40 bg-background/30 px-2.5 py-2 text-center">
                               <p
                                 className="text-[10px] text-muted-foreground font-bold uppercase"
                                 style={{ fontFamily: 'Outfit, system-ui, sans-serif', letterSpacing: '0.06em' }}
@@ -1621,7 +1653,7 @@ export default function CalendarPage() {
                               </p>
                               <p className="text-sm font-bold font-display text-foreground">£0.00</p>
                             </div>
-                            <div className="text-center">
+                            <div className="rounded-xl border border-border/40 bg-background/30 px-2.5 py-2 text-center">
                               <p
                                 className="text-[10px] text-muted-foreground font-bold uppercase"
                                 style={{ fontFamily: 'Outfit, system-ui, sans-serif', letterSpacing: '0.06em' }}
@@ -1632,7 +1664,7 @@ export default function CalendarPage() {
                                 {formatCurrency(cumulativePnlChart.current)}
                               </p>
                             </div>
-                            <div className="text-center">
+                            <div className="rounded-xl border border-border/40 bg-background/30 px-2.5 py-2 text-center">
                               <p
                                 className="text-[10px] text-muted-foreground font-bold uppercase"
                                 style={{ fontFamily: 'Outfit, system-ui, sans-serif', letterSpacing: '0.06em' }}
@@ -1651,11 +1683,12 @@ export default function CalendarPage() {
 
                   {/* Performance by Day */}
                   <div className={cn(
-                    "group rounded-2xl border p-5 relative overflow-hidden transition-all duration-300 min-h-[320px] xl:h-[460px] shadow-sm hover:shadow-md",
+                    "group relative min-h-[320px] overflow-hidden rounded-[26px] border p-5 transition-all duration-300 xl:h-[460px]",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl hover:bg-black/50"
-                      : "border-border/60 bg-card hover:border-border"
+                      ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]"
+                      : "border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md"
                   )}>
+                    <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
                     <div className="relative flex flex-col h-full">
                       <div className="flex items-center mb-5">
                         <div className="flex items-center gap-2">
@@ -1710,7 +1743,7 @@ export default function CalendarPage() {
                               </div>
                             </div>
 
-                            <div className="flex-1 rounded-[26px] border border-border/25 bg-gradient-to-b from-background/80 via-background/55 to-background/30 p-3.5 sm:p-4">
+                            <div className="flex-1 rounded-[26px] border border-border/25 bg-gradient-to-b from-background/85 via-background/60 to-background/35 p-3.5 sm:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                               <div className="grid grid-cols-[32px_repeat(5,minmax(0,1fr))] gap-1.5 items-center">
                                 <div />
                                 {dayOfWeekStats.map((day) => {
@@ -1820,13 +1853,14 @@ export default function CalendarPage() {
 
                   {/* Recent Trades */}
                   <div className={cn(
-                    "group rounded-2xl border relative overflow-hidden transition-all duration-300 min-h-[320px] xl:h-[460px] shadow-sm flex flex-col",
+                    "group relative flex min-h-[320px] flex-col overflow-hidden rounded-[26px] border transition-all duration-300 xl:h-[460px]",
                     preferences.liquidGlassEnabled
-                      ? "border-white/10 bg-black/40 backdrop-blur-2xl"
-                      : "border-border/60 bg-card"
+                      ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]"
+                      : "border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm hover:border-border hover:shadow-md"
                   )}>
+                    <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border/40">
+                    <div className="relative z-10 flex items-center justify-between border-b border-border/35 px-4 pb-3 pt-4">
                       <div className="flex items-center gap-2.5">
                         <div className="w-1 h-4 bg-[#9b8cff] rounded-full flex-shrink-0" />
                         <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Recent Trades</h3>
@@ -1852,7 +1886,7 @@ export default function CalendarPage() {
                     </div>
 
                     {/* Trade rows */}
-                    <div className="flex-1 min-h-0 flex flex-col gap-2 p-3 overflow-y-auto">
+                    <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-2 p-3 overflow-y-auto">
                       {monthlyTrades.length > 0 ? (
                         [...monthlyTrades]
                           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -1861,7 +1895,7 @@ export default function CalendarPage() {
                           <div
                             key={trade.id}
                             onClick={() => { setSelectedTrade(trade); setTradeViewOpen(true); }}
-                            className="relative cursor-pointer overflow-hidden rounded-2xl border border-border/40 bg-background/30 px-3 py-3 transition-all duration-200 hover:border-border/70 hover:bg-muted/20 hover:shadow-sm group/trade"
+                            className="group/trade relative cursor-pointer overflow-hidden rounded-2xl border border-border/35 bg-background/25 px-3 py-3 transition-all duration-200 hover:border-border/70 hover:bg-muted/20 hover:shadow-sm"
                           >
                             {/* Always-visible left accent */}
                             <div className={cn(
@@ -1940,12 +1974,13 @@ export default function CalendarPage() {
           <div className="w-full space-y-3">
             {/* Goal Progress Card - Clean Professional Metric */}
             <div className={cn(
-              "rounded-2xl border relative overflow-hidden transition-all duration-300 shadow-sm",
+              "relative overflow-hidden rounded-[26px] border transition-all duration-300",
               preferences.liquidGlassEnabled
-                ? "border-white/10 bg-card/85 backdrop-blur-2xl"
-                : "border-border/60 bg-card"
+                ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+                : "border-border/60 bg-[linear-gradient(165deg,hsl(var(--card)),color-mix(in oklab,hsl(var(--card))_82%,hsl(var(--muted))_18%))] shadow-sm"
             )}>
-              <div className="relative px-3.5 sm:px-5 py-3.5 sm:py-4">
+              <div className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[#9b8cff]/15 blur-2xl" />
+              <div className="relative px-4 sm:px-6 py-4 sm:py-5">
                 {/* Header row */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -1962,14 +1997,16 @@ export default function CalendarPage() {
                       </UiTooltipContent>
                     </UiTooltip>
                   </div>
-                  <div className="inline-flex w-full sm:w-fit justify-between sm:justify-start gap-0.5 p-1 rounded-lg border border-border/50 bg-background/50">
+                  <div className="inline-flex w-full sm:w-fit justify-between sm:justify-start gap-0.5 p-1 rounded-xl border border-border/40 bg-background/40">
                     {(['D', 'W', 'M', 'Y'] as GoalPeriod[]).map((period) => (
                       <button
                         key={period}
                         onClick={() => setGoalPeriod(period)}
                         className={cn(
-                          'flex-1 sm:flex-none px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 uppercase tracking-wider',
-                          goalPeriod === period ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
+                          'flex-1 sm:flex-none px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 uppercase tracking-wider',
+                          goalPeriod === period
+                            ? 'bg-foreground text-background shadow-[0_6px_18px_rgba(0,0,0,0.25)]'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-background/45'
                         )}
                       >
                         {period}
@@ -2028,7 +2065,7 @@ export default function CalendarPage() {
 
                   {/* Progress bar — takes remaining space */}
                   <div className="w-full sm:flex-1 sm:min-w-0">
-                    <div className="relative h-2.5 rounded-full bg-muted/30 overflow-hidden border border-border/20">
+                    <div className="relative h-2.5 rounded-full bg-muted/25 overflow-hidden border border-border/25">
                       <div
                         className={cn(
                           'h-full rounded-full transition-all duration-700 ease-out',
@@ -2047,11 +2084,11 @@ export default function CalendarPage() {
             </div>
 
             {/* Calendar Navigation */}
-            <div className="relative flex items-center justify-between py-2">
+            <div className="relative mt-1 flex items-center justify-between py-2">
               <div className="flex items-center">
                 <button 
                   onClick={viewMode === 'year' ? handlePrevYear : handlePrevMonth}
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl border border-border/45 bg-background/30 hover:bg-muted/40 flex items-center justify-center transition-all shrink-0"
                 >
                   <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
                 </button>
@@ -2065,14 +2102,14 @@ export default function CalendarPage() {
                 </span>
                 <button 
                   onClick={viewMode === 'year' ? handleNextYear : handleNextMonth}
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl hover:bg-muted/50 flex items-center justify-center transition-all shrink-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl border border-border/45 bg-background/30 hover:bg-muted/40 flex items-center justify-center transition-all shrink-0"
                 >
                   <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
                 </button>
                 <button 
                   onClick={handleToday} 
                   className={cn(
-                    'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-1 sm:ml-2',
+                    'px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer hover:opacity-90 whitespace-nowrap shrink-0 ml-1 sm:ml-2 border border-border/40',
                     viewMode === 'month' ? '' : 'hidden',
                     'bg-foreground text-background'
                   )}
@@ -2086,11 +2123,11 @@ export default function CalendarPage() {
               {/* Center - Stats */}
               {viewMode === 'month' && (
                 <div className="hidden sm:flex items-center gap-4 absolute left-1/2 -translate-x-1/2 text-center justify-center">
-                  <span className="text-sm text-white whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-sm text-[#9b8cff] font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
+                  <span className="text-sm text-foreground/90 whitespace-nowrap font-display font-semibold tabular-nums">Trades: <span className="text-sm text-[#9b8cff] font-display font-semibold tabular-nums">{filteredTrades.filter(t => {
                     const tradeDate = new Date(t.date);
                     return !t.isPaperTrade && !t.noTradeTaken && tradeDate.getMonth() === currentMonth.getMonth() && tradeDate.getFullYear() === currentMonth.getFullYear();
                   }).length}</span></span>
-                  <span className="text-sm text-white whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-sm text-[#9b8cff] font-display font-semibold tabular-nums">{formatPnlWithK(displayedMonthlyPnl)}</span></span>
+                  <span className="text-sm text-foreground/90 whitespace-nowrap font-display font-semibold tabular-nums">Monthly P&L: <span className="text-sm text-[#9b8cff] font-display font-semibold tabular-nums">{formatPnlWithK(displayedMonthlyPnl)}</span></span>
                 </div>
               )}
               
@@ -2123,11 +2160,11 @@ export default function CalendarPage() {
                   </button>
                 </div>
                 {/* Desktop View Mode Toggle */}
-                <div className="hidden sm:flex items-center gap-1">
+                <div className="hidden sm:flex items-center gap-1 rounded-xl border border-border/45 bg-background/30 p-1">
                   <button
                     onClick={() => setViewMode('month')}
                     className={cn(
-                      'px-3 py-1.5 rounded-xl text-xs font-medium transition-all',
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                       viewMode === 'month' 
                         ? 'bg-foreground text-background' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -2138,7 +2175,7 @@ export default function CalendarPage() {
                   <button
                     onClick={() => setViewMode('year')}
                     className={cn(
-                      'px-3 py-1.5 rounded-xl text-xs font-medium transition-all',
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                       viewMode === 'year' 
                         ? 'bg-foreground text-background' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -2153,7 +2190,7 @@ export default function CalendarPage() {
             {/* Mobile month stats row */}
             {viewMode === 'month' && (
               <div className="sm:hidden mt-1 mb-2 px-1">
-                <div className="w-full text-center text-sm text-white font-display font-semibold tabular-nums whitespace-nowrap">
+                <div className="w-full text-center text-sm text-foreground/90 font-display font-semibold tabular-nums whitespace-nowrap">
                   <span>
                     Trades: <span className="text-[#9b8cff]">{filteredTrades.filter(t => {
                       const tradeDate = new Date(t.date);
@@ -2272,22 +2309,22 @@ export default function CalendarPage() {
                 {/* Day Headers with Weekly P&L column - Mon-Fri on mobile, Full week on tablet+ */}
                 <div className="hidden md:grid grid-cols-8 gap-2 text-center mb-4">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                    <div key={i} className="h-7 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-[0.18em]">
+                    <div key={i} className="h-7 flex items-center justify-center text-[10px] font-bold text-foreground/90 uppercase tracking-[0.18em]">
                       {day}
                     </div>
                   ))}
-                  <div className="h-7 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-[0.2em]">
+                  <div className="h-7 flex items-center justify-center text-[10px] font-bold text-foreground/90 uppercase tracking-[0.2em]">
                     WEEK
                   </div>
                 </div>
                 {/* Mobile headers - Mon to Fri only */}
                 <div className="grid md:hidden grid-cols-6 gap-1 text-center mb-3">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                    <div key={i} className="h-6 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-[0.16em]">
+                    <div key={i} className="h-6 flex items-center justify-center text-[9px] font-bold text-foreground/90 uppercase tracking-[0.16em]">
                       {day}
                     </div>
                   ))}
-                  <div className="h-6 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-[0.18em]">
+                  <div className="h-6 flex items-center justify-center text-[9px] font-bold text-foreground/90 uppercase tracking-[0.18em]">
                     WEEK
                   </div>
                 </div>
@@ -2319,13 +2356,25 @@ export default function CalendarPage() {
                         <div key={weekIndex} className="space-y-1.5 md:space-y-0">
                         {/* Desktop/Tablet - Full week */}
                         <div className={cn(
-                          "hidden md:grid grid-cols-8 gap-2 rounded-3xl border p-2.5 transition-all duration-300",
+                          "hidden md:grid grid-cols-8 gap-2 rounded-[26px] border p-2.5 transition-all duration-300",
                           !weekData?.tradeCount && (preferences.liquidGlassEnabled
-                            ? "border-white/10 bg-card/30 backdrop-blur-xl"
+                            ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl hover:border-white/20 hover:shadow-[0_18px_48px_rgba(0,0,0,0.52)]"
                             : "border-border/40 bg-muted/10")
                         )} style={{
-                          backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.04)` : undefined,
-                          borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.18)` : undefined
+                          backgroundColor: weekData?.tradeCount
+                            ? weekData.pnl > 0
+                              ? 'hsl(var(--pnl-positive) / 0.06)'
+                              : weekData.pnl < 0
+                                ? 'hsl(var(--pnl-negative) / 0.06)'
+                                : 'rgba(255,255,255,0.015)'
+                            : undefined,
+                          borderColor: weekData?.tradeCount
+                            ? weekData.pnl > 0
+                              ? 'hsl(var(--pnl-positive) / 0.24)'
+                              : weekData.pnl < 0
+                                ? 'hsl(var(--pnl-negative) / 0.24)'
+                                : 'rgba(255,255,255,0.08)'
+                            : undefined
                         }}>
                           {week.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
@@ -2347,16 +2396,21 @@ export default function CalendarPage() {
                                 key={dateStr}
                                 onClick={() => handleDayClick(day)}
                                 className={cn(
-                                  'group relative flex h-24 flex-col items-center justify-center rounded-2xl border p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
+                                  'group relative flex h-24 flex-col items-center justify-center rounded-[20px] border p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
                                   isCurrentMonth ? 'opacity-100' : 'opacity-35',
                                   isTodayDate && 'shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.35)]',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'border-white/10 bg-card/35 backdrop-blur-xl hover:bg-card/55'
+                                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] backdrop-blur-2xl shadow-[0_12px_30px_rgba(0,0,0,0.35)] hover:border-white/20 hover:shadow-[0_14px_36px_rgba(0,0,0,0.45)]'
                                     : 'border-border/25 bg-background/70 hover:bg-muted/20')
                                 )}
                                 style={tradeCount > 0 ? {
-                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.11)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.35)`,
+                                  background: dayPnl > 0
+                                    ? `linear-gradient(165deg, color-mix(in oklab, ${profitColor} 28%, rgba(7,8,16,0.74)), rgba(7,8,16,0.74))`
+                                    : `linear-gradient(165deg, color-mix(in oklab, ${lossColor} 24%, rgba(7,8,16,0.74)), rgba(7,8,16,0.74))`,
+                                  borderColor: dayPnl > 0
+                                    ? `color-mix(in oklab, ${profitColor} 46%, transparent)`
+                                    : `color-mix(in oklab, ${lossColor} 40%, transparent)`,
+                                  boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
                                 } : undefined}
                               >
                                 {/* Date number - top left */}
@@ -2371,12 +2425,12 @@ export default function CalendarPage() {
                                 {tradeCount > 0 && (
                                   <div className="mt-3.5 flex flex-col items-center gap-1.5">
                                     <div className="w-full truncate px-0.5 text-center text-[1rem] leading-[1.1] font-bold font-display tabular-nums tracking-tight"
-                                      style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                                      style={{ color: dayPnl >= 0 ? profitColor : lossColor }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
                                     <div
                                       className="text-[9px] leading-none font-display font-medium tabular-nums tracking-[0.03em]"
-                                      style={{ color: `hsl(var(${Number(pnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
+                                      style={{ color: Number(pnlPercent) >= 0 ? profitColor : lossColor }}
                                     >
                                       {Number(pnlPercent) >= 0 ? '+' : ''}{pnlPercent}%
                                     </div>
@@ -2397,21 +2451,21 @@ export default function CalendarPage() {
                           
                           {/* Weekly Summary */}
                           <div className={cn(
-                            "h-24 rounded-2xl border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
+                            "h-24 rounded-[20px] border p-2.5 font-bold transition-all flex flex-col items-center justify-center",
                             preferences.liquidGlassEnabled
-                              ? "border-white/15 bg-card/60 backdrop-blur-2xl"
+                              ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
                               : "border-border/35 bg-card/80"
                           )}>
                             <div className="mb-1.5 whitespace-nowrap text-[9px] font-display font-bold uppercase tracking-[0.18em] text-muted-foreground/70">
                               Week {weekIndex + 1}
                             </div>
                             <div className="mb-1 w-full truncate text-center text-[15px] leading-[1.12] font-display font-bold tabular-nums tracking-tight"
-                              style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                              style={{ color: (weekData?.pnl || 0) >= 0 ? '#8ab4ff' : 'rgba(229,231,235,0.76)' }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div
                               className="mb-1.5 text-[9px] leading-none font-display font-medium tabular-nums tracking-[0.03em]"
-                              style={{ color: `hsl(var(${Number(weekPnlPercent) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}
+                              style={{ color: Number(weekPnlPercent) >= 0 ? '#8ab4ff' : 'rgba(229,231,235,0.62)' }}
                             >
                               {Number(weekPnlPercent) >= 0 ? '+' : ''}{weekPnlPercent}%
                             </div>
@@ -2426,11 +2480,23 @@ export default function CalendarPage() {
                         <div className={cn(
                           "grid md:hidden grid-cols-6 gap-1 rounded-2xl border p-2",
                           !weekData?.tradeCount && (preferences.liquidGlassEnabled
-                            ? "border-white/10 bg-card/30 backdrop-blur-xl"
+                            ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_14px_34px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
                             : "border-border/35 bg-muted/10")
                         )} style={{
-                          backgroundColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.05)` : undefined,
-                          borderColor: (weekData?.tradeCount && weekData?.pnl) ? `hsl(var(${weekData.pnl >= 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.2)` : undefined
+                          backgroundColor: weekData?.tradeCount
+                            ? weekData.pnl > 0
+                              ? 'hsl(var(--pnl-positive) / 0.07)'
+                              : weekData.pnl < 0
+                                ? 'hsl(var(--pnl-negative) / 0.07)'
+                                : 'rgba(255,255,255,0.02)'
+                            : undefined,
+                          borderColor: weekData?.tradeCount
+                            ? weekData.pnl > 0
+                              ? 'hsl(var(--pnl-positive) / 0.26)'
+                              : weekData.pnl < 0
+                                ? 'hsl(var(--pnl-negative) / 0.26)'
+                                : 'rgba(255,255,255,0.09)'
+                            : undefined
                         }}>
                           {weekdaysOnly.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
@@ -2450,13 +2516,17 @@ export default function CalendarPage() {
                                   isCurrentMonth ? 'opacity-100' : 'opacity-40',
                                   isTodayDate && 'shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.35)]',
                                   tradeCount === 0 && (preferences.liquidGlassEnabled
-                                    ? 'border-white/10 bg-card/80 backdrop-blur-2xl hover:bg-card/90'
+                                    ? 'border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.9),rgba(7,8,16,0.76))] backdrop-blur-2xl shadow-[0_10px_24px_rgba(0,0,0,0.34)] hover:border-white/20'
                                     : 'border-border/30 bg-background/70 hover:bg-muted/10')
                                 )}
                                 style={tradeCount > 0 ? {
-                                  backgroundColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.12)`,
-                                  borderColor: `hsl(var(${dayPnl > 0 ? '--pnl-positive' : '--pnl-negative'}) / 0.35)`,
-                                  boxShadow: isTodayDate ? 'none' : undefined
+                                  background: dayPnl > 0
+                                    ? `linear-gradient(165deg, color-mix(in oklab, ${profitColor} 28%, rgba(7,8,16,0.74)), rgba(7,8,16,0.74))`
+                                    : `linear-gradient(165deg, color-mix(in oklab, ${lossColor} 24%, rgba(7,8,16,0.74)), rgba(7,8,16,0.74))`,
+                                  borderColor: dayPnl > 0
+                                    ? `color-mix(in oklab, ${profitColor} 46%, transparent)`
+                                    : `color-mix(in oklab, ${lossColor} 40%, transparent)`,
+                                  boxShadow: isTodayDate ? 'none' : '0 10px 24px rgba(0,0,0,0.34)'
                                 } : undefined}
                               >
                                 <div className={cn(
@@ -2468,7 +2538,7 @@ export default function CalendarPage() {
                                 {tradeCount > 0 && (
                                   <div className="flex flex-col items-center gap-0.5 mt-1.5">
                                     <div className="w-full truncate px-0.5 text-center text-[9px] font-bold font-display tabular-nums"
-                                      style={{ color: `hsl(var(${dayPnl >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                                      style={{ color: dayPnl >= 0 ? profitColor : lossColor }}>
                                       {formatPnlWithK(dayPnl)}
                                     </div>
                                     <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-background/35 px-1 py-0.5 text-[7px] font-display font-semibold text-muted-foreground tabular-nums">
@@ -2490,14 +2560,14 @@ export default function CalendarPage() {
                           <div className={cn(
                             "h-16 flex flex-col items-center justify-center rounded-xl border p-1.5 font-bold",
                             preferences.liquidGlassEnabled
-                              ? "border-white/10 bg-card/80 backdrop-blur-2xl"
+                              ? "border-white/12 bg-[linear-gradient(165deg,rgba(14,15,28,0.88),rgba(7,8,16,0.72))] shadow-[0_14px_34px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
                               : "border-border/35 bg-card"
                           )}>
                             <div className="mb-0.5 whitespace-nowrap text-[8px] font-display font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
                               Week {weekIndex + 1}
                             </div>
                             <div className="text-[9px] font-display tabular-nums mb-0 w-full text-center truncate leading-tight"
-                              style={{ color: `hsl(var(${(weekData?.pnl || 0) >= 0 ? '--pnl-positive' : '--pnl-negative'}))` }}>
+                              style={{ color: (weekData?.pnl || 0) >= 0 ? '#8ab4ff' : 'rgba(229,231,235,0.72)' }}>
                               {formatPnlWithK(weekData?.pnl || 0)}
                             </div>
                             <div className="inline-flex items-center gap-1 whitespace-nowrap text-[7px] text-muted-foreground font-display font-semibold tabular-nums">
@@ -2514,13 +2584,25 @@ export default function CalendarPage() {
 
                 {/* Calendar Legend */}
                 <div className="flex flex-wrap items-center justify-center gap-2 pt-4 pb-6">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-pnl-positive/40 bg-pnl-positive/8 hover:bg-pnl-positive/12 transition-colors">
-                    <div className="h-1.5 w-1.5 rounded-full bg-pnl-positive flex-shrink-0" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-foreground">Profitable</span>
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 transition-colors"
+                    style={{
+                      borderColor: `color-mix(in oklab, ${profitColor} 38%, transparent)`,
+                      backgroundColor: `color-mix(in oklab, ${profitColor} 12%, transparent)`,
+                    }}
+                  >
+                    <div className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: profitColor }} />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display" style={{ color: profitColor }}>Profitable</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-muted-foreground/30 bg-muted/20 hover:bg-muted/30 transition-colors">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 flex-shrink-0" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display text-muted-foreground">Loss</span>
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 transition-colors"
+                    style={{
+                      borderColor: `color-mix(in oklab, ${lossColor} 34%, transparent)`,
+                      backgroundColor: `color-mix(in oklab, ${lossColor} 11%, transparent)`,
+                    }}
+                  >
+                    <div className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: lossColor }} />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide font-display" style={{ color: lossColor }}>Loss</span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-primary/35 bg-primary/[0.08] hover:bg-primary/[0.12] transition-colors">
                     <span className="inline-flex items-center justify-center rounded-md border border-primary/70 bg-primary/30 px-1.5 py-0.5 text-[10px] leading-none font-display font-bold tabular-nums text-white shadow-[0_0_0_1px_hsl(var(--primary)/0.18)]">

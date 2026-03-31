@@ -13,7 +13,6 @@ import {
   Monitor,
 } from "lucide-react";
 import { BugReportDialog } from "@/components/layout/BugReportDialog";
-import { ComingSoonDialog } from "@/components/layout/ComingSoonDialog";
 import { AccountSelectionDialog } from "@/components/account/AccountSelectionDialog";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
@@ -75,18 +74,6 @@ const BacktestIcon = ({ className }: { className?: string }) => (
     <rect x="2" y="5" width="2" height="12" fill="currentColor"/>
   </svg>
 );
-
-// Custom AI Coach icon - Chat bubbles icon
-const AIIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    <circle cx="9" cy="10" r="0.5" fill="currentColor" />
-    <circle cx="12" cy="10" r="0.5" fill="currentColor" />
-    <circle cx="15" cy="10" r="0.5" fill="currentColor" />
-  </svg>
-);
-
-export { AIIcon };
 
 // Custom playbook icon - filled book style
 const PlaybookIcon = ({ className }: { className?: string }) => (
@@ -155,7 +142,6 @@ const navSections = [
   {
     label: "Tools",
     items: [
-      { to: "/coach", icon: AIIcon, label: "AI Coach" },
       { to: "/backtesting", icon: BacktestIcon, label: "Backtesting" },
       { to: "/playbook", icon: PlaybookIcon, label: "Playbook" },
     ],
@@ -191,17 +177,16 @@ export function Sidebar({
   const { settings } = useSettings();
   const { preferences, setTheme } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
-  const activeNavClass = "text-violet-600 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/15 border border-violet-300 dark:border-violet-400/20";
-  const activeIndicatorClass = "bg-violet-600 dark:bg-violet-400";
+  const activeNavClass = "text-[#b8a7ff] bg-[linear-gradient(135deg,rgba(155,140,255,0.2),rgba(88,74,181,0.28))] border border-[#9b8cff]/40";
+  const activeIndicatorClass = "bg-[#9b8cff]";
+  const navHoverClass = "text-foreground/90 hover:text-foreground hover:bg-[#9b8cff]/10 hover:border-[#9b8cff]/20";
   const [isCollapsedState, setIsCollapsedState] = useState(false);
   const isCollapsed = controlledCollapsed ?? isCollapsedState;
   const setIsCollapsed = setControlledCollapsed ?? setIsCollapsedState;
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
   const [isBugReportOpen, setIsBugReportOpen] = useState(false);
-  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
-  const [comingSoonFeature, setComingSoonFeature] = useState<string>("");
 
   // Track active path for indicator
   const [activePath, setActivePath] = useState<string | null>(null);
@@ -283,8 +268,8 @@ export function Sidebar({
       className={cn(
         "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-[2rem] overflow-hidden border shadow-[0_24px_80px_-40px_rgba(0,0,0,0.7)]",
         isGlassEnabled
-          ? "bg-sidebar/85 backdrop-blur-2xl border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-          : "bg-sidebar border-border/60"
+          ? "bg-[linear-gradient(165deg,rgba(14,15,28,0.9),rgba(7,8,16,0.78))] backdrop-blur-2xl border-[#9b8cff]/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+          : "bg-[linear-gradient(165deg,hsl(var(--sidebar)),color-mix(in oklab,hsl(var(--sidebar))_82%,#1b1630_18%))] border-[#9b8cff]/10"
       )}
       style={{ height: "calc(100vh - 32px)" }}
       initial={false}
@@ -302,6 +287,10 @@ export function Sidebar({
           <rect width="100%" height="100%" fill="url(#sidebar-dots)" />
         </svg>
       )}
+      <div className="pointer-events-none absolute inset-0 rounded-[2rem] shadow-[inset_0_0_0_1px_rgba(155,140,255,0.12),inset_0_0_24px_rgba(155,140,255,0.03)]" />
+      <div className="pointer-events-none absolute inset-y-8 left-0 w-px rounded-full bg-gradient-to-b from-transparent via-[#9b8cff]/22 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-8 right-0 w-px rounded-full bg-gradient-to-b from-transparent via-[#9b8cff]/18 to-transparent" />
+      <div className="pointer-events-none absolute -right-12 -top-14 h-36 w-36 rounded-full bg-[#9b8cff]/8 blur-3xl" />
       {/* Header Logo */}
       <div className="p-3">
         <div className={cn(
@@ -329,7 +318,7 @@ export function Sidebar({
         <button
           onClick={() => setShowAccountDialog(true)}
           className={cn(
-            "flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white py-2.5 transition-all duration-200 hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-sm",
+            "flex items-center justify-center gap-2 rounded-2xl border border-[#9b8cff]/35 bg-[linear-gradient(135deg,#8b5cf6,#7c3aed_55%,#6d28d9)] text-white py-2.5 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-sm",
             isCollapsed ? "w-10 h-10 mx-auto p-0" : "w-full px-3",
           )}
         >
@@ -354,7 +343,7 @@ export function Sidebar({
                   "hover:scale-[1.02]",
                   active
                     ? activeNavClass
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                    : navHoverClass,
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -390,27 +379,19 @@ export function Sidebar({
               </NavLink>
             );
           })}
-          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/35" />}
           {navSections[1].items.map(({ to, icon: Icon, label }) => {
             const active = isActive(to);
-            const isComingSoon = to === "/coach";
             return (
               <NavLink
                 key={to}
                 to={to}
-                onClick={(e) => {
-                  if (isComingSoon) {
-                    e.preventDefault();
-                    setComingSoonFeature(label);
-                    setIsComingSoonOpen(true);
-                  }
-                }}
                 className={cn(
                   "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out",
                   "hover:scale-[1.02]",
                   active
                     ? activeNavClass
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                    : navHoverClass,
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -434,11 +415,6 @@ export function Sidebar({
                         {label}
                       </span>
                     </span>
-                      {to === "/coach" && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-violet-500/20 text-violet-400 border border-violet-500/30">
-                        Coming Soon
-                      </span>
-                    )}
                   </>
                 )}
                 {active && !isCollapsed && (
@@ -453,7 +429,7 @@ export function Sidebar({
               </NavLink>
             );
           })}
-          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/35" />}
           {parametersItems.map(({ to, icon: Icon, label }) => {
             const active = isActive(to);
             return (
@@ -465,7 +441,7 @@ export function Sidebar({
                   "hover:scale-[1.02]",
                   active
                     ? activeNavClass
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                    : navHoverClass,
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -505,7 +481,7 @@ export function Sidebar({
       </nav>
 
       {/* User Profile & Collapse */}
-      <div className="p-3 border-t border-border/60 dark:border-border/20 space-y-2">
+      <div className="p-3 border-t border-border/40 dark:border-border/20 space-y-2">
         {/* Report Bug */}
         <div>
           <button
@@ -515,7 +491,7 @@ export function Sidebar({
             className={cn(
               "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out w-full text-left",
               "hover:scale-[1.02]",
-              "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              navHoverClass,
               isCollapsed ? "justify-center" : "",
             )}
           >
@@ -553,7 +529,7 @@ export function Sidebar({
               "hover:scale-[1.02]",
               isActive("/settings")
                 ? activeNavClass
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                : navHoverClass,
               isCollapsed ? "justify-center" : "",
             )}
           >
@@ -596,7 +572,7 @@ export function Sidebar({
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
-                "flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors w-full text-left",
+                "flex items-center gap-3 p-2 rounded-lg hover:bg-[#9b8cff]/10 transition-colors w-full text-left",
                 isCollapsed && "justify-center p-2",
               )}
             >
@@ -722,7 +698,7 @@ export function Sidebar({
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            "flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200",
+            "flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#9b8cff]/10 transition-all duration-200 border border-transparent hover:border-[#9b8cff]/20",
             isCollapsed && "mx-auto",
           )}
         >
@@ -737,9 +713,6 @@ export function Sidebar({
 
       {/* Bug Report Dialog */}
       <BugReportDialog open={isBugReportOpen} onOpenChange={setIsBugReportOpen} />
-      
-      {/* Coming Soon Dialog */}
-      <ComingSoonDialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen} featureName={comingSoonFeature} />
       
       {/* Account Selection Dialog */}
       <AccountSelectionDialog open={showAccountDialog} onOpenChange={setShowAccountDialog} />

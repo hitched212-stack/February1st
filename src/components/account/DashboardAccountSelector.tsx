@@ -43,7 +43,7 @@ export function DashboardAccountSelector() {
 
   if (loading) {
     return (
-      <div className="h-10 w-48 rounded-full bg-foreground/5 animate-pulse" />
+      <div className="h-10 w-48 rounded-full bg-white/5 animate-pulse" />
     );
   }
 
@@ -56,13 +56,13 @@ export function DashboardAccountSelector() {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'group inline-flex items-center gap-2 px-3 py-1.5 h-9 rounded-xl transition-all duration-200',
-            'hover:bg-muted/50',
-            'text-sm font-medium text-foreground',
+            'group inline-flex items-center gap-2 px-3 py-1.5 h-10 rounded-full transition-all duration-200',
+            'hover:bg-white/5',
+            'text-sm font-medium text-foreground/95',
             'focus:outline-none'
           )}
         >
-          <User className="h-4 w-4" strokeWidth={1.5} />
+          <User className="h-4 w-4 text-foreground/90" strokeWidth={1.5} />
           <span className="truncate max-w-[120px] font-display font-bold tabular-nums">{activeAccount.name}</span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-colors duration-200" strokeWidth={2} />
         </button>

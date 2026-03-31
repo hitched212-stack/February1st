@@ -35,16 +35,6 @@ const CalendarIcon = ({ className, strokeWidth = 1.5 }: { className?: string; st
   </svg>
 );
 
-// Custom AI Coach icon - Chat bubbles icon
-const AIIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    <circle cx="9" cy="10" r="0.5" fill="currentColor" />
-    <circle cx="12" cy="10" r="0.5" fill="currentColor" />
-    <circle cx="15" cy="10" r="0.5" fill="currentColor" />
-  </svg>
-);
-
 // Custom analytics icon - filled bar chart matching sidebar
 const AnalyticsIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -122,7 +112,7 @@ export function BottomNav() {
   const moreRef = useRef<HTMLButtonElement | null>(null);
   const [activeIndicator, setActiveIndicator] = useState({ centerX: 0, opacity: 0 });
   
-  const isMoreActive = ['/settings', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
+  const isMoreActive = ['/settings', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
 
   const isDashboardActive = location.pathname === '/dashboard';
   const isHistoryActive = location.pathname === '/history';
@@ -296,15 +286,6 @@ export function BottomNav() {
                 >
                   <Settings className={cn('h-5 w-5', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.8} />
                   <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')}>Settings</span>
-                </NavLink>
-                <NavLink 
-                  to="/coach"
-                  onClick={() => setMoreOpen(false)} 
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
-                  style={{ backgroundColor: location.pathname === '/coach' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
-                >
-                  <AIIcon className={cn('h-5 w-5', location.pathname === '/coach' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/coach' ? 'text-foreground' : 'text-muted-foreground')}>AI Coach</span>
                 </NavLink>
                 <NavLink 
                   to="/backtesting" 

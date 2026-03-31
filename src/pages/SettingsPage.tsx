@@ -364,18 +364,6 @@ export default function SettingsPage() {
         .eq('user_id', user.id);
       if (playbookError) throw playbookError;
 
-      const { error: messagesError } = await supabase
-        .from('ai_messages')
-        .delete()
-        .eq('user_id', user.id);
-      if (messagesError) throw messagesError;
-
-      const { error: conversationsError } = await supabase
-        .from('ai_conversations')
-        .delete()
-        .eq('user_id', user.id);
-      if (conversationsError) throw conversationsError;
-
       const { error: foldersError } = await supabase
         .from('folders')
         .delete()

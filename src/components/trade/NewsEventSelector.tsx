@@ -190,53 +190,56 @@ export function NewsEventSelector({
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border/50 bg-card/70 p-3.5 sm:p-4 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl border border-border/60 bg-background/35 flex items-center justify-center shadow-sm">
-            <NewsIcon className="h-3.5 w-3.5 text-muted-foreground" />
+    <div className="space-y-5 rounded-[28px] border border-border/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-5 backdrop-blur-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
+            <NewsIcon className="h-3.5 w-3.5" />
+            News
           </div>
-          <div className="space-y-0.5">
-            <Label className="text-sm font-semibold font-display text-foreground">Economic News</Label>
-            <p className="text-[11px] text-muted-foreground">Track news events that affected this trade.</p>
+          <div>
+            <h3 className="text-lg font-bold font-display tracking-tight text-foreground">Economic News</h3>
+            <p className="text-sm text-muted-foreground">Track news events that affected this trade.</p>
           </div>
         </div>
       </div>
-      
-      <div className="flex justify-center">
-        <div className="w-full max-w-md grid grid-cols-2 gap-1.5 rounded-2xl border border-border/60 bg-background/25 p-1.5">
-        <button 
-          type="button" 
-          onClick={() => onHasNewsChange(true)} 
+
+      <div className="relative grid grid-cols-2 gap-1 rounded-[22px] border border-border/50 bg-black/20 p-1">
+        <div
           className={cn(
-            "h-10 rounded-xl text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
-            hasNews 
-              ? "bg-[#9b8cff] text-white shadow-sm shadow-[#9b8cff]/20" 
-              : "text-muted-foreground hover:bg-muted/55 hover:text-foreground"
+            'absolute top-1 bottom-1 rounded-[15px] border transition-all duration-300',
+            hasNews
+              ? 'left-1 right-[calc(50%+0.125rem)] border-violet-400/35 bg-[linear-gradient(180deg,rgba(167,139,250,0.32),rgba(167,139,250,0.22))]'
+              : 'left-[calc(50%+0.125rem)] right-1 border-zinc-400/30 bg-[linear-gradient(180deg,rgba(161,161,170,0.16),rgba(161,161,170,0.08))]'
+          )}
+        />
+        <button
+          type="button"
+          onClick={() => onHasNewsChange(true)}
+          className={cn(
+            'relative z-10 h-11 rounded-[15px] text-sm font-semibold font-display transition-colors flex items-center justify-center gap-2',
+            hasNews ? 'text-white' : 'text-muted-foreground hover:text-foreground'
           )}
         >
           <Check className="h-3.5 w-3.5" />
           Yes
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           onClick={() => {
             onHasNewsChange(false);
             setLocalSelectedEvents([]);
             onNewsSelect('', '');
             if (onMultiNewsSelect) onMultiNewsSelect([]);
-          }} 
+          }}
           className={cn(
-            "h-10 rounded-xl text-sm font-semibold font-display transition-all flex items-center justify-center gap-2", 
-            !hasNews 
-              ? "bg-[#9b8cff] text-white shadow-sm shadow-[#9b8cff]/20" 
-              : "text-muted-foreground hover:bg-muted/55 hover:text-foreground"
+            'relative z-10 h-11 rounded-[15px] text-sm font-semibold font-display transition-colors flex items-center justify-center gap-2',
+            !hasNews ? 'text-zinc-200' : 'text-muted-foreground hover:text-foreground'
           )}
         >
           <X className="h-3.5 w-3.5" />
           No
         </button>
-        </div>
       </div>
 
       <div className={cn(
@@ -245,10 +248,10 @@ export function NewsEventSelector({
       )}>
       <div className="overflow-hidden">
         <div className="space-y-4 pt-1">
-          <div className="space-y-3 rounded-2xl border border-border/50 bg-background/20 p-3 sm:p-4">
+          <div className="space-y-3 rounded-2xl border border-border/45 bg-background/20 p-3.5 sm:p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Quick add</Label>
-              <span className="text-[10px] text-muted-foreground px-2.5 py-1 rounded-lg bg-background/40 border border-border/50">
+              <Label className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Quick add</Label>
+              <span className="text-[10px] text-muted-foreground px-2.5 py-1 rounded-xl bg-background/40 border border-border/50 uppercase tracking-[0.14em] font-semibold">
                 {localSelectedEvents.length} event{localSelectedEvents.length === 1 ? '' : 's'}
               </span>
             </div>
@@ -258,7 +261,7 @@ export function NewsEventSelector({
                   key={template.title}
                   type="button"
                   onClick={() => addTemplateEvent(template)}
-                  className="group rounded-xl border border-border/60 bg-background/30 px-2.5 py-2.5 text-left transition-all hover:bg-muted/45 hover:border-border"
+                  className="group rounded-xl border border-border/55 bg-background/30 px-2.5 py-2.5 text-left transition-all hover:bg-background/50 hover:border-border"
                 >
                   <div className="flex items-start justify-between gap-1.5 mb-1.5">
                     <span className={cn('shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide', getImpactTone(template.impact))}>
@@ -278,7 +281,7 @@ export function NewsEventSelector({
               type="button"
               variant="outline"
               onClick={addManualEvent}
-              className="h-11 rounded-2xl border-dashed border-border/60 bg-background/30 hover:bg-muted/45"
+              className="h-11 rounded-2xl border-dashed border-border/60 bg-background/30 hover:bg-background/45"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add First News Event
@@ -288,7 +291,7 @@ export function NewsEventSelector({
               {localSelectedEvents.map((event, idx) => (
                 <div
                   key={idx}
-                  className="rounded-2xl border border-border/60 bg-gradient-to-br from-background/55 to-background/25 p-3.5 sm:p-4 space-y-4 shadow-sm"
+                  className="rounded-2xl border border-border/55 bg-gradient-to-br from-background/55 to-background/25 p-3.5 sm:p-4 space-y-4"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="space-y-1">
@@ -388,7 +391,7 @@ export function NewsEventSelector({
                 type="button"
                 variant="outline"
                 onClick={addManualEvent}
-                className="h-11 w-full rounded-2xl border-dashed border-border/60 bg-background/30 hover:bg-muted/45"
+                className="h-11 w-full rounded-2xl border-dashed border-border/60 bg-background/30 hover:bg-background/45"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Another Event

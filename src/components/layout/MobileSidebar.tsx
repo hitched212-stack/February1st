@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutGrid, CalendarDays, TrendingUp, Plus, Menu, Sun, User, Bot, Moon, Bug } from 'lucide-react';
+import { LayoutGrid, CalendarDays, TrendingUp, Plus, Menu, Sun, User, Moon, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -7,9 +7,6 @@ import { usePreferences } from '@/hooks/usePreferences';
 import { BugReportDialog } from '@/components/layout/BugReportDialog';
 import { ComingSoonDialog } from '@/components/layout/ComingSoonDialog';
 import { AccountSelectionDialog } from '@/components/account/AccountSelectionDialog';
-
-// Use Lucide Bot icon for AI Coach
-const AIIcon = Bot;
 
 // Custom backtesting chart icon - professional line chart with rewind
 const BacktestIcon = ({ className }: { className?: string }) => (
@@ -61,10 +58,6 @@ const navItems = [{
   icon: Sun,
   label: 'Forecast'
 }, {
-  to: '/coach',
-  icon: AIIcon,
-  label: 'AI Coach'
-}, {
   to: '/backtesting',
   icon: BacktestIcon,
   label: 'Backtesting'
@@ -95,29 +88,31 @@ export function MobileSidebar() {
   const { preferences, setTheme } = usePreferences();
   return <div className="md:hidden">
       {/* Fixed Header with Menu Button */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-14 flex items-center justify-between px-4">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[linear-gradient(165deg,rgba(14,15,28,0.94),rgba(7,8,16,0.9))] border-b border-[#9b8cff]/10 h-14 flex items-center justify-between px-4">
         <NavLink to="/dashboard" className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20">
-            <TrendingUp className="h-4 w-4 text-emerald-400" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#9b8cff]/20 border border-[#9b8cff]/30">
+            <TrendingUp className="h-4 w-4 text-[#b8a7ff]" />
           </div>
-          <span className="text-base font-semibold text-emerald-400">MyTradeLog</span>
+          <span className="text-base font-semibold text-[#b8a7ff]">MyTradeLog</span>
         </NavLink>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <button className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
+            <button className="p-2 rounded-lg hover:bg-[#9b8cff]/10 transition-colors">
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-64 p-0 bg-card border-l border-border">
+          <SheetContent side="right" className="w-64 p-0 bg-[linear-gradient(165deg,rgba(14,15,28,0.94),rgba(7,8,16,0.9))] border-l border-[#9b8cff]/14 shadow-[-12px_0_30px_rgba(107,89,255,0.07)]">
             <div className="flex flex-col h-full">
+              <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_0_1px_rgba(155,140,255,0.11),inset_0_0_20px_rgba(155,140,255,0.03)]" />
+              <div className="pointer-events-none absolute inset-y-8 left-0 w-px rounded-full bg-gradient-to-b from-transparent via-[#9b8cff]/18 to-transparent" />
               {/* Header */}
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20">
-                    <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#9b8cff]/20 border border-[#9b8cff]/30">
+                    <TrendingUp className="h-4 w-4 text-[#b8a7ff]" />
                   </div>
-                  <span className="text-base font-semibold text-emerald-400">MyTradeLog</span>
+                  <span className="text-base font-semibold text-[#b8a7ff]">MyTradeLog</span>
                 </div>
               </div>
 
@@ -143,24 +138,16 @@ export function MobileSidebar() {
                 label
               }) => {
                 const isActive = location.pathname === to;
-                const isComingSoon = to === '/coach';
-                // Add divider after Dashboard, AI Coach, Calendar, Profile sections
-                const showDivider = to === '/dashboard' || to === '/coach' || to === '/calendar';
+                // Add divider after Dashboard, Calendar, Profile sections
+                const showDivider = to === '/dashboard' || to === '/calendar';
                 return (
                   <div key={to}>
                     <NavLink 
                       to={to} 
                       onClick={(e) => {
-                        if (isComingSoon) {
-                          e.preventDefault();
-                          setComingSoonFeature(label);
-                          setIsComingSoonOpen(true);
-                          setIsOpen(false);
-                        } else {
-                          setIsOpen(false);
-                        }
+                        setIsOpen(false);
                       }} 
-                      className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all', isActive ? 'bg-emerald-500/15 text-emerald-400' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50')}
+                      className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all border', isActive ? 'border-[#9b8cff]/40 bg-[linear-gradient(135deg,rgba(155,140,255,0.2),rgba(88,74,181,0.28))] text-[#b8a7ff]' : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-[#9b8cff]/10 hover:border-[#9b8cff]/20')}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0 stroke-[1.5px]" />
                       <span className="text-sm font-medium">{label}</span>
@@ -178,7 +165,7 @@ export function MobileSidebar() {
                     setIsComingSoonOpen(true);
                     setIsOpen(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all w-full text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all w-full text-muted-foreground hover:text-foreground hover:bg-[#9b8cff]/10"
                 >
                   <Bug className="h-5 w-5 flex-shrink-0 stroke-[1.5px]" />
                   <span className="text-sm font-medium">Report Bug</span>

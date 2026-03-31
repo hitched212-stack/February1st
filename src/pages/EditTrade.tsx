@@ -33,7 +33,7 @@ export default function EditTrade() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-background animate-in fade-in-0 slide-in-from-bottom-6 duration-500 ease-out">
+    <div className="w-full h-full flex flex-col bg-transparent animate-in fade-in-0 slide-in-from-bottom-6 duration-500 ease-out">
       <div className="flex-1 overflow-hidden">
         <TradeForm editTrade={trade} />
       </div>

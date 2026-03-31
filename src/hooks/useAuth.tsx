@@ -3,7 +3,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useDataStore } from '@/store/dataStore';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAIChatStore } from '@/store/aiChatStore';
 
 interface AuthContextType {
   user: User | null;
@@ -169,10 +168,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Reset the global data store
     useDataStore.getState().resetAll();
-    
-    // Reset AI chat store
-    useAIChatStore.getState().resetOnLogout();
-    
     
     // Clear React Query cache
     if (queryClient) {

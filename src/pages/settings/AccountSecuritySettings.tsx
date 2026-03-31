@@ -47,21 +47,7 @@ export default function AccountSecuritySettings() {
         .eq('user_id', user.id);
       if (playbookError) throw playbookError;
 
-      // 4. Delete AI messages (must be deleted before conversations due to FK)
-      const { error: messagesError } = await supabase
-        .from('ai_messages')
-        .delete()
-        .eq('user_id', user.id);
-      if (messagesError) throw messagesError;
-
-      // 5. Delete AI conversations
-      const { error: conversationsError } = await supabase
-        .from('ai_conversations')
-        .delete()
-        .eq('user_id', user.id);
-      if (conversationsError) throw conversationsError;
-
-      // 6. Delete folders (should be last since backtests/playbook reference them)
+      // 4. Delete folders (should be last since backtests/playbook reference them)
       const { error: foldersError } = await supabase
         .from('folders')
         .delete()
