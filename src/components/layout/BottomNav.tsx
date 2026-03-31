@@ -35,13 +35,6 @@ const CalendarIcon = ({ className, strokeWidth = 1.5 }: { className?: string; st
   </svg>
 );
 
-// Custom news/globe icon - filled matching sidebar
-const NewsIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-  </svg>
-);
-
 // Custom AI Coach icon - Chat bubbles icon
 const AIIcon = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -129,7 +122,7 @@ export function BottomNav() {
   const moreRef = useRef<HTMLButtonElement | null>(null);
   const [activeIndicator, setActiveIndicator] = useState({ centerX: 0, opacity: 0 });
   
-  const isMoreActive = ['/settings', '/news', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
+  const isMoreActive = ['/settings', '/coach', '/backtesting', '/playbook', '/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname) || (location.pathname.startsWith('/settings/') && !['/settings/rules', '/settings/goals', '/settings/timeframes'].includes(location.pathname));
 
   const isDashboardActive = location.pathname === '/dashboard';
   const isHistoryActive = location.pathname === '/history';
@@ -304,19 +297,6 @@ export function BottomNav() {
                   <Settings className={cn('h-5 w-5', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.8} />
                   <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/settings' && !location.pathname.includes('/settings/') ? 'text-foreground' : 'text-muted-foreground')}>Settings</span>
                 </NavLink>
-                <NavLink 
-                  to="/news" 
-                  onClick={() => setMoreOpen(false)} 
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:bg-foreground/[0.08]"
-                  style={{ backgroundColor: location.pathname === '/news' ? 'rgba(255,255,255,0.08)' : 'transparent' }}
-                >
-                  <NewsIcon className={cn('h-5 w-5', location.pathname === '/news' ? 'text-foreground' : 'text-muted-foreground')} />
-                  <span className={cn('text-[11px] font-bold uppercase tracking-widest', location.pathname === '/news' ? 'text-foreground' : 'text-muted-foreground')}>News</span>
-                </NavLink>
-                
-                {/* Divider */}
-                <div className="h-px bg-border/50 my-1" />
-                
                 <NavLink 
                   to="/coach"
                   onClick={() => setMoreOpen(false)} 

@@ -32,7 +32,6 @@ import TradingRulesSettings from "@/pages/settings/TradingRulesSettings";
 import TimeframesSettings from "@/pages/settings/TimeframesSettings";
 import DayView from "@/pages/DayView";
 import PerformanceCoach from "@/pages/PerformanceCoach";
-import EconomicNews from "@/pages/EconomicNews";
 import Backtesting from "@/pages/Backtesting";
 import Playbook from "@/pages/Playbook";
 import Auth from "@/pages/Auth";
@@ -194,7 +193,6 @@ const AppRoutes = () => {
         <Route path="/coach" element={<PerformanceCoach />} />
         <Route path="/backtesting" element={<Backtesting />} />
         <Route path="/playbook" element={<Playbook />} />
-        <Route path="/news" element={<EconomicNews />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/history" element={<History />} />
         <Route path="/add" element={<AddTrade />} />

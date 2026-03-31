@@ -73,6 +73,24 @@ const isNetworkLoadError = (error: unknown): boolean => {
   return message.includes('load failed') || message.includes('failed to fetch') || message.includes('networkerror');
 };
 
+const areValuesEqual = (left: unknown, right: unknown): boolean => {
+  if (left === right) return true;
+
+  // Handle nullish checks early
+  if ((left == null) !== (right == null)) return false;
+
+  // Handle arrays/objects with stable structural comparison
+  if (typeof left === 'object' && typeof right === 'object') {
+    try {
+      return JSON.stringify(left) === JSON.stringify(right);
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+};
+
 const mapDbTradeToTrade = (dbTrade: DbTrade): Trade => ({
   id: dbTrade.id,
   accountId: dbTrade.account_id || undefined,
@@ -613,6 +631,65 @@ export function useTrades() {
       return false;
     }
 
+    const existingTrade = trades.find(trade => trade.id === id);
+    const shouldUpdateField = <K extends keyof Trade>(key: K, value: Trade[K] | undefined) => {
+      if (value === undefined) return false;
+      if (!existingTrade) return true;
+      return !areValuesEqual(existingTrade[key], value);
+    };
+
+    const updateData: Record<string, unknown> = {};
+
+    if (shouldUpdateField('symbol', updates.symbol)) updateData.symbol = updates.symbol;
+    if (shouldUpdateField('direction', updates.direction)) updateData.direction = updates.direction;
+    if (shouldUpdateField('date', updates.date)) updateData.date = updates.date;
+    if (shouldUpdateField('entryTime', updates.entryTime)) updateData.entry_time = updates.entryTime;
+    if (shouldUpdateField('holdingTime', updates.holdingTime)) updateData.holding_time = updates.holdingTime;
+    if (shouldUpdateField('lotSize', updates.lotSize)) updateData.lot_size = updates.lotSize;
+    if (shouldUpdateField('performanceGrade', updates.performanceGrade)) updateData.performance_grade = updates.performanceGrade;
+    if (shouldUpdateField('entryPrice', updates.entryPrice)) updateData.entry_price = updates.entryPrice;
+    if (shouldUpdateField('stopLoss', updates.stopLoss)) updateData.stop_loss = updates.stopLoss;
+    if (shouldUpdateField('stopLossPips', updates.stopLossPips)) updateData.stop_loss_pips = updates.stopLossPips || null;
+    if (shouldUpdateField('takeProfit', updates.takeProfit)) updateData.take_profit = updates.takeProfit;
+    if (shouldUpdateField('riskRewardRatio', updates.riskRewardRatio)) updateData.risk_reward_ratio = updates.riskRewardRatio;
+    if (shouldUpdateField('pnlAmount', updates.pnlAmount)) updateData.pnl_amount = updates.pnlAmount;
+    if (shouldUpdateField('pnlPercentage', updates.pnlPercentage)) updateData.pnl_percentage = updates.pnlPercentage;
+    if (shouldUpdateField('preMarketPlan', updates.preMarketPlan)) updateData.pre_market_plan = updates.preMarketPlan;
+    if (shouldUpdateField('postMarketReview', updates.postMarketReview)) updateData.post_market_review = updates.postMarketReview;
+    if (shouldUpdateField('emotionalJournalBefore', updates.emotionalJournalBefore)) updateData.emotional_journal_before = updates.emotionalJournalBefore;
+    if (shouldUpdateField('emotionalJournalDuring', updates.emotionalJournalDuring)) updateData.emotional_journal_during = updates.emotionalJournalDuring;
+    if (shouldUpdateField('emotionalJournalAfter', updates.emotionalJournalAfter)) updateData.emotional_journal_after = updates.emotionalJournalAfter;
+    if (shouldUpdateField('overallEmotions', updates.overallEmotions)) updateData.overall_emotions = updates.overallEmotions;
+    if (shouldUpdateField('emotionalState', updates.emotionalState)) updateData.emotional_state = updates.emotionalState;
+    if (shouldUpdateField('images', updates.images)) updateData.images = updates.images;
+    if (shouldUpdateField('preMarketImages', updates.preMarketImages)) updateData.pre_market_images = updates.preMarketImages;
+    if (shouldUpdateField('postMarketImages', updates.postMarketImages)) updateData.post_market_images = updates.postMarketImages;
+    if (shouldUpdateField('chartAnalysisNotes', updates.chartAnalysisNotes)) updateData.chart_analysis_notes = updates.chartAnalysisNotes;
+    if (shouldUpdateField('preMarketNotes', updates.preMarketNotes)) updateData.pre_market_notes = updates.preMarketNotes;
+    if (shouldUpdateField('postMarketNotes', updates.postMarketNotes)) updateData.post_market_notes = updates.postMarketNotes;
+    if (shouldUpdateField('strategy', updates.strategy)) updateData.strategy = updates.strategy;
+    if (shouldUpdateField('category', updates.category)) updateData.category = updates.category;
+    if (shouldUpdateField('forecastId', updates.forecastId)) updateData.forecast_id = updates.forecastId || null;
+    if (shouldUpdateField('followedRules', updates.followedRules)) updateData.followed_rules = updates.followedRules;
+    if (shouldUpdateField('followedRulesList', updates.followedRulesList)) updateData.followed_rules_list = updates.followedRulesList;
+    if (shouldUpdateField('brokenRules', updates.brokenRules)) updateData.broken_rules = updates.brokenRules;
+    if (shouldUpdateField('notes', updates.notes)) updateData.notes = updates.notes;
+    if (shouldUpdateField('mistakeTagging', updates.mistakeTagging)) updateData.mistake_tagging = updates.mistakeTagging;
+    if (shouldUpdateField('mistakeTags', updates.mistakeTags)) updateData.mistake_tags = updates.mistakeTags;
+    if (shouldUpdateField('hasNews', updates.hasNews)) updateData.has_news = updates.hasNews;
+    if (shouldUpdateField('newsEvents', updates.newsEvents)) updateData.news_events = updates.newsEvents;
+    if (shouldUpdateField('isPaperTrade', updates.isPaperTrade)) updateData.is_paper_trade = updates.isPaperTrade;
+    if (shouldUpdateField('noTradeTaken', updates.noTradeTaken)) updateData.no_trade_taken = updates.noTradeTaken;
+    if (shouldUpdateField('status', updates.status)) updateData.status = updates.status;
+    if (shouldUpdateField('newsType', updates.newsType)) updateData.news_type = updates.newsType || null;
+    if (shouldUpdateField('newsImpact', updates.newsImpact)) updateData.news_impact = updates.newsImpact || null;
+    if (shouldUpdateField('newsTime', updates.newsTime)) updateData.news_time = updates.newsTime || null;
+
+    // No-op update: avoid a network request and finish immediately.
+    if (Object.keys(updateData).length === 0) {
+      return true;
+    }
+
     // Optimistically update local state first for instant UI feedback
     const optimisticTrades = trades.map(trade => 
       trade.id === id 
@@ -628,53 +705,6 @@ export function useTrades() {
     setTimeout(() => recentlyUpdatedRef.current.delete(id), 7000);
 
     try {
-      const updateData: Record<string, unknown> = {};
-      
-      if (updates.symbol !== undefined) updateData.symbol = updates.symbol;
-      if (updates.direction !== undefined) updateData.direction = updates.direction;
-      if (updates.date !== undefined) updateData.date = updates.date;
-      if (updates.entryTime !== undefined) updateData.entry_time = updates.entryTime;
-      if (updates.holdingTime !== undefined) updateData.holding_time = updates.holdingTime;
-      if (updates.lotSize !== undefined) updateData.lot_size = updates.lotSize;
-      if (updates.performanceGrade !== undefined) updateData.performance_grade = updates.performanceGrade;
-      if (updates.entryPrice !== undefined) updateData.entry_price = updates.entryPrice;
-      if (updates.stopLoss !== undefined) updateData.stop_loss = updates.stopLoss;
-      if (updates.stopLossPips !== undefined) updateData.stop_loss_pips = updates.stopLossPips || null;
-      if (updates.takeProfit !== undefined) updateData.take_profit = updates.takeProfit;
-      if (updates.riskRewardRatio !== undefined) updateData.risk_reward_ratio = updates.riskRewardRatio;
-      if (updates.pnlAmount !== undefined) updateData.pnl_amount = updates.pnlAmount;
-      if (updates.pnlPercentage !== undefined) updateData.pnl_percentage = updates.pnlPercentage;
-      if (updates.preMarketPlan !== undefined) updateData.pre_market_plan = updates.preMarketPlan;
-      if (updates.postMarketReview !== undefined) updateData.post_market_review = updates.postMarketReview;
-      if (updates.emotionalJournalBefore !== undefined) updateData.emotional_journal_before = updates.emotionalJournalBefore;
-      if (updates.emotionalJournalDuring !== undefined) updateData.emotional_journal_during = updates.emotionalJournalDuring;
-      if (updates.emotionalJournalAfter !== undefined) updateData.emotional_journal_after = updates.emotionalJournalAfter;
-      if (updates.overallEmotions !== undefined) updateData.overall_emotions = updates.overallEmotions;
-      if (updates.emotionalState !== undefined) updateData.emotional_state = updates.emotionalState;
-      if (updates.images !== undefined) updateData.images = updates.images;
-      if (updates.preMarketImages !== undefined) updateData.pre_market_images = updates.preMarketImages;
-      if (updates.postMarketImages !== undefined) updateData.post_market_images = updates.postMarketImages;
-      if (updates.chartAnalysisNotes !== undefined) updateData.chart_analysis_notes = updates.chartAnalysisNotes;
-      if (updates.preMarketNotes !== undefined) updateData.pre_market_notes = updates.preMarketNotes;
-      if (updates.postMarketNotes !== undefined) updateData.post_market_notes = updates.postMarketNotes;
-      if (updates.strategy !== undefined) updateData.strategy = updates.strategy;
-      if (updates.category !== undefined) updateData.category = updates.category;
-      if (updates.forecastId !== undefined) updateData.forecast_id = updates.forecastId || null;
-      if (updates.followedRules !== undefined) updateData.followed_rules = updates.followedRules;
-      if (updates.followedRulesList !== undefined) updateData.followed_rules_list = updates.followedRulesList;
-      if (updates.brokenRules !== undefined) updateData.broken_rules = updates.brokenRules;
-      if (updates.notes !== undefined) updateData.notes = updates.notes;
-      if (updates.mistakeTagging !== undefined) updateData.mistake_tagging = updates.mistakeTagging;
-      if (updates.mistakeTags !== undefined) updateData.mistake_tags = updates.mistakeTags;
-      if (updates.hasNews !== undefined) updateData.has_news = updates.hasNews;
-      if (updates.newsEvents !== undefined) updateData.news_events = updates.newsEvents;
-      if (updates.isPaperTrade !== undefined) updateData.is_paper_trade = updates.isPaperTrade;
-      if (updates.noTradeTaken !== undefined) updateData.no_trade_taken = updates.noTradeTaken;
-      if (updates.status !== undefined) updateData.status = updates.status;
-      if (updates.newsType !== undefined) updateData.news_type = updates.newsType || null;
-      if (updates.newsImpact !== undefined) updateData.news_impact = updates.newsImpact || null;
-      if (updates.newsTime !== undefined) updateData.news_time = updates.newsTime || null;
-      
       const { error } = await supabase
         .from('trades')
         .update(updateData)

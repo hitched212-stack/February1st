@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ImagePlus, X, Clipboard, Image, FolderOpen } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
   Drawer,
@@ -19,13 +18,18 @@ interface ImageUploadProps {
   timeframeLabel?: string;
 }
 
+type TradeFormCardToastDetail = {
+  title: string;
+  description?: string;
+  variant?: 'success' | 'error' | 'warning' | 'info';
+};
+
 export function ImageUpload({
   images,
   onChange,
   maxImages = 10,
   timeframeLabel
 }: ImageUploadProps) {
-  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteZoneRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -35,8 +39,24 @@ export function ImageUpload({
   const [zoomIndex, setZoomIndex] = useState(0);
   const isMobile = useIsMobile();
 
-  // No compression - preserve original quality
-  const processImage = (file: File): Promise<string> => {
+  const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024; // 1.5MB
+  const MAX_DIMENSION = 1800;
+  const JPEG_QUALITY = 0.82;
+
+  const showCardToast = (payload: TradeFormCardToastDetail) => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent<TradeFormCardToastDetail>('trade-form-card-toast', { detail: payload }));
+  };
+
+  const showTopCenterError = (title: string, description: string) => {
+    showCardToast({
+      title,
+      description,
+      variant: 'error',
+    });
+  };
+
+  const readBlobAsDataUrl = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = e => {
@@ -47,25 +67,82 @@ export function ImageUpload({
           reject(new Error('Failed to read file'));
         }
       };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
+      reader.onerror = () => reject(new Error('Failed to read blob'));
+      reader.readAsDataURL(blob);
     });
   };
 
-  // Process blob without compression - preserve original quality
-  const processBlob = (blob: Blob): Promise<string> => {
+  const compressImage = (blob: Blob): Promise<Blob> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const result = e.target?.result as string;
-        if (result) {
-          resolve(result);
-        } else {
-          reject(new Error('Failed to read blob'));
+      const objectUrl = URL.createObjectURL(blob);
+      const img = new window.Image();
+
+      img.onload = () => {
+        try {
+          const width = img.width;
+          const height = img.height;
+
+          const scale = Math.min(1, MAX_DIMENSION / Math.max(width, height));
+          const targetWidth = Math.max(1, Math.round(width * scale));
+          const targetHeight = Math.max(1, Math.round(height * scale));
+
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Failed to create image context'));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+          canvas.toBlob(
+            (compressed) => {
+              URL.revokeObjectURL(objectUrl);
+              if (!compressed) {
+                reject(new Error('Failed to compress image'));
+                return;
+              }
+              resolve(compressed);
+            },
+            'image/jpeg',
+            JPEG_QUALITY
+          );
+        } catch (error) {
+          URL.revokeObjectURL(objectUrl);
+          reject(error instanceof Error ? error : new Error('Failed to compress image'));
         }
       };
-      reader.onerror = () => reject(new Error('Failed to read blob'));
-      reader.readAsDataURL(blob);
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Failed to load image for compression'));
+      };
+
+      img.src = objectUrl;
+    });
+  };
+
+  const processBlob = async (blob: Blob): Promise<string> => {
+    if (blob.size <= MAX_IMAGE_BYTES) {
+      return readBlobAsDataUrl(blob);
+    }
+
+    const compressedBlob = await compressImage(blob);
+    return readBlobAsDataUrl(compressedBlob.size < blob.size ? compressedBlob : blob);
+  };
+
+  const processImage = async (file: File): Promise<string> => {
+    return processBlob(file);
+  };
+
+  // Process clipboard blobs with optional compression for faster saves
+  const processClipboardBlob = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      processBlob(blob).then(resolve).catch(reject);
     });
   };
 
@@ -73,38 +150,27 @@ export function ImageUpload({
     const fileArray = Array.from(files);
     const imageFiles = fileArray.filter(file => file.type.startsWith('image/'));
     if (imageFiles.length === 0) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload image files only.',
-        variant: 'destructive'
-      });
+      showTopCenterError('Invalid file type', 'Please upload image files only.');
       return;
     }
     const remaining = maxImages - images.length;
     if (remaining <= 0) {
-      toast({
-        title: 'Maximum images reached',
-        description: `You can only upload up to ${maxImages} images.`,
-        variant: 'destructive'
-      });
+      showTopCenterError('Maximum images reached', `You can only upload up to ${maxImages} images.`);
       return;
     }
     const filesToProcess = imageFiles.slice(0, remaining);
     try {
       const newImages = await Promise.all(filesToProcess.map(file => processImage(file)));
       onChange([...images, ...newImages]);
-      toast({
+      showCardToast({
         title: 'Images added',
-        description: `${newImages.length} image(s) uploaded successfully.`
+        description: `${newImages.length} image(s) uploaded successfully.`,
+        variant: 'success',
       });
     } catch {
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to process one or more images.',
-        variant: 'destructive'
-      });
+      showTopCenterError('Upload failed', 'Failed to process one or more images.');
     }
-  }, [images, maxImages, onChange, toast]);
+  }, [images, maxImages, onChange]);
 
   const handlePaste = useCallback(async (e: ClipboardEvent) => {
     const items = e.clipboardData?.items;
@@ -121,11 +187,7 @@ export function ImageUpload({
   const handlePasteFromClipboard = useCallback(async () => {
     try {
       if (!navigator.clipboard || !navigator.clipboard.read) {
-        toast({
-          title: 'Paste not supported',
-          description: 'Your browser does not support clipboard paste. Try using Ctrl+V or Cmd+V instead.',
-          variant: 'destructive'
-        });
+        showTopCenterError('Paste not supported', 'Your browser does not support clipboard paste. Try using Ctrl+V or Cmd+V instead.');
         return;
       }
 
@@ -141,41 +203,30 @@ export function ImageUpload({
       }
 
       if (imageBlobs.length === 0) {
-        toast({
-          title: 'No image found',
-          description: 'No image was found in your clipboard. Copy a chart image first.',
-          variant: 'destructive'
-        });
+        showTopCenterError('No image found', 'No image was found in your clipboard. Copy a chart image first.');
         return;
       }
 
       const remaining = maxImages - images.length;
       if (remaining <= 0) {
-        toast({
-          title: 'Maximum images reached',
-          description: `You can only upload up to ${maxImages} images.`,
-          variant: 'destructive'
-        });
+        showTopCenterError('Maximum images reached', `You can only upload up to ${maxImages} images.`);
         return;
       }
 
       const blobsToProcess = imageBlobs.slice(0, remaining);
-      const newImages = await Promise.all(blobsToProcess.map(blob => processBlob(blob)));
+      const newImages = await Promise.all(blobsToProcess.map(blob => processClipboardBlob(blob)));
       onChange([...images, ...newImages]);
       setShowMobileOptions(false);
-      toast({
+      showCardToast({
         title: 'Images added',
-        description: `${newImages.length} image(s) pasted successfully.`
+        description: `${newImages.length} image(s) pasted successfully.`,
+        variant: 'success',
       });
     } catch (error) {
       console.error('Paste error:', error);
-      toast({
-        title: 'Paste failed',
-        description: 'Could not read clipboard. Make sure you have copied an image and granted clipboard permission.',
-        variant: 'destructive'
-      });
+      showTopCenterError('Paste failed', 'Could not read clipboard. Make sure you have copied an image and granted clipboard permission.');
     }
-  }, [images, maxImages, onChange, toast]);
+  }, [images, maxImages, onChange]);
 
   useEffect(() => {
     document.addEventListener('paste', handlePaste);

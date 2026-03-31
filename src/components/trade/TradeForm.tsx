@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Trade, TradeDirection, TradeCategory, TradeStatus, TRADE_CATEGORIES, getCurrencySymbol, NewsImpact, NEWS_IMPACTS, NewsEvent } from '@/types/trade';
 import { useTrades } from '@/hooks/useTrades';
@@ -67,6 +67,14 @@ interface ChartAnalysis {
   notes: string;
 }
 
+type CardToastVariant = 'success' | 'error' | 'warning' | 'info';
+
+interface CardToastState {
+  title: string;
+  description?: string;
+  variant: CardToastVariant;
+}
+
 // Timeframes are now loaded from cloud-synced user settings via hook in component
 const EMOTION_LABELS = [{
   value: 1,
@@ -127,6 +135,23 @@ export function TradeForm({
   } = useToast();
   const currencySymbol = getCurrencySymbol(settings.currency);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cardToast, setCardToast] = useState<CardToastState | null>(null);
+  const cardToastTimeoutRef = useRef<number | null>(null);
+  const cardToastRemoveTimeoutRef = useRef<number | null>(null);
+  const [isCardToastClosing, setIsCardToastClosing] = useState(false);
+
+  const dismissCardToast = useCallback(() => {
+    setIsCardToastClosing(true);
+
+    if (cardToastRemoveTimeoutRef.current) {
+      window.clearTimeout(cardToastRemoveTimeoutRef.current);
+    }
+
+    cardToastRemoveTimeoutRef.current = window.setTimeout(() => {
+      setCardToast(null);
+      setIsCardToastClosing(false);
+    }, 260);
+  }, []);
   const [formData, setFormData] = useState({
     symbol: '',
     direction: 'long' as TradeDirection,
@@ -202,8 +227,63 @@ export function TradeForm({
   useEffect(() => {
     return () => {
       dismissAllToasts();
+      if (cardToastTimeoutRef.current) {
+        window.clearTimeout(cardToastTimeoutRef.current);
+      }
+      if (cardToastRemoveTimeoutRef.current) {
+        window.clearTimeout(cardToastRemoveTimeoutRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    const handleCardToast = (event: Event) => {
+      const customEvent = event as CustomEvent<{ title: string; description?: string; variant?: CardToastVariant }>;
+      const detail = customEvent.detail;
+      if (!detail?.title) return;
+
+      if (cardToastTimeoutRef.current) {
+        window.clearTimeout(cardToastTimeoutRef.current);
+      }
+      if (cardToastRemoveTimeoutRef.current) {
+        window.clearTimeout(cardToastRemoveTimeoutRef.current);
+      }
+
+      setIsCardToastClosing(false);
+
+      setCardToast({
+        title: detail.title,
+        description: detail.description,
+        variant: detail.variant || 'info',
+      });
+
+      cardToastTimeoutRef.current = window.setTimeout(() => {
+        dismissCardToast();
+      }, 2600);
+    };
+
+    window.addEventListener('trade-form-card-toast', handleCardToast as EventListener);
+
+    const handleDismissCardToast = () => {
+      if (cardToastTimeoutRef.current) {
+        window.clearTimeout(cardToastTimeoutRef.current);
+      }
+      dismissCardToast();
+    };
+
+    window.addEventListener('trade-form-card-toast-dismiss', handleDismissCardToast);
+
+    return () => {
+      window.removeEventListener('trade-form-card-toast', handleCardToast as EventListener);
+      window.removeEventListener('trade-form-card-toast-dismiss', handleDismissCardToast);
+      if (cardToastTimeoutRef.current) {
+        window.clearTimeout(cardToastTimeoutRef.current);
+      }
+      if (cardToastRemoveTimeoutRef.current) {
+        window.clearTimeout(cardToastRemoveTimeoutRef.current);
+      }
+    };
+  }, [dismissCardToast]);
   // Chart Before and Chart After arrays
   const [beforeCharts, setBeforeCharts] = useState<ChartAnalysis[]>([{
     id: crypto.randomUUID(),
@@ -781,6 +861,36 @@ export function TradeForm({
           ? "border-border/50 bg-gradient-to-b from-card/98 to-card/95 dark:from-card/85 dark:to-card/80 md:backdrop-blur-2xl"
           : "border-border/60 bg-card md:backdrop-blur-xl"
       )} onClick={(e) => e.stopPropagation()}>
+        {cardToast && (
+          <div className="pointer-events-none absolute left-1/2 top-3 z-30 w-full max-w-md -translate-x-1/2 px-3 md:top-4">
+            <div
+              className={cn(
+                'pointer-events-auto relative rounded-2xl border px-4 py-3 text-center shadow-[0_14px_36px_rgba(0,0,0,0.35)] backdrop-blur-xl ring-1 ring-inset ring-white/5 transition-all duration-300 ease-out',
+                isCardToastClosing
+                  ? 'animate-out fade-out-0 slide-out-to-top-2 opacity-0'
+                  : 'animate-in fade-in-0 slide-in-from-top-2 opacity-100',
+                cardToast.variant === 'success' && 'border-sky-400/35 bg-sky-400/10 text-sky-100',
+                cardToast.variant === 'error' && 'border-pnl-negative/35 bg-pnl-negative/10 text-foreground',
+                cardToast.variant === 'warning' && 'border-yellow-500/35 bg-yellow-500/10 text-foreground',
+                cardToast.variant === 'info' && 'border-violet-400/35 bg-violet-400/10 text-violet-100',
+              )}
+            >
+              <button
+                type="button"
+                aria-label="Dismiss notification"
+                onClick={() => window.dispatchEvent(new Event('trade-form-card-toast-dismiss'))}
+                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/80 transition-colors hover:bg-muted/40 hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <p className="text-sm font-display font-semibold tracking-wide">{cardToast.title}</p>
+              {cardToast.description && (
+                <p className="mt-1 text-xs font-display font-medium text-muted-foreground">{cardToast.description}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Dot pattern - only show when glass is enabled */}
         {isGlassEnabled && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
