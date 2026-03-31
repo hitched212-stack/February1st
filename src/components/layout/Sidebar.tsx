@@ -177,9 +177,8 @@ export function Sidebar({
   const { settings } = useSettings();
   const { preferences, setTheme } = usePreferences();
   const isGlassEnabled = preferences.liquidGlassEnabled ?? false;
-  const activeNavClass = "text-[#b8a7ff] bg-[linear-gradient(135deg,rgba(155,140,255,0.2),rgba(88,74,181,0.28))] border border-[#9b8cff]/40";
-  const activeIndicatorClass = "bg-[#9b8cff]";
-  const navHoverClass = "text-foreground/90 hover:text-foreground hover:bg-[#9b8cff]/10 hover:border-[#9b8cff]/20";
+  const activeNavClass = "text-violet-600 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/15 border border-violet-300 dark:border-violet-400/20";
+  const activeIndicatorClass = "bg-violet-600 dark:bg-violet-400";
   const [isCollapsedState, setIsCollapsedState] = useState(false);
   const isCollapsed = controlledCollapsed ?? isCollapsedState;
   const setIsCollapsed = setControlledCollapsed ?? setIsCollapsedState;
@@ -268,8 +267,8 @@ export function Sidebar({
       className={cn(
         "hidden md:flex flex-col fixed top-4 left-4 z-40 rounded-[2rem] overflow-hidden border shadow-[0_24px_80px_-40px_rgba(0,0,0,0.7)]",
         isGlassEnabled
-          ? "bg-[linear-gradient(165deg,rgba(14,15,28,0.9),rgba(7,8,16,0.78))] backdrop-blur-2xl border-[#9b8cff]/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-          : "bg-[linear-gradient(165deg,hsl(var(--sidebar)),color-mix(in oklab,hsl(var(--sidebar))_82%,#1b1630_18%))] border-[#9b8cff]/10"
+          ? "bg-sidebar/85 backdrop-blur-2xl border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+          : "bg-sidebar border-border/60"
       )}
       style={{ height: "calc(100vh - 32px)" }}
       initial={false}
@@ -287,10 +286,6 @@ export function Sidebar({
           <rect width="100%" height="100%" fill="url(#sidebar-dots)" />
         </svg>
       )}
-      <div className="pointer-events-none absolute inset-0 rounded-[2rem] shadow-[inset_0_0_0_1px_rgba(155,140,255,0.12),inset_0_0_24px_rgba(155,140,255,0.03)]" />
-      <div className="pointer-events-none absolute inset-y-8 left-0 w-px rounded-full bg-gradient-to-b from-transparent via-[#9b8cff]/22 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-8 right-0 w-px rounded-full bg-gradient-to-b from-transparent via-[#9b8cff]/18 to-transparent" />
-      <div className="pointer-events-none absolute -right-12 -top-14 h-36 w-36 rounded-full bg-[#9b8cff]/8 blur-3xl" />
       {/* Header Logo */}
       <div className="p-3">
         <div className={cn(
@@ -318,7 +313,7 @@ export function Sidebar({
         <button
           onClick={() => setShowAccountDialog(true)}
           className={cn(
-            "flex items-center justify-center gap-2 rounded-2xl border border-[#9b8cff]/35 bg-[linear-gradient(135deg,#8b5cf6,#7c3aed_55%,#6d28d9)] text-white py-2.5 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-sm",
+            "flex items-center justify-center gap-2 rounded-2xl bg-violet-600 text-white py-2.5 transition-all duration-200 hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-sm",
             isCollapsed ? "w-10 h-10 mx-auto p-0" : "w-full px-3",
           )}
         >
@@ -343,7 +338,7 @@ export function Sidebar({
                   "hover:scale-[1.02]",
                   active
                     ? activeNavClass
-                    : navHoverClass,
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -379,7 +374,7 @@ export function Sidebar({
               </NavLink>
             );
           })}
-          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/35" />}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
           {navSections[1].items.map(({ to, icon: Icon, label }) => {
             const active = isActive(to);
             return (
@@ -391,7 +386,7 @@ export function Sidebar({
                   "hover:scale-[1.02]",
                   active
                     ? activeNavClass
-                    : navHoverClass,
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -406,16 +401,14 @@ export function Sidebar({
                   )}
                 </div>
                 {!isCollapsed && (
-                  <>
-                    <span className="relative h-[18px] overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200 flex items-center">
-                      <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
-                        {label}
-                      </span>
-                      <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
-                        {label}
-                      </span>
+                  <span className="relative h-[18px] overflow-hidden whitespace-nowrap flex-1 transition-opacity duration-200 flex items-center">
+                    <span className="block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
                     </span>
-                  </>
+                    <span className="absolute top-[100%] left-0 block text-[11px] font-bold uppercase tracking-widest transition-all duration-500 group-hover:translate-y-[-100%]">
+                      {label}
+                    </span>
+                  </span>
                 )}
                 {active && !isCollapsed && (
                   <motion.div
@@ -429,7 +422,7 @@ export function Sidebar({
               </NavLink>
             );
           })}
-          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/35" />}
+          {!isCollapsed && <div className="my-3 mx-2 h-px bg-border/50" />}
           {parametersItems.map(({ to, icon: Icon, label }) => {
             const active = isActive(to);
             return (
@@ -441,7 +434,7 @@ export function Sidebar({
                   "hover:scale-[1.02]",
                   active
                     ? activeNavClass
-                    : navHoverClass,
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -481,7 +474,7 @@ export function Sidebar({
       </nav>
 
       {/* User Profile & Collapse */}
-      <div className="p-3 border-t border-border/40 dark:border-border/20 space-y-2">
+      <div className="p-3 border-t border-border/60 dark:border-border/20 space-y-2">
         {/* Report Bug */}
         <div>
           <button
@@ -491,7 +484,7 @@ export function Sidebar({
             className={cn(
               "group relative flex items-center gap-3 px-2 py-2 rounded-xl border border-transparent transition-all duration-200 ease-out w-full text-left",
               "hover:scale-[1.02]",
-              navHoverClass,
+              "text-muted-foreground hover:text-foreground hover:bg-muted/50",
               isCollapsed ? "justify-center" : "",
             )}
           >
@@ -529,7 +522,7 @@ export function Sidebar({
               "hover:scale-[1.02]",
               isActive("/settings")
                 ? activeNavClass
-                : navHoverClass,
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
               isCollapsed ? "justify-center" : "",
             )}
           >
@@ -572,7 +565,7 @@ export function Sidebar({
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
-                "flex items-center gap-3 p-2 rounded-lg hover:bg-[#9b8cff]/10 transition-colors w-full text-left",
+                "flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors w-full text-left",
                 isCollapsed && "justify-center p-2",
               )}
             >
@@ -698,7 +691,7 @@ export function Sidebar({
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            "flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#9b8cff]/10 transition-all duration-200 border border-transparent hover:border-[#9b8cff]/20",
+            "flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200",
             isCollapsed && "mx-auto",
           )}
         >
